@@ -1,0 +1,5 @@
+RDS_DB_NAME=printqueue
+RDS_HOST=db
+RDS_PORT=5432
+RDS_USERNAME=iforge
+RDS_PASSWORD=password123
