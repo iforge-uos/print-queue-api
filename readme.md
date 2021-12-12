@@ -9,5 +9,6 @@ This is a "simple" application that will provide an endpoint for the print queue
 - Flask-sqlalchemy
 - Flask-RESTful
 - JSONify
+- python-dotenv
 
 ## Endpoints

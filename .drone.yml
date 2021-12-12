@@ -13,10 +13,11 @@ steps:
       icon_url: ${DRONE_COMMIT_AUTHOR_AVATAR}
       template: >
         {{repo.name}}/{{build.branch}} - Started #{{build.number}} "${DRONE_COMMIT_MESSAGE}" by ${DRONE_COMMIT_AUTHOR} (${DRONE_COMMIT_AUTHOR_EMAIL}) (<{{build.link}}|Open>)
-  - name: deploy
-    image: devforth/drone-builder
+
+  - name: test
+    image: compose:1.23.2
     commands:
-      - cd deploy && /bin/bash build.sh
+      - up -f /drone/src/docker-compose.yaml
   - name: slack-end
     image: plugins/slack
     settings:
