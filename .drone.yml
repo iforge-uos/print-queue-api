@@ -1,8 +1,7 @@
 kind: pipeline
 name: deploy
 type: docker
-concurrency:
-  limit: 1
+
 steps:
   - name: slack-begin
     image: plugins/slack
