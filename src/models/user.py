@@ -1,4 +1,6 @@
 from flask import Flask
+from marshmallow import fields, Schema
+from marshmallow.schema import SchemaOpts
 from . import db
 
 
@@ -55,3 +57,16 @@ class user(db.Model):
             return "<User: %r>" % self.name
         else:
             return "<User: %r>" % self.short_name
+
+class user_schema(Schema):
+    """
+    User Schema
+    """
+    id = fields.Int(dump_only=True)
+    name = fields.String(required=True)
+    email = fields.String(required=True)
+    social_credit_score = fields.Int(required=True)
+    user_level = fields.String(required=True)
+    is_rep = fields.Boolean(dump_only=True)
+    score_editable = fields.Boolean(required=True)
+    short_name = fields.String(required=False)

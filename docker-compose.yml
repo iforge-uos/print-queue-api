@@ -11,16 +11,4 @@ services:
       - "5000:5000"
     volumes:
       - ".:/src/"
-    command: bash -c "python ./src/app.py"
-  db:
-    image: postgres:latest
-    restart: always
-    volumes:
-      - "postgres:/var/lib/postgresql/data"
-    ports:
-      - 5432:5432
-    env_file:
-      - .env
-
-volumes:
-  postgres: null
+    command: bash -c "python app.py"

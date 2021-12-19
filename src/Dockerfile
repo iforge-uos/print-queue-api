@@ -3,14 +3,12 @@ FROM python:latest
 ENV PYTHONUNBUFFERED 1
 ARG ENV=dev
 
-ADD . /src
-WORKDIR /src
-
+ADD . /app
+WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-
-# Expose the application on port 8000
+# Expose the application on port 5000
 EXPOSE 5000
 # Run test server
-CMD python app.py
+CMD ["flask", "run", "--host", "0.0.0.0"]

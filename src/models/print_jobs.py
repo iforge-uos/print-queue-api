@@ -2,8 +2,8 @@ import enum
 from flask import Flask
 from . import db
 from sqlalchemy.sql import func
-from print_api_server.models.user import user
-from print_api_server.models.printers import printer
+from src.models.user import user
+from src.models.printers import printer
 
 
 class job_status(enum.Enum):

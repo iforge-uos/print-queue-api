@@ -1,6 +1,6 @@
 from flask import Flask
 from . import db
-from print_api_server.models.printers import printer
+from src.models.printers import printer
 from sqlalchemy.sql import func
 
 
