@@ -3,8 +3,8 @@ FROM python:latest
 ENV PYTHONUNBUFFERED 1
 ARG ENV=dev
 
-ADD . /print_api_server
-WORKDIR /print_api_server
+ADD . /src
+WORKDIR /src
 
 
 RUN pip install -r requirements.txt

@@ -3,15 +3,15 @@ version: '3'
 services:
 
   app:
-    build: ./print_api_server
+    build: ./src
     restart: "always"
     env_file:
-      - ./print_api_server/.env
+      - .env
     ports:
       - "5000:5000"
     volumes:
-      - ".:/print_api_server/"
-    command: bash -c "python ./print_api_server/app.py"
+      - ".:/src/"
+    command: bash -c "python ./src/app.py"
   db:
     image: postgres:latest
     restart: always
