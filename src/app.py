@@ -4,24 +4,23 @@ from flask_restful import Api, Resource, url_for
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 from models import db
+from config import app_config
+
+# Resources
 from resources.user_route import user_api as user_blueprint
 
+load_dotenv("./.env")
 
-# Loading db config
-load_dotenv()
-username = os.getenv('DB_USERNAME')
-password = os.getenv('DB_PASSWORD')
-server_name = os.getenv('DB_HOST')
-server_port = os.getenv('DB_PORT')
-db_name = os.getenv('DB_NAME')
+env_name = os.getenv('FLASK_ENV')
+port = os.getenv('PORT')
+
 
 app = Flask(__name__)
 api_bp = Blueprint('api', __name__)
 api = Api(api_bp)
 app.register_blueprint(api_bp)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{username}:{password}@{server_name}:{server_port}/{db_name}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_object(app_config[env_name])
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -39,4 +38,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    app.run(host="0.0.0.0", port=port)
