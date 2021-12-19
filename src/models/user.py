@@ -4,7 +4,7 @@ from marshmallow.schema import SchemaOpts
 from . import db
 
 
-class user(db.Model):
+class user_model(db.Model):
     """
     User Model
     """
@@ -45,12 +45,16 @@ class user(db.Model):
         db.session.commit()
 
     @staticmethod
+    def get_user_by_email(value):
+        return user_model.query.filter_by(email=value).first()
+
+    @staticmethod
     def get_all_users():
-        return user.query.all()
+        return user_model.query.all()
 
     @staticmethod
     def get_one_user(id):
-        return user.query.get(id)
+        return user_model.query.get(id)
 
     def __repr__(self):
         if self.short_name is None:
@@ -67,6 +71,6 @@ class user_schema(Schema):
     email = fields.String(required=True)
     social_credit_score = fields.Int(required=True)
     user_level = fields.String(required=True)
-    is_rep = fields.Boolean(dump_only=True)
+    is_rep = fields.Boolean(required=True)
     score_editable = fields.Boolean(required=True)
     short_name = fields.String(required=False)
