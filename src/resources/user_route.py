@@ -26,7 +26,6 @@ def update_by_id(user_id):
     return update_user_details(user, req_data)
 
 
-
 @user_api.route('/update/<string:user_email>', methods=['PUT'])
 def update_by_email(user_email):
     """
@@ -35,6 +34,7 @@ def update_by_email(user_email):
     req_data = request.get_json()
     user = user_model.get_user_by_email(user_email)
     return update_user_details(user, req_data)
+
 
 @user_api.route('/view/<int:user_id>', methods=['GET'])
 def view_by_id(user_id):
@@ -98,11 +98,13 @@ def create():
     user.save()
     return custom_response({"message": "success"}, 200)
 
+
 def delete_user(user):
     if not user:
         return custom_response({'error': NOTFOUNDUSER}, 404)
     user.delete()
     return custom_response({'message': 'deleted'}, 200)
+
 
 def get_user_details(user):
     if not user:
@@ -110,17 +112,19 @@ def get_user_details(user):
     ser_user = user_schema.dump(user)
     return custom_response(ser_user, 200)
 
+
 def update_user_details(user, req_data):
     if not user:
         return custom_response({'error': NOTFOUNDUSER}, 404)
 
     # Check if user score is being changed and level needs to be updated
     if (req_data.get('social_credit_score') is not None):
-        # Check if user score can be changed 
+        # Check if user score can be changed
         if (not user.score_editable):
             req_data['social_credit_score'] = user.social_credit_score
         # Recalculate user level
-        req_data['user_level'] = calculate_level_from_score(req_data.get('social_credit_score'))
+        req_data['user_level'] = calculate_level_from_score(
+            req_data.get('social_credit_score'))
     # Try and load user data to the schema
     try:
         data = user_schema.load(req_data, partial=True)
@@ -132,6 +136,7 @@ def update_user_details(user, req_data):
     user.update(data)
     ser_user = user_schema.dump(user)
     return custom_response(ser_user, 200)
+
 
 def calculate_level_from_score(score):
     level = ""
