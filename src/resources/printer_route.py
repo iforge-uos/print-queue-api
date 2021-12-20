@@ -157,8 +157,7 @@ def increment_printer_details(printer, req_data):
 
     # Iterate over both dictionaries and increment the printer values by the request values
     incremented_items = {}
-    for (p_key, p_value), (i_key, i_value) in zip(printer_values.items(), request_dict.items()):
-        print(p_value, i_value)
+    for (_, p_value), (i_key, i_value) in zip(printer_values.items(), request_dict.items()):
         if p_value is None:
             p_value = i_value
         else:
