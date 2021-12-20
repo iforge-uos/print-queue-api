@@ -1,5 +1,5 @@
 import os
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, Response
 from flask_restful import Api, Resource, url_for
 from flask_migrate import Migrate
 from dotenv import load_dotenv
@@ -34,7 +34,21 @@ def index():
     '''
     Test Endpoint
     '''
-    return "You did good son"
+    return Response(
+        mimetype="application/text",
+        response="sweet cheeks",
+        status=418
+    )
+@app.route('/government-secrets', methods=["GET"])
+def index_2():
+    '''
+    Test Endpoint
+    '''
+    return Response(
+        mimetype="application/text",
+        response="uh oh",
+        status=451
+    )
 
 
 if __name__ == '__main__':
