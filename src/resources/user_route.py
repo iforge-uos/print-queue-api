@@ -16,6 +16,26 @@ user_level_struct = {
 NOTFOUNDUSER = "user not found"
 
 
+@user_api.route('/update/<int:user_id>', methods=['PUT'])
+def update_by_id(user_id):
+    """
+    Updates a single user via their user ID
+    """
+    req_data = request.get_json()
+    user = user_model.get_user_by_id(user_id)
+    return update_user_details(user, req_data)
+
+
+
+@user_api.route('/update/<string:user_email>', methods=['PUT'])
+def update_by_email(user_email):
+    """
+    Updates a single user via their user email
+    """
+    req_data = request.get_json()
+    user = user_model.get_user_by_email(user_email)
+    return update_user_details(user, req_data)
+
 @user_api.route('/view/<int:user_id>', methods=['GET'])
 def view_by_id(user_id):
     """
@@ -87,6 +107,29 @@ def delete_user(user):
 def get_user_details(user):
     if not user:
         return custom_response({'error': NOTFOUNDUSER}, 404)
+    ser_user = user_schema.dump(user)
+    return custom_response(ser_user, 200)
+
+def update_user_details(user, req_data):
+    if not user:
+        return custom_response({'error': NOTFOUNDUSER}, 404)
+
+    # Check if user score is being changed and level needs to be updated
+    if (req_data.get('social_credit_score') is not None):
+        # Check if user score can be changed 
+        if (not user.score_editable):
+            req_data['social_credit_score'] = user.social_credit_score
+        # Recalculate user level
+        req_data['user_level'] = calculate_level_from_score(req_data.get('social_credit_score'))
+    # Try and load user data to the schema
+    try:
+        data = user_schema.load(req_data, partial=True)
+    except ValidationError as err:
+        # => {"email": ['"foo" is not a valid email address.']}
+        print(err.messages)
+        print(err.valid_data)  # => {"name": "John"}
+        return custom_response(err.messages, 400)
+    user.update(data)
     ser_user = user_schema.dump(user)
     return custom_response(ser_user, 200)
 
