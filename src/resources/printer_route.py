@@ -18,6 +18,32 @@ def update_by_id(printer_id):
     printer = printer_model.get_printer_by_id(printer_id)
     return update_printer_details(printer, req_data)
 
+@printer_api.route('/update/<string:printer_name>', methods=['PUT'])
+def update_by_name(printer_name):
+    """
+    Updates a single printer by its name
+    """
+    req_data = request.get_json()
+    printer = printer_model.get_printer_by_name(printer_name)
+    return update_printer_details(printer, req_data)
+
+@printer_api.route('/increment/<int:printer_id>', methods=['PUT'])
+def increment_by_id(printer_id):
+    """
+    Updates a single printer by its ID
+    """
+    req_data = request.get_json()
+    printer = printer_model.get_printer_by_id(printer_id)
+    return increment_printer_details(printer, req_data)
+
+@printer_api.route('/update/<string:printer_name>', methods=['PUT'])
+def increment_by_name(printer_name):
+    """
+    Updates a single printer by its name
+    """
+    req_data = request.get_json()
+    printer = printer_model.get_printer_by_name(printer_name)
+    return increment_printer_details(printer, req_data)
 
 @printer_api.route('/view/<int:printer_id>', methods=['GET'])
 def view_by_id(printer_id):
@@ -26,6 +52,12 @@ def view_by_id(printer_id):
     """
     return get_printer_details(printer_model.get_printer_by_id(printer_id))
 
+@printer_api.route('/view/<string:printer_name>', methods=['GET'])
+def view_by_name(printer_name):
+    """
+    Get a single printer by its name
+    """
+    return get_printer_details(printer_model.get_printer_by_name(printer_name))
 
 @printer_api.route('/delete/<int:printer_id>', methods=['DELETE'])
 def delete_by_id(printer_id):
@@ -33,6 +65,13 @@ def delete_by_id(printer_id):
     Delete a single printer by its ID
     """
     return delete_printer(printer_model.get_printer_by_id(printer_id))
+
+@printer_api.route('/delete/<string:printer_name>', methods=['DELETE'])
+def delete_by_name(printer_name):
+    """
+    Delete a single printer by its ID
+    """
+    return delete_printer(printer_model.get_printer_by_name(printer_name))
 
 
 @printer_api.route('/add', methods=['POST'])
@@ -91,3 +130,18 @@ def update_printer_details(printer, req_data):
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
     return custom_response(ser_printer, 200)
+
+def increment_printer_details(printer, req_data):
+    # TODO LOAD ALL PRINTER DETAILS THAT GET INCREMENTED THEN INCREMENT THEM BY EACH VALUE
+    if not printer:
+        return custom_response({'error': NOTFOUNDPRINTER}, 404)
+
+    # Try and load printer data to the schema
+    try:
+        data = printer_schema.load(req_data, partial=True)
+    except ValidationError as err:
+        # => {"email": ['"foo" is not a valid email address.']}
+        print(err.messages)
+        print(err.valid_data)  # => {"name": "John"}
+        return custom_response(err.messages, 400)
+    pass

@@ -15,7 +15,7 @@ class printer_model (db.Model):
     """
     __tablename__ = 'printers'
     id = db.Column(db.Integer, primary_key=True)
-    printer_name = db.Column(db.String(50), nullable=False)
+    printer_name = db.Column(db.String(50), nullable=False, unique=True)
     printer_type = db.Column(db.Enum(printer_type), nullable=False)
     ip = db.Column(db.String(15), nullable=True)
     api_key = db.Column(db.String(50), nullable=True)
