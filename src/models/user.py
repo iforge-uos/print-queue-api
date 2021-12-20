@@ -1,6 +1,4 @@
-from flask import Flask
 from marshmallow import fields, Schema
-from marshmallow.schema import SchemaOpts
 from . import db
 
 
@@ -46,16 +44,16 @@ class user_model(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_user_by_email(value):
-        return user_model.query.filter_by(email=value).first()
-
-    @staticmethod
     def get_all_users():
         return user_model.query.all()
 
     @staticmethod
     def get_user_by_id(id):
         return user_model.query.get(id)
+
+    @staticmethod
+    def get_user_by_email(value):
+        return user_model.query.filter_by(email=value).first()
 
     def __repr__(self):
         if self.short_name is None:
