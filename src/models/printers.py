@@ -1,5 +1,6 @@
 from marshmallow import fields, Schema
 from marshmallow_enum import EnumField
+from sqlalchemy import inspect
 from . import db
 import enum
 
@@ -19,7 +20,7 @@ class printer_model (db.Model):
     printer_type = db.Column(db.Enum(printer_type), nullable=False)
     ip = db.Column(db.String(15), nullable=True)
     api_key = db.Column(db.String(50), nullable=True)
-    total_timed_printed = db.Column(db.Integer(), nullable=True)
+    total_time_printed = db.Column(db.Integer(), nullable=True)
     completed_prints = db.Column(db.Integer(), nullable=True)
     failed_prints = db.Column(db.Integer(), nullable=True)
     total_filament_used = db.Column(db.Integer(), nullable=True)
@@ -35,7 +36,7 @@ class printer_model (db.Model):
         self.printer_type = data.get('printer_type')
         self.ip = data.get('ip') or None
         self.api_key = data.get('api_key') or None
-        self.total_timed_printed = data.get('total_timed_printed')
+        self.total_time_printed = data.get('total_timed_printed')
         self.completed_prints = data.get('completed_prints')
         self.failed_prints = data.get('failed_prints')
         self.total_filament_used = data.get('total_filament_used')
@@ -54,6 +55,9 @@ class printer_model (db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def get_model_dict(self):
+        return self.__dict__
+    
     @staticmethod
     def get_all_printers():
         return printer_model.query.all()

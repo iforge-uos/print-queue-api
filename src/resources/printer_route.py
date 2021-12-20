@@ -2,6 +2,7 @@ from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
 from models.printers import printer_model, printer_schema
 from common.routing import custom_response
+from operator import itemgetter
 
 printer_api = Blueprint('printers', __name__)
 printer_schema = printer_schema()
@@ -18,6 +19,7 @@ def update_by_id(printer_id):
     printer = printer_model.get_printer_by_id(printer_id)
     return update_printer_details(printer, req_data)
 
+
 @printer_api.route('/update/<string:printer_name>', methods=['PUT'])
 def update_by_name(printer_name):
     """
@@ -26,6 +28,7 @@ def update_by_name(printer_name):
     req_data = request.get_json()
     printer = printer_model.get_printer_by_name(printer_name)
     return update_printer_details(printer, req_data)
+
 
 @printer_api.route('/increment/<int:printer_id>', methods=['PUT'])
 def increment_by_id(printer_id):
@@ -36,7 +39,8 @@ def increment_by_id(printer_id):
     printer = printer_model.get_printer_by_id(printer_id)
     return increment_printer_details(printer, req_data)
 
-@printer_api.route('/update/<string:printer_name>', methods=['PUT'])
+
+@printer_api.route('/increment/<string:printer_name>', methods=['PUT'])
 def increment_by_name(printer_name):
     """
     Updates a single printer by its name
@@ -45,12 +49,14 @@ def increment_by_name(printer_name):
     printer = printer_model.get_printer_by_name(printer_name)
     return increment_printer_details(printer, req_data)
 
+
 @printer_api.route('/view/<int:printer_id>', methods=['GET'])
 def view_by_id(printer_id):
     """
     Get a single printer by its ID
     """
     return get_printer_details(printer_model.get_printer_by_id(printer_id))
+
 
 @printer_api.route('/view/<string:printer_name>', methods=['GET'])
 def view_by_name(printer_name):
@@ -59,12 +65,14 @@ def view_by_name(printer_name):
     """
     return get_printer_details(printer_model.get_printer_by_name(printer_name))
 
+
 @printer_api.route('/delete/<int:printer_id>', methods=['DELETE'])
 def delete_by_id(printer_id):
     """
     Delete a single printer by its ID
     """
     return delete_printer(printer_model.get_printer_by_id(printer_id))
+
 
 @printer_api.route('/delete/<string:printer_name>', methods=['DELETE'])
 def delete_by_name(printer_name):
@@ -131,17 +139,39 @@ def update_printer_details(printer, req_data):
     ser_printer = printer_schema.dump(printer)
     return custom_response(ser_printer, 200)
 
+
 def increment_printer_details(printer, req_data):
-    # TODO LOAD ALL PRINTER DETAILS THAT GET INCREMENTED THEN INCREMENT THEM BY EACH VALUE
+    allowed_keys = ("total_time_printed", "completed_prints",
+                    "failed_prints", "total_filament_used", "days_on_time")
     if not printer:
         return custom_response({'error': NOTFOUNDPRINTER}, 404)
 
+    # Calculating what data to fetch from printer model
+    request_dict = {k: req_data[k]
+                    for k in allowed_keys if k in req_data}
+
+    # Removing non incrementable values from the printer dict using the keys to be incremented from the request
+    printer_data = printer.get_model_dict()
+    printer_values = {k: printer_data[k]
+                      for k in request_dict.keys() if k in printer_data}
+
+    # Iterate over both dictionaries and increment the printer values by the request values
+    incremented_items = {}
+    for (p_key, p_value), (i_key, i_value) in zip(printer_values.items(), request_dict.items()):
+        print(p_value, i_value)
+        if p_value is None:
+            p_value = i_value
+        else:
+            p_value += i_value
+        incremented_items[i_key] = p_value
     # Try and load printer data to the schema
     try:
-        data = printer_schema.load(req_data, partial=True)
+        data = printer_schema.load(incremented_items, partial=True)
     except ValidationError as err:
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
         return custom_response(err.messages, 400)
-    pass
+    printer.update(data)
+    ser_printer = printer_schema.dump(printer)
+    return custom_response(ser_printer, 200)
