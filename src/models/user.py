@@ -54,7 +54,7 @@ class user_model(db.Model):
         return user_model.query.all()
 
     @staticmethod
-    def get_one_user(id):
+    def get_user_by_id(id):
         return user_model.query.get(id)
 
     def __repr__(self):

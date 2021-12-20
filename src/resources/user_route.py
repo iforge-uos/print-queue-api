@@ -1,6 +1,7 @@
-from flask import request, json, Response, Blueprint
+from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
 from models.user import user_model, user_schema
+from common.routing import custom_response
 
 user_api = Blueprint('users', __name__)
 user_schema = user_schema()
@@ -20,12 +21,7 @@ def view_by_id(user_id):
     """
     Get a single user via their user ID
     """
-    user = user_model.get_one_user(user_id)
-    if not user:
-        return custom_response({'error': NOTFOUNDUSER}, 404)
-
-    ser_user = user_schema.dump(user)
-    return custom_response(ser_user, 200)
+    return get_user_details(user_model.get_user_by_id(user_id))
 
 
 @user_api.route('/view/<string:user_email>', methods=['GET'])
@@ -33,12 +29,7 @@ def view_by_email(user_email):
     """
     Get a single user via their user email
     """
-    user = user_model.get_user_by_email(user_email)
-    if not user:
-        return custom_response({'error': NOTFOUNDUSER}, 404)
-
-    ser_user = user_schema.dump(user)
-    return custom_response(ser_user, 200)
+    return get_user_details(user_model.get_user_by_email(user_email))
 
 
 @user_api.route('/delete/<int:user_id>', methods=['DELETE'])
@@ -46,11 +37,7 @@ def delete_by_id(user_id):
     """
     Delete a single user via their user id
     """
-    user = user_model.get_one_user(user_id)
-    if not user:
-        return custom_response({'error': NOTFOUNDUSER}, 404)
-    user.delete()
-    return custom_response({'message': 'deleted'}, 200)
+    return delete_user(user_model.get_user_by_id(user_id))
 
 
 @user_api.route('/delete/<string:user_email>', methods=['DELETE'])
@@ -58,11 +45,7 @@ def delete_by_email(user_email):
     """
     Delete a single user via their user email
     """
-    user = user_model.get_user_by_email(user_email)
-    if not user:
-        return custom_response({'error': NOTFOUNDUSER}, 404)
-    user.delete()
-    return custom_response({'message': 'deleted'}, 200)
+    return delete_user(user_model.get_user_by_email(user_email))
 
 
 @user_api.route('/add', methods=['POST'])
@@ -95,17 +78,17 @@ def create():
     user.save()
     return custom_response({"message": "success"}, 200)
 
+def delete_user(user):
+    if not user:
+        return custom_response({'error': NOTFOUNDUSER}, 404)
+    user.delete()
+    return custom_response({'message': 'deleted'}, 200)
 
-def custom_response(res, status_code):
-    """
-    Custom Response Function
-    """
-    return Response(
-        mimetype="application/json",
-        response=json.dumps(res),
-        status=status_code
-    )
-
+def get_user_details(user):
+    if not user:
+        return custom_response({'error': NOTFOUNDUSER}, 404)
+    ser_user = user_schema.dump(user)
+    return custom_response(ser_user, 200)
 
 def calculate_level_from_score(score):
     level = ""
