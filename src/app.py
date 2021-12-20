@@ -39,6 +39,8 @@ def index():
         response="sweet cheeks",
         status=418
     )
+
+
 @app.route('/government-secrets', methods=["GET"])
 def index_2():
     '''

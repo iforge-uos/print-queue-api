@@ -12,6 +12,8 @@ user_level_struct = {
     50: "Insane"
 }
 
+NOTFOUNDUSER = "user not found"
+
 
 @user_api.route('/view/<int:user_id>', methods=['GET'])
 def view_by_id(user_id):
@@ -20,7 +22,7 @@ def view_by_id(user_id):
     """
     user = user_model.get_one_user(user_id)
     if not user:
-        return custom_response({'error': 'user not found'}, 404)
+        return custom_response({'error': NOTFOUNDUSER}, 404)
 
     ser_user = user_schema.dump(user)
     return custom_response(ser_user, 200)
@@ -33,7 +35,7 @@ def view_by_email(user_email):
     """
     user = user_model.get_user_by_email(user_email)
     if not user:
-        return custom_response({'error': 'user not found'}, 404)
+        return custom_response({'error': NOTFOUNDUSER}, 404)
 
     ser_user = user_schema.dump(user)
     return custom_response(ser_user, 200)
@@ -46,9 +48,9 @@ def delete_by_id(user_id):
     """
     user = user_model.get_one_user(user_id)
     if not user:
-        return custom_response({'error': 'user not found'}, 404)
+        return custom_response({'error': NOTFOUNDUSER}, 404)
     user.delete()
-    return custom_response({'message': 'deleted'}, 204)
+    return custom_response({'message': 'deleted'}, 200)
 
 
 @user_api.route('/delete/<string:user_email>', methods=['DELETE'])
@@ -58,9 +60,9 @@ def delete_by_email(user_email):
     """
     user = user_model.get_user_by_email(user_email)
     if not user:
-        return custom_response({'error': 'user not found'}, 404)
+        return custom_response({'error': NOTFOUNDUSER}, 404)
     user.delete()
-    return custom_response({'message': 'deleted'}, 204)
+    return custom_response({'message': 'deleted'}, 200)
 
 
 @user_api.route('/add', methods=['POST'])
@@ -69,7 +71,6 @@ def create():
     Create User Function
     """
     req_data = request.get_json()
-    print(req_data)
 
     # Calculate the user level from score
     req_data['user_level'] = calculate_level_from_score(
@@ -92,7 +93,7 @@ def create():
 
     user = user_model(data)
     user.save()
-    return custom_response("Success", 200)
+    return custom_response({"message": "success"}, 200)
 
 
 def custom_response(res, status_code):

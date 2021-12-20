@@ -23,12 +23,13 @@ class user_model(db.Model):
         """
         Class constructor
         """
+        print(data)
         self.name = data.get('name')
         self.email = data.get('email')
-        self.social_credit_score = data.get('social_credit_score') or 0
+        self.social_credit_score = data.get('social_credit_score')
         self.user_level = data.get('user_level') or "Beginner"
-        self.is_rep = data.get('rep_status') or False
-        self.score_editable = data.get('score_editable') or True
+        self.is_rep = data.get('is_rep')
+        self.score_editable = data.get('score_editable')
         self.short_name = data.get('short_name') or None
 
     def save(self):
