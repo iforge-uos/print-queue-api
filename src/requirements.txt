@@ -9,3 +9,4 @@ pycodestyle>=2.8.0
 python-dotenv>=0.19.2
 SQLAlchemy>=1.4.28
 toml>=0.10.2
+marshmallow-enum>=1.5.1

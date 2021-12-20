@@ -8,6 +8,9 @@ from config import app_config
 
 # Resources
 from resources.user_route import user_api as user_blueprint
+from resources.printer_route import printer_api as printer_blueprint
+
+API_PREFIX = "/api/v1"
 
 load_dotenv("./.env")
 
@@ -26,8 +29,8 @@ db.init_app(app)
 migrate = Migrate(app, db)
 
 
-app.register_blueprint(user_blueprint, url_prefix='/api/v1/users')
-
+app.register_blueprint(user_blueprint, url_prefix=f'{API_PREFIX}/users')
+app.register_blueprint(printer_blueprint, url_prefix=f'{API_PREFIX}/printers')
 
 @app.route('/', methods=["GET"])
 def index():
