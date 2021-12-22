@@ -1,6 +1,5 @@
 from marshmallow import fields, Schema
 from marshmallow_enum import EnumField
-from sqlalchemy import inspect
 from . import db
 import enum
 

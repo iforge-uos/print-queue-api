@@ -1,6 +1,6 @@
 import os
 from flask import Flask, Blueprint, Response
-from flask_restful import Api, Resource, url_for
+from flask_restful import Api
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 from models import db
@@ -9,10 +9,11 @@ from config import app_config
 # Resources
 from resources.user_route import user_api as user_blueprint
 from resources.printer_route import printer_api as printer_blueprint
+from resources.maintenance_route import maintenance_api as maintenance_blueprint
 
 API_PREFIX = "/api/v1"
 
-load_dotenv("./.env")
+load_dotenv("../.env")
 
 env_name = os.getenv('FLASK_ENV')
 port = os.getenv('PORT')
@@ -31,6 +32,7 @@ migrate = Migrate(app, db)
 
 app.register_blueprint(user_blueprint, url_prefix=f'{API_PREFIX}/users')
 app.register_blueprint(printer_blueprint, url_prefix=f'{API_PREFIX}/printers')
+app.register_blueprint(maintenance_blueprint, url_prefix=f'{API_PREFIX}/maintenance')
 
 @app.route('/', methods=["GET"])
 def index():
