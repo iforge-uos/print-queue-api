@@ -11,7 +11,7 @@ class maintenance_model (db.Model):
     __tablename__ = 'maintenance_logs'
     id = db.Column(db.Integer, primary_key = True)
     printer_id = db.Column(db.Integer, db.ForeignKey(printer_model.id), nullable=False)
-    maintenance_date = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    maintenance_date = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     maintenance_info = db.Column(db.String, nullable=False)
 
     # class constructor
