@@ -65,14 +65,12 @@ def create():
 
     # Check if printer_id exists
     printer_id = req_data['printer_id']
-    print(printer_id)
     if (printer_model.get_printer_by_id(printer_id) is None):
         return custom_response({"error" : "Printer is not found"}, 404)
 
     # Try and load the data into the model
     try:
         data = maintenance_schema.load(req_data)
-        print(data)
     except ValidationError as err:
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
@@ -80,7 +78,6 @@ def create():
         return custom_response(err.messages, 400)
 
     log = maintenance_model(data)
-    print(log)
     log.save()
     return custom_response({"message": "success"}, 200)
 
