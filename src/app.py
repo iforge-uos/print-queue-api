@@ -10,6 +10,7 @@ from config import app_config
 from resources.user_route import user_api as user_blueprint
 from resources.printer_route import printer_api as printer_blueprint
 from resources.maintenance_route import maintenance_api as maintenance_blueprint
+from resources.print_job_route import print_job_api as printjobs_blueprint
 
 API_PREFIX = "/api/v1"
 
@@ -33,6 +34,7 @@ migrate = Migrate(app, db)
 app.register_blueprint(user_blueprint, url_prefix=f'{API_PREFIX}/users')
 app.register_blueprint(printer_blueprint, url_prefix=f'{API_PREFIX}/printers')
 app.register_blueprint(maintenance_blueprint, url_prefix=f'{API_PREFIX}/maintenance')
+app.register_blueprint(printjobs_blueprint, url_prefix=f'{API_PREFIX}/queue')
 
 @app.route('/', methods=["GET"])
 def index():

@@ -1,11 +1,10 @@
 import enum
-from typing_extensions import Required
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
 from . import db
 from sqlalchemy.sql import func
-from src.models.user import user
-from src.models.printers import printer
+from models.user import user_model
+from models.printers import printer_model, printer_type
 
 
 class job_status(enum.Enum):
@@ -21,8 +20,8 @@ class job_status(enum.Enum):
 
 class project_types(enum.Enum):
     personal = "Personal"
-    module = "Module :"
-    co_curricular = "Co-curricular: "
+    uni_module = "Module"
+    co_curricular = "Co-curricular"
     other = "Other"
 
 
@@ -33,7 +32,7 @@ class print_job_model (db.Model):
     __tablename__ = 'print_jobs'
     id = db.Column(db.Integer, primary_key=True)
     is_queued = db.Column(db.Boolean, default=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(user.ID))
+    user_id = db.Column(db.Integer, db.ForeignKey(user_model.id))
     print_name = db.Column(db.String(60), nullable=False)
     gcode_slug = db.Column(db.String, nullable=False)
     stl_slug = db.Column(db.String, nullable=True) 
@@ -44,15 +43,16 @@ class print_job_model (db.Model):
     colour = db.Column(db.String, nullable=True)
     upload_notes = db.Column(db.String, nullable=True)
     queue_notes = db.Column(db.String, nullable=True)
-    checked_by = db.Column(db.Integer, db.ForeignKey(user.ID), nullable=True)
-    printer = db.Column(db.Integer, db.ForeignKey(printer.ID), nullable=True)
-    project = db.Column(enum(project_types), nullable=False)
+    checked_by = db.Column(db.Integer, db.ForeignKey(user_model.id), nullable=True)
+    printer = db.Column(db.Integer, db.ForeignKey(printer_model.id), nullable=True)
+    printer_type = db.Column(db.Enum(printer_type), nullable=False)
+    project = db.Column(db.Enum(project_types), nullable=False)
     project_string = db.Column(db.String, nullable=True)
-    status = db.Column(enum(job_status), nullable=False)
+    status = db.Column(db.Enum(job_status), nullable=False)
     # Print time in seconds
     print_time = db.Column(db.Integer, nullable=True)
     # Filament in grams
-    filament = db.Column(db.Integer, nullable=True)
+    filament_usage = db.Column(db.Integer, nullable=True)
 
     # class constructor
     def __init__(self, data):
@@ -60,7 +60,7 @@ class print_job_model (db.Model):
         Class constructor
         """
         # Making it so that approval jobs can be part of the print job model
-        if (data.get("job_status") == job_status.awaiting):
+        if (data.get("status") == job_status.awaiting):
             self.is_queued = False
             self.status = job_status.awaiting
             self.stl_slug = data.get('stl_slug')
@@ -83,12 +83,13 @@ class print_job_model (db.Model):
         self.date_started = None
         self.date_ended = None
         self.colour = None
-        self.upload_notes = data.get('notes')
-        self.checked_by = data.get('rep_id')
+        self.upload_notes = data.get('upload_notes')
+        self.checked_by = data.get('checked_by')
         self.printer = None
         self.project = data.get('project')
         self.print_time = data.get('print_time')
-        self.filament = data.get('filament_used')
+        self.printer_type = data.get('printer_type')
+        self.filament_usage = data.get('filament_used')
 
     def save(self):
         db.session.add(self)
@@ -126,7 +127,7 @@ class print_job_schema(Schema):
     Print Job Schema
     """
     id = fields.Int(dump_only=True)
-    is_queued = fields.Boolean(required=True)
+    is_queued = fields.Boolean(required=False)
     user_id = fields.Int(required=True)
     print_name = fields.String(required=True)
     gcode_slug = fields.String(required=True)
@@ -134,13 +135,14 @@ class print_job_schema(Schema):
     date_added = fields.DateTime()
     date_started = fields.DateTime()
     date_finished = fields.DateTime()
-    colour = fields.String(required=True)
+    colour = fields.String(required=False)
     upload_notes = fields.String(required=False)
     queue_notes = fields.String(required=False)
-    checked_by = fields.Int(required=True)
+    checked_by = fields.Int(required=False)
     printer = fields.Int(required=False)
     project = EnumField(project_types, required=True)
+    printer_type = EnumField(printer_type, required=True)
     project_string = fields.String(required=False)
-    status = EnumField(job_status, required=True)
+    status = EnumField(job_status, required=False)
     print_time = fields.Int(required=False)
-    filament = fields.Int(required=False)
+    filament_usage = fields.Int(required=False)

@@ -25,10 +25,10 @@ class user_model(db.Model):
         self.name = data.get('name')
         self.email = data.get('email')
         self.social_credit_score = data.get('social_credit_score')
-        self.user_level = data.get('user_level') or "Beginner"
+        self.user_level = data.get('user_level')
         self.is_rep = data.get('is_rep')
         self.score_editable = data.get('score_editable')
-        self.short_name = data.get('short_name') or None
+        self.short_name = data.get('short_name')
 
     def save(self):
         db.session.add(self)
