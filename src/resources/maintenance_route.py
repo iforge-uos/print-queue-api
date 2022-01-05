@@ -33,10 +33,12 @@ def view_all_by_printer_name(printer_name):
     """
     Get a single log via its linked printers name
     """
+    # First check if the printer_name is valid
     printer = printer_model.get_printer_by_name(printer_name)
     if (printer is None):
         return custom_response({"error": "Printer not found"}, 404)
 
+    # Then return the jason payload of any logs for that printer
     return get_multiple_log_details(maintenance_model.get_maintenance_logs_by_printer_id(printer.id))
 
 

@@ -9,7 +9,6 @@ from models.printers import printer_model, printer_type
 
 class job_status(enum.Enum):
     queued = "Queued"
-    accepted = "Accepted"
     awaiting = "Awaiting Approval"
     running = "Running"
     complete = "Complete"
@@ -114,7 +113,7 @@ class print_job_model (db.Model):
 
     @staticmethod
     def get_print_jobs_by_status(status):
-        return print_job_model.query.filter_by(status=status).all()
+        return print_job_model.query.filter_by(status=job_status[status]).all()
     
     
     
