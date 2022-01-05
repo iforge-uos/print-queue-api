@@ -27,6 +27,7 @@ def view_single_by_id(log_id):
     """
     return get_log_details(maintenance_model.get_maintenance_log_by_id(log_id))
 
+
 @maintenance_api.route('/view/all/<string:printer_name>', methods=['GET'])
 def view_all_by_printer_name(printer_name):
     """
@@ -34,8 +35,7 @@ def view_all_by_printer_name(printer_name):
     """
     printer = printer_model.get_printer_by_name(printer_name)
     if (printer is None):
-        return custom_response({"error" : "Printer not found"}, 404)
-    
+        return custom_response({"error": "Printer not found"}, 404)
 
     return get_multiple_log_details(maintenance_model.get_maintenance_logs_by_printer_id(printer.id))
 
@@ -66,7 +66,7 @@ def create():
     # Check if printer_id exists
     printer_id = req_data['printer_id']
     if (printer_model.get_printer_by_id(printer_id) is None):
-        return custom_response({"error" : "Printer is not found"}, 404)
+        return custom_response({"error": "Printer is not found"}, 404)
 
     # Try and load the data into the model
     try:
@@ -95,21 +95,23 @@ def get_log_details(log):
     ser_log = maintenance_schema.dump(log)
     return custom_response(ser_log, 200)
 
+
 def get_multiple_log_details(logs):
     if not logs:
-        return custom_response({'error' : NOTFOUNDMAINTENANCE}, 404)
+        return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
     # This is jank af but it works and I can't think of a better way to do this lol
     jason = []
     for log in logs:
         jason.append(maintenance_schema.dump(log))
     return custom_response(jason, 200)
 
+
 def update_log_details(log, req_data):
     if not log:
         return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
 
     # only allow updating log details
-    if not ("maintenance_info" in req_data and  len(req_data) == 1) :
+    if not ("maintenance_info" in req_data and len(req_data) == 1):
         return custom_response({'error': "not allowed"}, 403)
     # Try and load log data to the schema
     try:
