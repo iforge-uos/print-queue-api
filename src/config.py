@@ -11,16 +11,21 @@ mail_server = os.getenv('MAIL_SERVER')
 mail_port = os.getenv('MAIL_PORT')
 mail_username = os.getenv('MAIL_USERNAME')
 mail_password = os.getenv('MAIL_PASSWORD')
-
+mail_default_sender = os.getenv('MAIL_DEFAULT_SENDER')
+port = os.getenv('PORT')
+api_prefix = os.getenv('API_PREFIX')
 
 class Development(object):
     """
     Development environment configuration
     """
+    API_PREFIX = api_prefix
+    PORT = port
     MAIL_SERVER = mail_server
     MAIL_PORT = mail_port
     MAIL_USERNAME = mail_username
     MAIL_PASSWORD = mail_password
+    MAIL_DEFAULT_SENDER = mail_default_sender
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     DEBUG = True
@@ -33,10 +38,13 @@ class Production(object):
     """
     Production environment configurations
     """
+    API_PREFIX = api_prefix
+    PORT = port
     MAIL_SERVER = mail_server
     MAIL_PORT = mail_port
     MAIL_USERNAME = mail_username
     MAIL_PASSWORD = mail_password
+    MAIL_DEFAULT_SENDER = mail_default_sender
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     DEBUG = False
@@ -49,10 +57,13 @@ class Testing(object):
     """
     Development environment configuration
     """
+    API_PREFIX = api_prefix
+    PORT = port 
     MAIL_SERVER = mail_server
     MAIL_PORT = mail_port
     MAIL_USERNAME = mail_username
     MAIL_PASSWORD = mail_password
+    MAIL_DEFAULT_SENDER = mail_default_sender
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     TESTING = True

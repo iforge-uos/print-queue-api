@@ -1,7 +1,10 @@
+from flask import current_app
 from flask_mail import Message
 from models.user import user_model
 from resources.user_route import calculate_level_from_score
-from . import mail
+from common.errors import InternalServerError
+from extensions import mail
+from threading import Thread
 import time
 
 
@@ -56,20 +59,18 @@ def email(user_id, job_name, email_type):
     t = time.localtime()
     cur_time = time.strftime("%H:%M:%S", t)
 
-    try:
-        msg = Message(email_type_struct[email_type][0], sender='sam@mailtrap.io',
-                    recipients=[user_email])
-        msg.body = email_type_struct[email_type][1]%(user_name, job_name, cur_time)
-        mail.send(msg)
-    except Exception as e:
-        print(e)
-        return False
+    msg = Message(email_type_struct[email_type][0],recipients=[user_email])
+    msg.body = email_type_struct[email_type][1]%(user_name, job_name, cur_time)
+
+    app = current_app._get_current_object()
+    # Send email in separate thread to make api run faster
+    Thread(target=send_async_email, args=(app,msg)).start()
+    
     update_user_score(user, type)
     return True
 
 def update_user_score(user, email_type):
     cur_score = user.social_credit_score
-    print(cur_score)
     if email_type == 0:
         new_score = cur_score + 1
     else:
@@ -77,7 +78,15 @@ def update_user_score(user, email_type):
     if new_score < 1:
         new_score = 1
     new_level = calculate_level_from_score(new_score)
+    
     # Load updated data into the user_schema
     data = {"social_credit_score" : new_score, "user_level" : new_level}
-    print(data)
     user.update(data)
+
+
+def send_async_email(app,msg):
+    with app.app_context():
+        try:
+            mail.send(msg)
+        except ConnectionRefusedError:
+            raise InternalServerError("[MAIL SERVER] not working")

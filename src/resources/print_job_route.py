@@ -4,7 +4,7 @@ from models.print_jobs import print_job_model, print_job_schema, project_types, 
 from models.printers import printer_model
 from models.user import user_model
 from common.routing import custom_response
-from common.emails import *
+from common.emails import email
 
 print_job_api = Blueprint('print jobs', __name__)
 print_job_schema = print_job_schema()
