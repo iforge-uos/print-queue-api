@@ -62,7 +62,7 @@ def view_jobs_by_status(status):
     # Sanity check url
     if status not in job_status._member_names_:
         return custom_response({"error": "Status not found"}, 404)
-    # Return a list of json objects that match status query
+    # Return a list of jason objects that match status query
     return get_multiple_job_details(print_job_model.get_print_jobs_by_status(status))
 
 
