@@ -2,6 +2,7 @@ import os
 from flask import Flask, Blueprint, Response
 from flask_restful import Api
 from flask_migrate import Migrate
+from flask_mail import Mail, Message
 from dotenv import load_dotenv
 from models import db
 from config import app_config
@@ -27,6 +28,8 @@ app.register_blueprint(api_bp)
 
 app.config.from_object(app_config[env_name])
 
+mail = Mail(app)
+
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -41,6 +44,9 @@ def index():
     '''
     Test Endpoint
     '''
+    msg = Message('Testing Email', sender =   'sam@mailtrap.io', recipients = ['test@mailtrap.io'])
+    msg.body = "Email has been tested"
+    mail.send(msg)
     return Response(
         mimetype="application/text",
         response="sweet cheeks",
