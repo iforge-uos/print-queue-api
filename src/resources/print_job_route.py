@@ -4,6 +4,7 @@ from models.print_jobs import print_job_model, print_job_schema, project_types, 
 from models.printers import printer_model
 from models.user import user_model
 from common.routing import custom_response
+from common.emails import *
 
 print_job_api = Blueprint('print jobs', __name__)
 print_job_schema = print_job_schema()
@@ -73,24 +74,23 @@ def list_awaiting_jobs():
 
 @print_job_api.route('/approve/accept/<int:job_id>', methods=['PUT'])
 def accept_awaiting_job(job_id):
-
-    job = print_job_model.get_print_jobs_by_id(job_id)
-
-    # Check if job_id exists
-    if job is None:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
-
-    return None
+    job = print_job_model.get_print_job_by_id(job_id)
+    # Check job exists
+    if not job:
+        return custom_response({'error': NOTFOUNDJOB}, 404)
+    return update_job_details(job, {"status" : "queued"})
 
 
 @print_job_api.route('/approve/reject/<int:job_id>', methods=['PUT'])
 def reject_awaiting_job(job_id):
-    # TODO Reject job and email recipient
-    # Check if job_id exists
-    if print_job_model.get_print_job_by_id(job_id) is None:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
-
-    return None
+    job = print_job_model.get_print_job_by_id(job_id)
+    # Check job exists
+    if not job:
+        return custom_response({'error': NOTFOUNDJOB}, 404)
+    result = email(job.user_id, job.print_name, 2)
+    if result == False:
+        return custom_response({'error': 'user_id error'}, 404)
+    return update_job_details(job, {"status" : "rejected"})
 
 
 def check_printer_id(printer_id):
@@ -129,3 +129,16 @@ def get_multiple_job_details(jobs):
     for log in jobs:
         jason.append(print_job_schema.dump(log))
     return custom_response(jason, 200)
+
+def update_job_details(job, req_data):
+    # Try and load Job data to the schema
+    try:
+        data = print_job_schema.load(req_data, partial=True)
+    except ValidationError as err:
+        # => {"email": ['"foo" is not a valid email address.']}
+        print(err.messages)
+        print(err.valid_data)  # => {"name": "John"}
+        return custom_response(err.messages, 400)
+    job.update(data)
+    ser_job = print_job_schema.dump(job)
+    return custom_response(ser_job, 200)
