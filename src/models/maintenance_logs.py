@@ -9,9 +9,11 @@ class maintenance_model (db.Model):
     Maintenance Logs Model
     """
     __tablename__ = 'maintenance_logs'
-    id = db.Column(db.Integer, primary_key = True)
-    printer_id = db.Column(db.Integer, db.ForeignKey(printer_model.id, ondelete="cascade"), nullable=False)
-    maintenance_date = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    id = db.Column(db.Integer, primary_key=True)
+    printer_id = db.Column(db.Integer, db.ForeignKey(
+        printer_model.id, ondelete="cascade"), nullable=False)
+    maintenance_date = db.Column(db.DateTime(
+        timezone=True), server_default=func.now(), onupdate=func.now())
     maintenance_info = db.Column(db.String, nullable=False)
 
     # class constructor
@@ -50,6 +52,7 @@ class maintenance_model (db.Model):
     def __repr__(self):
         return "<Maintennance ID: %r>" % self.id
 
+
 class maintenance_schema(Schema):
     """
     Maintenance Schema
@@ -58,4 +61,3 @@ class maintenance_schema(Schema):
     printer_id = fields.Int(required=True)
     maintenance_date = fields.Date()
     maintenance_info = fields.String(required=True)
-

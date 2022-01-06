@@ -8,7 +8,7 @@ server_name = os.getenv('DB_HOST')
 server_port = os.getenv('DB_PORT')
 db_name = os.getenv('DB_NAME')
 mail_server = os.getenv('MAIL_SERVER')
-mail_port =  os.getenv('MAIL_PORT')
+mail_port = os.getenv('MAIL_PORT')
 mail_username = os.getenv('MAIL_USERNAME')
 mail_password = os.getenv('MAIL_PASSWORD')
 
@@ -25,8 +25,9 @@ class Development(object):
     MAIL_USE_SSL = False
     DEBUG = True
     TESTING = False
-    SQLALCHEMY_TRACK_MODIFICATIONS=False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = f"postgresql://{username}:{password}@{server_name}:{server_port}/{db_name}"
+
 
 class Production(object):
     """
@@ -40,8 +41,9 @@ class Production(object):
     MAIL_USE_SSL = False
     DEBUG = False
     TESTING = False
-    SQLALCHEMY_TRACK_MODIFICATIONS=False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = f"postgresql://{username}:{password}@{server_name}:{server_port}/{db_name}"
+
 
 class Testing(object):
     """
@@ -52,10 +54,11 @@ class Testing(object):
     MAIL_USERNAME = mail_username
     MAIL_PASSWORD = mail_password
     MAIL_USE_TLS = True
-    MAIL_USE_SSL = False   
+    MAIL_USE_SSL = False
     TESTING = True
     SQLALCHEMY_DATABASE_URI = f"postgresql://{username}:{password}@{server_name}:{server_port}/{db_name}"
-    SQLALCHEMY_TRACK_MODIFICATIONS=False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 
 app_config = {
     'development': Development,

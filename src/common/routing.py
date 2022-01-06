@@ -1,5 +1,6 @@
 from flask import Response, json
 
+
 def custom_response(res, status_code):
     """
     Custom Response Function

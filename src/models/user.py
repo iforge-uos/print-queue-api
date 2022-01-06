@@ -61,6 +61,7 @@ class user_model(db.Model):
         else:
             return "<User: %r>" % self.short_name
 
+
 class user_schema(Schema):
     """
     User Schema

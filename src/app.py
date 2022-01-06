@@ -36,15 +36,18 @@ migrate = Migrate(app, db)
 
 app.register_blueprint(user_blueprint, url_prefix=f'{API_PREFIX}/users')
 app.register_blueprint(printer_blueprint, url_prefix=f'{API_PREFIX}/printers')
-app.register_blueprint(maintenance_blueprint, url_prefix=f'{API_PREFIX}/maintenance')
+app.register_blueprint(maintenance_blueprint,
+                       url_prefix=f'{API_PREFIX}/maintenance')
 app.register_blueprint(printjobs_blueprint, url_prefix=f'{API_PREFIX}/queue')
+
 
 @app.route('/', methods=["GET"])
 def index():
     '''
     Test Endpoint
     '''
-    msg = Message('Testing Email', sender =   'sam@mailtrap.io', recipients = ['test@mailtrap.io'])
+    msg = Message('Testing Email', sender='sam@mailtrap.io',
+                  recipients=['test@mailtrap.io'])
     msg.body = "Email has been tested"
     mail.send(msg)
     return Response(

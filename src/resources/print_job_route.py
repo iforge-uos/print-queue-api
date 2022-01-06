@@ -66,6 +66,33 @@ def view_jobs_by_status(status):
     return get_multiple_job_details(print_job_model.get_print_jobs_by_status(status))
 
 
+@print_job_api.route('/approve/list', methods=['GET'])
+def list_awaiting_jobs():
+    return get_multiple_job_details(print_job_model.get_print_jobs_by_status("awaiting"))
+
+
+@print_job_api.route('/approve/accept/<int:job_id>', methods=['PUT'])
+def accept_awaiting_job(job_id):
+
+    job = print_job_model.get_print_jobs_by_id(job_id)
+
+    # Check if job_id exists
+    if job is None:
+        return custom_response({"error": NOTFOUNDJOB}, 404)
+
+    return None
+
+
+@print_job_api.route('/approve/reject/<int:job_id>', methods=['PUT'])
+def reject_awaiting_job(job_id):
+    # TODO Reject job and email recipient
+    # Check if job_id exists
+    if print_job_model.get_print_job_by_id(job_id) is None:
+        return custom_response({"error": NOTFOUNDJOB}, 404)
+
+    return None
+
+
 def check_printer_id(printer_id):
     if (printer_model.get_printer_by_id(printer_id) is None):
         return False

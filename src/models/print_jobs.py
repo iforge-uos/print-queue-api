@@ -34,7 +34,7 @@ class print_job_model (db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey(user_model.id))
     print_name = db.Column(db.String(60), nullable=False)
     gcode_slug = db.Column(db.String, nullable=False)
-    stl_slug = db.Column(db.String, nullable=True) 
+    stl_slug = db.Column(db.String, nullable=True)
     date_added = db.Column(db.DateTime(timezone=True),
                            server_default=func.now())
     date_started = db.Column(db.DateTime(timezone=True), nullable=True)
@@ -42,8 +42,10 @@ class print_job_model (db.Model):
     colour = db.Column(db.String, nullable=True)
     upload_notes = db.Column(db.String, nullable=True)
     queue_notes = db.Column(db.String, nullable=True)
-    checked_by = db.Column(db.Integer, db.ForeignKey(user_model.id), nullable=True)
-    printer = db.Column(db.Integer, db.ForeignKey(printer_model.id), nullable=True)
+    checked_by = db.Column(db.Integer, db.ForeignKey(
+        user_model.id), nullable=True)
+    printer = db.Column(db.Integer, db.ForeignKey(
+        printer_model.id), nullable=True)
     printer_type = db.Column(db.Enum(printer_type), nullable=False)
     project = db.Column(db.Enum(project_types), nullable=False)
     project_string = db.Column(db.String, nullable=True)
@@ -67,7 +69,7 @@ class print_job_model (db.Model):
             self.is_queued = True
             self.status = job_status.queued
             self.stl_slug = None
-        
+
         # If co-curricular or uni module store group name / code
         project = data.get('project')
         if (project == project_types.personal):
@@ -114,13 +116,11 @@ class print_job_model (db.Model):
     @staticmethod
     def get_print_jobs_by_status(status):
         return print_job_model.query.filter_by(status=job_status[status]).all()
-    
-    
-    
+
     def __repr__(self):
         return "<Job ID: %r>" % self.id
 
-    
+
 class print_job_schema(Schema):
     """
     Print Job Schema

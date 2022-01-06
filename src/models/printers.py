@@ -56,7 +56,7 @@ class printer_model (db.Model):
 
     def get_model_dict(self):
         return self.__dict__
-    
+
     @staticmethod
     def get_all_printers():
         return printer_model.query.all()
