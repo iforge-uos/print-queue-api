@@ -34,6 +34,15 @@ REJECTED_EMAIL_BODY = """
 email_type_struct = [[FINISHED_EMAIL_HEADER, FINISHED_EMAIL_BODY], [FAILED_EMAIL_HEADER, FAILED_EMAIL_BODY], [REJECTED_EMAIL_HEADER, REJECTED_EMAIL_BODY]]
 
 def email(user_id, job_name, email_type):
+    """
+    Emails the associated user with the print_job name and what type of message it is.
+    Arguments:
+        user_id: The id of the user
+        job_name: The name of the job
+        email_type: Either 0, 1 or 2. With 0 being completed, 1 being a failure and 2 being a rejection.
+    Returns:
+        True if successful else false.
+    """
     user = user_model.get_user_by_id(user_id)
     if user is None:
         return False
