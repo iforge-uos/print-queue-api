@@ -9,7 +9,7 @@ FINISHED_EMAIL_HEADER = "Your Print Has Finished"
 FINISHED_EMAIL_BODY = """
         Hi %s,
 
-        Your 3D print job %s was finished at %s and is ready to collect from the iForge!
+        Your 3D print job "%s" was finished at %s and is ready to collect from the iForge!
         
         iForge Team"""
 
@@ -17,7 +17,7 @@ FAILED_EMAIL_HEADER = "Sorry Your Print Has Failed"
 FAILED_EMAIL_BODY = """
         Hi %s,
 
-        Sadly your 3D print job %s was marked as failed at %s.
+        Sadly your 3D print job "%s" was marked as failed at %s.
         If you pop in and talk to a rep we can help you make it work!
         
         iForge Team"""
@@ -26,7 +26,7 @@ REJECTED_EMAIL_HEADER = "Sorry Your Print Was Rejected"
 REJECTED_EMAIL_BODY = """
         Hi %s,
 
-        Sadly your 3D print job %s was rejected at %s.
+        Sadly your 3D print job "%s" was rejected at %s.
         If you pop in and talk to a rep we can help you make it work!
         
         iForge Team"""
@@ -63,9 +63,10 @@ def update_user_score(user, email_type):
     print(cur_score)
     if email_type == 0:
         new_score = cur_score + 1
-        
     else:
         new_score = cur_score - 1
+    if new_score < 1:
+        new_score = 1
     new_level = calculate_level_from_score(new_score)
     # Load updated data into the user_schema
     data = {"social_credit_score" : new_score, "user_level" : new_level}
