@@ -1,6 +1,6 @@
 from marshmallow import fields, Schema
 from marshmallow_enum import EnumField
-from . import db
+from extensions import db
 import enum
 
 

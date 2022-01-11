@@ -1,5 +1,5 @@
 from marshmallow import fields, Schema
-from . import db
+from extensions import db
 from models.printers import printer_model
 from sqlalchemy.sql import func
 

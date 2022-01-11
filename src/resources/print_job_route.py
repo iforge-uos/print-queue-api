@@ -1,10 +1,12 @@
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
+from sqlalchemy.sql import func
 from models.print_jobs import print_job_model, print_job_schema, project_types, job_status
 from models.printers import printer_model
 from models.user import user_model
 from common.routing import custom_response
 from common.emails import email
+from datetime import datetime
 
 print_job_api = Blueprint('print jobs', __name__)
 print_job_schema = print_job_schema()
@@ -78,7 +80,7 @@ def accept_awaiting_job(job_id):
     # Check job exists
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
-    return update_job_details(job, {"status" : "queued"})
+    return update_job_details(job, {"status": "queued"})
 
 
 @print_job_api.route('/approve/reject/<int:job_id>', methods=['PUT'])
@@ -90,11 +92,49 @@ def reject_awaiting_job(job_id):
     result = email(job.user_id, job.print_name, 2)
     if result == False:
         return custom_response({'error': 'user_id error'}, 404)
-    return update_job_details(job, {"status" : "rejected"})
+    return update_job_details(job, {"status": "rejected"})
 
 
+@print_job_api.route('/start/<int:job_id>', methods=['PUT'])
+def start_queued_job(job_id):
+    req_data = request.get_json()
+    # Check if the request body has the correct keys
+    required_keys = ("colour", "printer")
+    # Calculating what data to fetch from printer model
+    request_dict = {k: req_data[k]
+                    for k in required_keys if k in req_data}
+
+    job = print_job_model.get_print_job_by_id(job_id)
+    # Check job exists
+    if not job:
+        return custom_response({'error': NOTFOUNDJOB}, 404)
+    # Check job is allowed to run
+    if job.status != job_status.queued:
+        return custom_response({'error': "Job Cannot be run"}, 400)
+    printer_id = request_dict['printer']
+    if not check_printer_id(printer_id):
+        return custom_response({'error': "Printer Not Found"}, 404)
+    if running_on_printer(printer_id):
+        return custom_response({'error': "Already Running"}, 400)
+
+    request_dict['status'] = "running"
+    request_dict['date_started'] = datetime.now().isoformat()
+    return update_job_details(job, request_dict)
+
+
+# Helper Functions
 def check_printer_id(printer_id):
     if (printer_model.get_printer_by_id(printer_id) is None):
+        return False
+    return True
+
+
+def running_on_printer(printer_id):
+    used_printer_ids = []
+    running_jobs = print_job_model.get_print_jobs_by_status("running")
+    for job in running_jobs:
+        used_printer_ids.append(print_job_schema.dump(job)['printer'])
+    if printer_id not in used_printer_ids:
         return False
     return True
 
@@ -126,9 +166,10 @@ def get_multiple_job_details(jobs):
         return custom_response({'error': NOTFOUNDJOB}, 404)
     # This is jank af but it works and I can't think of a better way to do this lol
     jason = []
-    for log in jobs:
-        jason.append(print_job_schema.dump(log))
+    for job in jobs:
+        jason.append(print_job_schema.dump(job))
     return custom_response(jason, 200)
+
 
 def update_job_details(job, req_data):
     # Try and load Job data to the schema

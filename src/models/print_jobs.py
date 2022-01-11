@@ -1,7 +1,7 @@
 import enum
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
-from . import db
+from extensions import db
 from sqlalchemy.sql import func
 from models.user import user_model
 from models.printers import printer_model, printer_type
@@ -37,8 +37,8 @@ class print_job_model (db.Model):
     stl_slug = db.Column(db.String, nullable=True)
     date_added = db.Column(db.DateTime(timezone=True),
                            server_default=func.now())
-    date_started = db.Column(db.DateTime(timezone=True), nullable=True)
-    date_ended = db.Column(db.DateTime(timezone=True), nullable=True)
+    date_started = db.Column(db.DateTime(timezone=True), nullable=True, server_onupdate=func.now())
+    date_ended = db.Column(db.DateTime(timezone=True), nullable=True, server_onupdate=func.now())
     colour = db.Column(db.String, nullable=True)
     upload_notes = db.Column(db.String, nullable=True)
     queue_notes = db.Column(db.String, nullable=True)
@@ -131,9 +131,9 @@ class print_job_schema(Schema):
     print_name = fields.String(required=True)
     gcode_slug = fields.String(required=True)
     stl_slug = fields.String(required=False)
-    date_added = fields.DateTime()
-    date_started = fields.DateTime()
-    date_finished = fields.DateTime()
+    date_added = fields.DateTime(required=False)
+    date_started = fields.DateTime(required=False)
+    date_finished = fields.DateTime(required=False)
     colour = fields.String(required=False)
     upload_notes = fields.String(required=False)
     queue_notes = fields.String(required=False)

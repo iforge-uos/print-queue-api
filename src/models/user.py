@@ -1,5 +1,5 @@
 from marshmallow import fields, Schema
-from . import db
+from extensions import db
 
 
 class user_model(db.Model):
