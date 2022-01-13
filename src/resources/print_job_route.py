@@ -123,27 +123,28 @@ def start_queued_job(job_id):
 
 @print_job_api.route('/complete/<int:job_id>', methods=['PUT'])
 def complete_queued_job(job_id):
-    
+
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
-    
+
     # Check the job is running otherwise error
     if job.status != job_status.running:
-        return custom_response({'error' : "Job not running"}, 400)
+        return custom_response({'error': "Job not running"}, 400)
 
     # Change job details
     printer_increment_values = {
-        "total_time_printed" : job.print_time,
-        "completed_prints" : 1,
-        "total_filament_used" : job.filament_usage,
+        "total_time_printed": job.print_time,
+        "completed_prints": 1,
+        "total_filament_used": job.filament_usage
     }
 
     # Increment Printer Values
-    ser_printer = increment_printer_details(printer_model.get_printer_by_id(job.printer), printer_increment_values)
+    ser_printer = increment_printer_details(
+        printer_model.get_printer_by_id(job.printer), printer_increment_values)
     if ser_printer is None:
-        return custom_response({"error" : "Printer Increment Error"}, 400)
+        return custom_response({"error": "Printer Increment Error"}, 400)
 
     # Email user that the print is complete
     result = email(job.user_id, job.print_name, 0)
@@ -152,8 +153,58 @@ def complete_queued_job(job_id):
 
     # Change job values
     job_change_values = {
-        "is_queued" : False,
-        "status" : "complete"
+        "is_queued": False,
+        "status": "complete",
+        "date_ended" : datetime.datetime.now().isoformat()
+    }
+
+    try:
+        data = print_job_schema.load(job_change_values, partial=True)
+    except ValidationError as err:
+        # => {"email": ['"foo" is not a valid email address.']}
+        print(err.messages)
+        print(err.valid_data)  # => {"name": "John"}
+        return custom_response(err.messages, 400)
+    job.update(data)
+    ser_job = print_job_schema.dump(job)
+
+    return custom_response(ser_job, 200)
+
+
+@print_job_api.route('/fail/<int:job_id>', methods=['PUT'])
+def fail_queued_job(job_id):
+    job = print_job_model.get_print_job_by_id(job_id)
+    # Check job exists
+    if not job:
+        return custom_response({'error': NOTFOUNDJOB}, 404)
+
+    # Check the job is running otherwise error
+    if job.status != job_status.running:
+        return custom_response({'error': "Job not running"}, 400)
+
+    # Change job details
+    printer_increment_values = {
+        "total_time_printed": job.print_time,
+        "failed_prints": 1,
+        "total_filament_used": job.filament_usage
+    }
+
+    # Increment Printer Values
+    ser_printer = increment_printer_details(
+        printer_model.get_printer_by_id(job.printer), printer_increment_values)
+    if ser_printer is None:
+        return custom_response({"error": "Printer Increment Error"}, 400)
+
+    # Email user that the print is complete
+    result = email(job.user_id, job.print_name, 1)
+    if not result:
+        return custom_response({'error': 'user_id error'}, 404)
+
+    # Change job values
+    job_change_values = {
+        "is_queued": False,
+        "status": "failed",
+        "date_ended" : datetime.now().isoformat()
     }
 
     try:
@@ -214,7 +265,7 @@ def get_single_job_details(job):
 
 def get_multiple_job_details(jobs):
     if not jobs:
-        return custom_response({'error': NOTFOUNDJOB}, 404)
+        return custom_response({'error': "Jobs not found"}, 404)
     # This is jank af but it works and I can't think of a better way to do this lol
     jason = []
     for job in jobs:

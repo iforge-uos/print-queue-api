@@ -133,7 +133,7 @@ class print_job_schema(Schema):
     stl_slug = fields.String(required=False)
     date_added = fields.DateTime(required=False)
     date_started = fields.DateTime(required=False)
-    date_finished = fields.DateTime(required=False)
+    date_ended = fields.DateTime(required=False)
     colour = fields.String(required=False)
     upload_notes = fields.String(required=False)
     queue_notes = fields.String(required=False)
