@@ -7,7 +7,7 @@ def write_version_to_dotenv(value):
     try:
         with open(dotenv, "r") as f:
             data = f.readlines()
-        data[-1] = f"APP_ALLOWED_VERSION={value}"
+        data[-1] = f"ALLOWED_APP_VERSION={value}"
         with open(dotenv, "w") as f:
             f.writelines(data)
     except IOError:
