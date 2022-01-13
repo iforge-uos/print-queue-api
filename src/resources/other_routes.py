@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, current_app
 from common.routing import custom_response
 
 other_api = Blueprint('misc', __name__)
@@ -9,6 +9,7 @@ def test():
     '''
     Test Endpoint 1
     '''
+    print(current_app.config)
     return custom_response("sweet cheeks", 418)
 
 
