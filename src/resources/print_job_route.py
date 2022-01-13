@@ -220,11 +220,20 @@ def fail_queued_job(job_id):
     return custom_response(ser_job, 200)
 
 
+@print_job_api.route('/delete/<int:job_id>', methods=['DELETE'])
+def delete_job(job_id):
+    job = print_job_model.get_print_job_by_id(job_id)
+    if not job:
+        return custom_response({'error': NOTFOUNDJOB}, 404)
+    job.delete()
+    return custom_response({'message': 'deleted'}, 200)
+
+
+# Helper Functions
 def filter_request_to_keys(req, keys):
     return {k: req[k] for k in keys if k in req}
 
 
-# Helper Functions
 def check_printer_id(printer_id):
     if (printer_model.get_printer_by_id(printer_id) is None):
         return False
