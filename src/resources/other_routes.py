@@ -3,6 +3,7 @@ from common.routing import custom_response
 
 other_api = Blueprint('misc', __name__)
 
+
 @other_api.route('/toast', methods=["GET"])
 def test():
     '''

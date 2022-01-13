@@ -48,7 +48,7 @@ def increment_by_name(printer_name):
     printer = printer_model.get_printer_by_name(printer_name)
     ser_printer = increment_printer_details(printer, req_data)
     if ser_printer is None:
-        return custom_response({"error" : NOTFOUNDPRINTER}, 404)
+        return custom_response({"error": NOTFOUNDPRINTER}, 404)
     return custom_response(ser_printer, 200)
 
 
@@ -57,7 +57,8 @@ def view_all_printers():
     """
     View all printers and their details
     """
-    return get_multiple_printer_details(printer_model.get_all_printers());
+    return get_multiple_printer_details(printer_model.get_all_printers())
+
 
 @printer_api.route('/view/individual/<int:printer_id>', methods=['GET'])
 def view_by_id(printer_id):
@@ -153,20 +154,23 @@ def increment_printer_details(printer, req_data):
     allowed_keys = ("total_time_printed", "completed_prints",
                     "failed_prints", "total_filament_used", "days_on_time")
     if not printer:
-        return None # Printer not found
+        return None  # Printer not found
 
     # Calculating what data to fetch from printer model
     request_dict = {k: req_data[k]
                     for k in allowed_keys if k in req_data}
 
-    # Removing non incrementable values from the printer dict using the keys to be incremented from the request
+    # Removing non incrementable values from the printer dict using the keys
+    # to be incremented from the request
     printer_data = printer.get_model_dict()
     printer_values = {k: printer_data[k]
                       for k in request_dict.keys() if k in printer_data}
 
-    # Iterate over both dictionaries and increment the printer values by the request values
+    # Iterate over both dictionaries and increment the printer values by the
+    # request values
     incremented_items = {}
-    for (_, p_value), (i_key, i_value) in zip(printer_values.items(), request_dict.items()):
+    for (_, p_value), (i_key, i_value) in zip(
+            printer_values.items(), request_dict.items()):
         if p_value is None:
             p_value = i_value
         else:
@@ -184,10 +188,12 @@ def increment_printer_details(printer, req_data):
     ser_printer = printer_schema.dump(printer)
     return ser_printer
 
+
 def get_multiple_printer_details(printers):
     if not printers:
         return custom_response({'error': NOTFOUNDPRINTER}, 404)
-    # This is jank af but it works and I can't think of a better way to do this lol
+    # This is jank af but it works and I can't think of a better way to do
+    # this lol
     jason = []
     for printer in printers:
         jason.append(printer_schema.dump(printer))

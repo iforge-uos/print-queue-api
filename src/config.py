@@ -15,6 +15,7 @@ mail_default_sender = os.getenv('MAIL_DEFAULT_SENDER')
 port = os.getenv('PORT')
 api_prefix = os.getenv('API_PREFIX')
 
+
 class Development(object):
     """
     Development environment configuration
@@ -58,7 +59,7 @@ class Testing(object):
     Development environment configuration
     """
     API_PREFIX = api_prefix
-    PORT = port 
+    PORT = port
     MAIL_SERVER = mail_server
     MAIL_PORT = mail_port
     MAIL_USERNAME = mail_username

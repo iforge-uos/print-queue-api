@@ -15,6 +15,7 @@ from resources import user_route, printer_route, print_job_route, maintenance_ro
 
 load_dotenv("../.env")
 
+
 def create_app(config_object=app_config[os.getenv('FLASK_ENV')]):
     """Create application factory,
     :param config_object: The configuration object to use.
@@ -29,6 +30,7 @@ def create_app(config_object=app_config[os.getenv('FLASK_ENV')]):
     register_errorhandlers(app)
     return app
 
+
 def register_extensions(app):
     """Register Flask extensions."""
     db.init_app(app)
@@ -40,16 +42,29 @@ def register_extensions(app):
 def register_blueprints(app):
     """Register Flask blueprints."""
     api_prefix = app.config['API_PREFIX']
-    app.register_blueprint(user_route.user_api, url_prefix=f'{api_prefix}/users')
-    app.register_blueprint(printer_route.printer_api, url_prefix=f'{api_prefix}/printers')
-    app.register_blueprint(maintenance_route.maintenance_api, url_prefix=f'{api_prefix}/maintenance')
-    app.register_blueprint(print_job_route.print_job_api, url_prefix=f'{api_prefix}/queue')
-    app.register_blueprint(other_routes.other_api, url_prefix=f'{api_prefix}/misc')
-    app.register_blueprint(auth_routes.auth_api, url_prefix=f'{api_prefix}/auth')
+    app.register_blueprint(
+        user_route.user_api,
+        url_prefix=f'{api_prefix}/users')
+    app.register_blueprint(
+        printer_route.printer_api,
+        url_prefix=f'{api_prefix}/printers')
+    app.register_blueprint(
+        maintenance_route.maintenance_api,
+        url_prefix=f'{api_prefix}/maintenance')
+    app.register_blueprint(
+        print_job_route.print_job_api,
+        url_prefix=f'{api_prefix}/queue')
+    app.register_blueprint(
+        other_routes.other_api,
+        url_prefix=f'{api_prefix}/misc')
+    app.register_blueprint(
+        auth_routes.auth_api,
+        url_prefix=f'{api_prefix}/auth')
     return None
 
+
 def register_errorhandlers(app):
-    """Register error handlers.""" 
+    """Register error handlers."""
     return None
 
 

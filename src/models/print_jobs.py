@@ -37,8 +37,16 @@ class print_job_model (db.Model):
     stl_slug = db.Column(db.String, nullable=True)
     date_added = db.Column(db.DateTime(timezone=True),
                            server_default=func.now())
-    date_started = db.Column(db.DateTime(timezone=True), nullable=True, server_onupdate=func.now())
-    date_ended = db.Column(db.DateTime(timezone=True), nullable=True, server_onupdate=func.now())
+    date_started = db.Column(
+        db.DateTime(
+            timezone=True),
+        nullable=True,
+        server_onupdate=func.now())
+    date_ended = db.Column(
+        db.DateTime(
+            timezone=True),
+        nullable=True,
+        server_onupdate=func.now())
     colour = db.Column(db.String, nullable=True)
     upload_notes = db.Column(db.String, nullable=True)
     queue_notes = db.Column(db.String, nullable=True)

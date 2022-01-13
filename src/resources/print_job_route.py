@@ -13,6 +13,7 @@ print_job_api = Blueprint('print jobs', __name__)
 print_job_schema = print_job_schema()
 
 NOTFOUNDJOB = "job not found"
+USERIDERROR = "user not found"
 
 
 @print_job_api.route('/add', methods=['POST'])
@@ -44,9 +45,9 @@ def create():
 
     # Tidying up some null values to make future functions easier
     if "filament_usage" not in req_data:
-        req_data.__setitem__("filament_usage",0)
+        req_data.__setitem__("filament_usage", 0)
     if "print_time" not in req_data:
-        req_data.__setitem__("print_time",0)
+        req_data.__setitem__("print_time", 0)
 
     # Try and load the data into the model
     try:
@@ -64,46 +65,62 @@ def create():
 
 @print_job_api.route('/view/single/<int:job_id>', methods=['GET'])
 def view_job_single(job_id):
+    """
+    View Single Job by its ID
+    """
     return get_single_job_details(print_job_model.get_print_job_by_id(job_id))
 
 
 @print_job_api.route('/view/all/<string:status>', methods=['GET'])
 def view_jobs_by_status(status):
+    """
+    View all jobs with given job status e.g. queued
+    """
     # Sanity check url
     if status not in job_status._member_names_:
         return custom_response({"error": "Status not found"}, 404)
     # Return a list of jason objects that match status query
-    return get_multiple_job_details(print_job_model.get_print_jobs_by_status(status))
-
-
-@print_job_api.route('/approve/list', methods=['GET'])
-def list_awaiting_jobs():
-    return get_multiple_job_details(print_job_model.get_print_jobs_by_status("awaiting"))
+    return get_multiple_job_details(
+        print_job_model.get_print_jobs_by_status(status))
 
 
 @print_job_api.route('/approve/accept/<int:job_id>', methods=['PUT'])
 def accept_awaiting_job(job_id):
+    """
+    Accept an awaiting job by its ID
+    """
     job = print_job_model.get_print_job_by_id(job_id)
+
     # Check job exists
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
+    if job.status != job_status.awaiting:
+        return custom_response({'error' : "wrong job status"}, 400)
     return update_job_details(job, {"status": "queued"})
 
 
 @print_job_api.route('/approve/reject/<int:job_id>', methods=['PUT'])
 def reject_awaiting_job(job_id):
+    """
+    Reject an awaiting job by its ID and email user
+    """
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
+    if job.status != job_status.awaiting:
+        return custom_response({'error' : "wrong job status"}, 400)
     result = email(job.user_id, job.print_name, 2)
     if not result:
-        return custom_response({'error': 'user_id error'}, 404)
+        return custom_response({'error': USERIDERROR}, 404)
     return update_job_details(job, {"status": "rejected"})
 
 
 @print_job_api.route('/start/<int:job_id>', methods=['PUT'])
 def start_queued_job(job_id):
+    """
+    Start an queued job and check printer details
+    """
     req_data = request.get_json()
     # Check if the request body has the correct keys
     required_keys = ("colour", "printer")
@@ -120,7 +137,8 @@ def start_queued_job(job_id):
     printer_id = request_dict['printer']
     if not check_printer_id(printer_id):
         return custom_response({'error': "Printer Not Found"}, 404)
-    if printer_model.get_printer_by_id(printer_id).printer_type != job.printer_type:
+    if printer_model.get_printer_by_id(
+            printer_id).printer_type != job.printer_type:
         return custom_response({'error': "Printer Type mismatch"}, 400)
     if running_on_printer(printer_id):
         return custom_response({'error': "Associated Printer is in use"}, 400)
@@ -132,7 +150,9 @@ def start_queued_job(job_id):
 
 @print_job_api.route('/complete/<int:job_id>', methods=['PUT'])
 def complete_queued_job(job_id):
-
+    """
+    Mark a running print job as complete and email the user.
+    """
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
@@ -158,13 +178,13 @@ def complete_queued_job(job_id):
     # Email user that the print is complete
     result = email(job.user_id, job.print_name, 0)
     if not result:
-        return custom_response({'error': 'user_id error'}, 404)
+        return custom_response({'error': USERIDERROR}, 404)
 
     # Change job values
     job_change_values = {
         "is_queued": False,
         "status": "complete",
-        "date_ended" : datetime.now().isoformat()
+        "date_ended": datetime.now().isoformat()
     }
 
     try:
@@ -182,6 +202,9 @@ def complete_queued_job(job_id):
 
 @print_job_api.route('/fail/<int:job_id>', methods=['PUT'])
 def fail_queued_job(job_id):
+    """
+    Fail a running print job and email a user
+    """
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
@@ -207,13 +230,13 @@ def fail_queued_job(job_id):
     # Email user that the print is complete
     result = email(job.user_id, job.print_name, 1)
     if not result:
-        return custom_response({'error': 'user_id error'}, 404)
+        return custom_response({'error': USERIDERROR}, 404)
 
     # Change job values
     job_change_values = {
         "is_queued": False,
         "status": "failed",
-        "date_ended" : datetime.now().isoformat()
+        "date_ended": datetime.now().isoformat()
     }
 
     try:
@@ -231,6 +254,9 @@ def fail_queued_job(job_id):
 
 @print_job_api.route('/delete/<int:job_id>', methods=['DELETE'])
 def delete_job(job_id):
+    """
+    Delete a single print job by its ID
+    """
     job = print_job_model.get_print_job_by_id(job_id)
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
@@ -284,7 +310,8 @@ def get_single_job_details(job):
 def get_multiple_job_details(jobs):
     if not jobs:
         return custom_response({'error': "Jobs not found"}, 404)
-    # This is jank af but it works and I can't think of a better way to do this lol
+    # This is jank af but it works and I can't think of a better way to do
+    # this lol
     jason = []
     for job in jobs:
         jason.append(print_job_schema.dump(job))

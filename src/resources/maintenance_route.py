@@ -39,7 +39,8 @@ def view_all_by_printer_name(printer_name):
         return custom_response({"error": "Printer not found"}, 404)
 
     # Then return the jason payload of any logs for that printer
-    return get_multiple_log_details(maintenance_model.get_maintenance_logs_by_printer_id(printer.id))
+    return get_multiple_log_details(
+        maintenance_model.get_maintenance_logs_by_printer_id(printer.id))
 
 
 @maintenance_api.route('/view/all/<int:printer_id>', methods=['GET'])
@@ -47,7 +48,8 @@ def view_all_by_printer_id(printer_id):
     """
     Get all logs via their linked printer_id
     """
-    return get_multiple_log_details(maintenance_model.get_maintenance_logs_by_printer_id(printer_id))
+    return get_multiple_log_details(
+        maintenance_model.get_maintenance_logs_by_printer_id(printer_id))
 
 
 @maintenance_api.route('/delete/<int:log_id>', methods=['DELETE'])
@@ -101,7 +103,8 @@ def get_log_details(log):
 def get_multiple_log_details(logs):
     if not logs:
         return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
-    # This is jank af but it works and I can't think of a better way to do this lol
+    # This is jank af but it works and I can't think of a better way to do
+    # this lol
     jason = []
     for log in logs:
         jason.append(maintenance_schema.dump(log))
