@@ -1,5 +1,4 @@
 from dotenv import find_dotenv
-import os
 from flask import current_app
 
 
@@ -17,4 +16,4 @@ def write_version_to_dotenv(value):
     return True
 
 def get_allowed_app_version():
-    return 
+    return current_app.config['ALLOWED_APP_VERSION']
