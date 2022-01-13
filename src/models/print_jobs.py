@@ -51,9 +51,9 @@ class print_job_model (db.Model):
     project_string = db.Column(db.String, nullable=True)
     status = db.Column(db.Enum(job_status), nullable=False)
     # Print time in seconds
-    print_time = db.Column(db.Integer, nullable=True)
+    print_time = db.Column(db.BigInteger, nullable=True)
     # Filament in grams
-    filament_usage = db.Column(db.Integer, nullable=True)
+    filament_usage = db.Column(db.BigInteger, nullable=True)
 
     # class constructor
     def __init__(self, data):

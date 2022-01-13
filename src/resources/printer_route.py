@@ -46,7 +46,10 @@ def increment_by_name(printer_name):
     """
     req_data = request.get_json()
     printer = printer_model.get_printer_by_name(printer_name)
-    return increment_printer_details(printer, req_data)
+    ser_printer = increment_printer_details(printer, req_data)
+    if ser_printer is None:
+        return custom_response({"error" : NOTFOUNDPRINTER}, 404)
+    return custom_response(ser_printer, 200)
 
 
 @printer_api.route('/view/<int:printer_id>', methods=['GET'])
@@ -143,7 +146,7 @@ def increment_printer_details(printer, req_data):
     allowed_keys = ("total_time_printed", "completed_prints",
                     "failed_prints", "total_filament_used", "days_on_time")
     if not printer:
-        return custom_response({'error': NOTFOUNDPRINTER}, 404)
+        return None # Printer not found
 
     # Calculating what data to fetch from printer model
     request_dict = {k: req_data[k]
@@ -172,4 +175,4 @@ def increment_printer_details(printer, req_data):
         return custom_response(err.messages, 400)
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
-    return custom_response(ser_printer, 200)
+    return ser_printer

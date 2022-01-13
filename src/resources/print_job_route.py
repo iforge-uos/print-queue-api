@@ -1,6 +1,6 @@
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
-from sqlalchemy.sql import func
+from resources.printer_route import increment_printer_details
 from models.print_jobs import print_job_model, print_job_schema, project_types, job_status
 from models.printers import printer_model
 from models.user import user_model
@@ -90,7 +90,7 @@ def reject_awaiting_job(job_id):
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
     result = email(job.user_id, job.print_name, 2)
-    if result == False:
+    if not result:
         return custom_response({'error': 'user_id error'}, 404)
     return update_job_details(job, {"status": "rejected"})
 
@@ -101,8 +101,7 @@ def start_queued_job(job_id):
     # Check if the request body has the correct keys
     required_keys = ("colour", "printer")
     # Calculating what data to fetch from printer model
-    request_dict = {k: req_data[k]
-                    for k in required_keys if k in req_data}
+    request_dict = filter_request_to_keys(req_data, required_keys)
 
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
@@ -120,6 +119,58 @@ def start_queued_job(job_id):
     request_dict['status'] = "running"
     request_dict['date_started'] = datetime.now().isoformat()
     return update_job_details(job, request_dict)
+
+
+@print_job_api.route('/complete/<int:job_id>', methods=['PUT'])
+def complete_queued_job(job_id):
+    
+    job = print_job_model.get_print_job_by_id(job_id)
+    # Check job exists
+    if not job:
+        return custom_response({'error': NOTFOUNDJOB}, 404)
+    
+    # Check the job is running otherwise error
+    if job.status != job_status.running:
+        return custom_response({'error' : "Job not running"}, 400)
+
+    # Change job details
+    printer_increment_values = {
+        "total_time_printed" : job.print_time,
+        "completed_prints" : 1,
+        "total_filament_used" : job.filament_usage,
+    }
+
+    # Increment Printer Values
+    ser_printer = increment_printer_details(printer_model.get_printer_by_id(job.printer), printer_increment_values)
+    if ser_printer is None:
+        return custom_response({"error" : "Printer Increment Error"}, 400)
+
+    # Email user that the print is complete
+    result = email(job.user_id, job.print_name, 0)
+    if not result:
+        return custom_response({'error': 'user_id error'}, 404)
+
+    # Change job values
+    job_change_values = {
+        "is_queued" : False,
+        "status" : "complete"
+    }
+
+    try:
+        data = print_job_schema.load(job_change_values, partial=True)
+    except ValidationError as err:
+        # => {"email": ['"foo" is not a valid email address.']}
+        print(err.messages)
+        print(err.valid_data)  # => {"name": "John"}
+        return custom_response(err.messages, 400)
+    job.update(data)
+    ser_job = print_job_schema.dump(job)
+
+    return custom_response(ser_job, 200)
+
+
+def filter_request_to_keys(req, keys):
+    return {k: req[k] for k in keys if k in req}
 
 
 # Helper Functions
