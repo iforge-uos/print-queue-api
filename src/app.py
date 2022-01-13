@@ -11,7 +11,7 @@ from extensions import (
     mail
 )
 # Resources
-from resources import user_route, printer_route, print_job_route, maintenance_route
+from resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes
 
 load_dotenv("../.env")
 
@@ -44,6 +44,8 @@ def register_blueprints(app):
     app.register_blueprint(printer_route.printer_api, url_prefix=f'{api_prefix}/printers')
     app.register_blueprint(maintenance_route.maintenance_api, url_prefix=f'{api_prefix}/maintenance')
     app.register_blueprint(print_job_route.print_job_api, url_prefix=f'{api_prefix}/queue')
+    app.register_blueprint(other_routes.other_api, url_prefix=f'{api_prefix}/misc')
+    app.register_blueprint(auth_routes.auth_api, url_prefix=f'{api_prefix}/auth')
     return None
 
 def register_errorhandlers(app):

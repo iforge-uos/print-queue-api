@@ -1,22 +1,19 @@
-@app.route('/', methods=["GET"])
-def index():
+from flask import Blueprint
+from common.routing import custom_response
+
+other_api = Blueprint('misc', __name__)
+
+@other_api.route('/toast', methods=["GET"])
+def test():
+    '''
+    Test Endpoint 1
+    '''
+    return custom_response("sweet cheeks", 418)
+
+
+@other_api.route('/legal', methods=["GET"])
+def test_2():
     '''
     Test Endpoint
     '''
-    return Response(
-        mimetype="application/text",
-        response="sweet cheeks",
-        status=418
-    )
-
-
-@app.route('/government-secrets', methods=["GET"])
-def index_2():
-    '''
-    Test Endpoint
-    '''
-    return Response(
-        mimetype="application/text",
-        response="uh oh",
-        status=451
-    )
+    return custom_response("Pipis Room", 451)
