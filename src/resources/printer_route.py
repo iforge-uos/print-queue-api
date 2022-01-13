@@ -176,3 +176,5 @@ def increment_printer_details(printer, req_data):
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
     return ser_printer
+
+#TODO FIX

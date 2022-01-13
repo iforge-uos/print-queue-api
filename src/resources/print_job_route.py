@@ -7,6 +7,7 @@ from models.user import user_model
 from common.routing import custom_response
 from common.emails import email
 from datetime import datetime
+from copy import deepcopy
 
 print_job_api = Blueprint('print jobs', __name__)
 print_job_schema = print_job_schema()
@@ -20,7 +21,6 @@ def create():
     Create Print Job Function
     """
     req_data = request.get_json()
-
     # Check if printer_id exists
     # if not check_printer_id(req_data['printer_id']):
     #   return custom_response({"error" : "printer is not found"}, 404)
@@ -40,6 +40,13 @@ def create():
         req_data.pop("checked_by")
     else:
         req_data["status"] = "queued"
+        req_data.pop("checked_by")
+
+    # Tidying up some null values to make future functions easier
+    if "filament_usage" not in req_data:
+        req_data.__setitem__("filament_usage",0)
+    if "print_time" not in req_data:
+        req_data.__setitem__("print_time",0)
 
     # Try and load the data into the model
     try:
@@ -113,8 +120,10 @@ def start_queued_job(job_id):
     printer_id = request_dict['printer']
     if not check_printer_id(printer_id):
         return custom_response({'error': "Printer Not Found"}, 404)
+    if printer_model.get_printer_by_id(printer_id).printer_type != job.printer_type:
+        return custom_response({'error': "Printer Type mismatch"}, 400)
     if running_on_printer(printer_id):
-        return custom_response({'error': "Already Running"}, 400)
+        return custom_response({'error': "Associated Printer is in use"}, 400)
 
     request_dict['status'] = "running"
     request_dict['date_started'] = datetime.now().isoformat()
@@ -155,7 +164,7 @@ def complete_queued_job(job_id):
     job_change_values = {
         "is_queued": False,
         "status": "complete",
-        "date_ended" : datetime.datetime.now().isoformat()
+        "date_ended" : datetime.now().isoformat()
     }
 
     try:

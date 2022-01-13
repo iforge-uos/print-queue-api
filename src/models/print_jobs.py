@@ -90,7 +90,7 @@ class print_job_model (db.Model):
         self.project = data.get('project')
         self.print_time = data.get('print_time')
         self.printer_type = data.get('printer_type')
-        self.filament_usage = data.get('filament_used')
+        self.filament_usage = data.get('filament_usage')
 
     def save(self):
         db.session.add(self)
