@@ -52,7 +52,14 @@ def increment_by_name(printer_name):
     return custom_response(ser_printer, 200)
 
 
-@printer_api.route('/view/<int:printer_id>', methods=['GET'])
+@printer_api.route('/view/all/', methods=['GET'])
+def view_all_printers():
+    """
+    View all printers and their details
+    """
+    return get_multiple_printer_details(printer_model.get_all_printers());
+
+@printer_api.route('/view/individual/<int:printer_id>', methods=['GET'])
 def view_by_id(printer_id):
     """
     Get a single printer by its ID
@@ -60,7 +67,7 @@ def view_by_id(printer_id):
     return get_printer_details(printer_model.get_printer_by_id(printer_id))
 
 
-@printer_api.route('/view/<string:printer_name>', methods=['GET'])
+@printer_api.route('/view/individual/<string:printer_name>', methods=['GET'])
 def view_by_name(printer_name):
     """
     Get a single printer by its name
@@ -177,4 +184,11 @@ def increment_printer_details(printer, req_data):
     ser_printer = printer_schema.dump(printer)
     return ser_printer
 
-#TODO FIX
+def get_multiple_printer_details(printers):
+    if not printers:
+        return custom_response({'error': NOTFOUNDPRINTER}, 404)
+    # This is jank af but it works and I can't think of a better way to do this lol
+    jason = []
+    for printer in printers:
+        jason.append(printer_schema.dump(printer))
+    return custom_response(jason, 200)
