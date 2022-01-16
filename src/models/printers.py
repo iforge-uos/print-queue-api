@@ -42,31 +42,64 @@ class printer_model (db.Model):
         self.days_on_time = data.get('days_on_time')
 
     def save(self):
+        """
+        Save Object Function
+        """
         db.session.add(self)
         db.session.commit()
 
     def update(self, data):
+        """
+        Update attributes function
+        """
         for key, item in data.items():
             setattr(self, key, item)
         db.session.commit()
 
     def delete(self):
+        """
+        Delete Object Function
+        """
         db.session.delete(self)
         db.session.commit()
 
     def get_model_dict(self):
+        """
+        Function to get the models attributes as a dictionary
+        Returns:
+            dictionary: a dict containing all the objects attributes
+        """
         return self.__dict__
 
     @staticmethod
     def get_all_printers():
+        """
+        Function to get all the printers in the database
+        Returns:
+            query_object: a query object containing all the printer
+        """
         return printer_model.query.all()
 
     @staticmethod
     def get_printer_by_id(id):
+        """
+        Function to get a single printer from the database by its ID
+        Arguments: 
+            id: the PK of the printer
+        Returns:
+            query_object: a query object containing the printer
+        """
         return printer_model.query.get(id)
 
     @staticmethod
     def get_printer_by_name(value):
+        """
+        Function to get a single printer from the database by its name
+        Arguments: 
+            name: the string name of the printer
+        Returns:
+            query_object: a query object containing the printer
+        """
         return printer_model.query.filter_by(printer_name=value).first()
 
     def __repr__(self):

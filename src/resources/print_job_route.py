@@ -266,16 +266,38 @@ def delete_job(job_id):
 
 # Helper Functions
 def filter_request_to_keys(req, keys):
+    """
+    Function to take a dict and a list of keys and return the dict containing only the keys supplied
+    Arguments: 
+        req: the request dictionary that is to be filtered
+        keys: a list of keys to filter by
+    Returns:
+        dict: the filtered dictionary
+    """
     return {k: req[k] for k in keys if k in req}
 
 
 def check_printer_id(printer_id):
+    """
+    Function to verify that a printer_id exists in the datbase
+    Arguments:
+        printer_id: the PK of the printer to search for
+    Returns:
+        boolean: true if it exists, false otherwise
+    """
     if (printer_model.get_printer_by_id(printer_id) is None):
         return False
     return True
 
 
 def running_on_printer(printer_id):
+    """
+    Function to check if a job is running on the same printer as another printer
+    Arguments: 
+        printer_id: the ID of the printer to be checked
+    Returns:
+        boolean: true if it is running on another printer (therefore do not run the job) or False if it is not
+    """
     used_printer_ids = []
     running_jobs = print_job_model.get_print_jobs_by_status("running")
     for job in running_jobs:
@@ -286,6 +308,13 @@ def running_on_printer(printer_id):
 
 
 def check_user_id(user_id):
+    """
+    Function to verify a users level.
+    Arguments: 
+        user_id: the pk to lookup in the user_database
+    Returns:
+        user_level: the level of the user or None if it does not exist
+    """
     user = user_model.get_user_by_id(user_id)
     if (user is None):
         return None
@@ -293,6 +322,13 @@ def check_user_id(user_id):
 
 
 def check_rep_id(rep_id):
+    """
+    Function to verify if a user is a rep or not.
+    Arguments: 
+        rep_id: the PK of the user object to be checked
+    Returns: 
+        boolean: true if successful, false otherwise
+    """
     user = user_model.get_user_by_id(rep_id)
     if (user is None or user.is_rep == False):
         return False
@@ -300,6 +336,13 @@ def check_rep_id(rep_id):
 
 
 def get_single_job_details(job):
+    """
+    Function to take a job object and serialize it.
+    Arguments: 
+        job: the job object
+    Returns: 
+        Response: error or the serialized object
+    """
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
     ser_job = print_job_schema.dump(job)
@@ -308,10 +351,15 @@ def get_single_job_details(job):
 
 
 def get_multiple_job_details(jobs):
+    """
+    Function to take a query object of multiple print jobs and serialize them
+    Arguments:
+        jobs: the query object containing print jobs
+    Returns: 
+        Response: error or a list of serialized print jobs
+    """
     if not jobs:
         return custom_response({'error': "Jobs not found"}, 404)
-    # This is jank af but it works and I can't think of a better way to do
-    # this lol
     jason = []
     for job in jobs:
         jason.append(print_job_schema.dump(job))
@@ -319,6 +367,14 @@ def get_multiple_job_details(jobs):
 
 
 def update_job_details(job, req_data):
+    """
+    Function to update the details of a job by a request.
+    Arguments:
+        job: the job object to be updated
+        req_data: the http body containing the data to be updated
+    Returns: 
+        response: error or the serialized updated print job
+    """
     # Try and load Job data to the schema
     try:
         data = print_job_schema.load(req_data, partial=True)

@@ -31,28 +31,56 @@ class user_model(db.Model):
         self.short_name = data.get('short_name')
 
     def save(self):
+        """
+        Save Object Function
+        """
         db.session.add(self)
         db.session.commit()
 
     def update(self, data):
+        """
+        Update attributes function
+        """
         for key, item in data.items():
             setattr(self, key, item)
         db.session.commit()
 
     def delete(self):
+        """
+        Delete Object Function
+        """
         db.session.delete(self)
         db.session.commit()
 
     @staticmethod
     def get_all_users():
+        """
+        Function to get all the users in the database
+        Returns:
+            query_object: a query object containing all the users
+        """
         return user_model.query.all()
 
     @staticmethod
     def get_user_by_id(id):
+        """
+        Function to get a user by their ID
+        Arguments: 
+            id: the PK of the user
+        Returns:
+            query_object: a query object containing the user
+        """
         return user_model.query.get(id)
 
     @staticmethod
     def get_user_by_email(value):
+        """
+        Function to get a user by their email
+        Arguments:
+            value: the email of the user
+        Returns:
+            query_object: a query object containing the user
+        """
         return user_model.query.filter_by(email=value).first()
 
     def __repr__(self):

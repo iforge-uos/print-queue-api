@@ -25,28 +25,56 @@ class maintenance_model (db.Model):
         self.maintenance_info = data.get('maintenance_info')
 
     def save(self):
+        """
+        Save Object Function
+        """
         db.session.add(self)
         db.session.commit()
 
     def update(self, data):
+        """
+        Update attributes function
+        """
         for key, item in data.items():
             setattr(self, key, item)
         db.session.commit()
 
     def delete(self):
+        """
+        Delete Object Function
+        """
         db.session.delete(self)
         db.session.commit()
 
     @staticmethod
     def get_all_maintenance_logs():
+        """
+        Function to get all the maintennance logs in the database
+        Returns:
+            query_object: a query object containing all the maintenance logs
+        """
         return maintenance_model.query.all()
 
     @staticmethod
     def get_maintenance_log_by_id(id):
+        """
+        Function to get a single maintennance logs from the database
+        Arguments: 
+            id: the PK of the log
+        Returns:
+            query_object: a query object containing the maintenance log
+        """
         return maintenance_model.query.get(id)
 
     @staticmethod
     def get_maintenance_logs_by_printer_id(value):
+        """
+        Function to get all maintennance logs associated with a certain printer from the database
+        Arguments: 
+            value: the PK of the printer in the database
+        Returns:
+            query_object: a query object containing the maintenance logs associated with that printer 
+        """
         return maintenance_model.query.filter_by(printer_id=value).all()
 
     def __repr__(self):

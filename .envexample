@@ -1,15 +1,21 @@
+# DB COnfig
 DB_NAME=
 DB_HOST=
 DB_PORT=
 DB_USERNAME=
 DB_PASSWORD=
+# APP Config
 PORT=
 API_PREFIX=
 FLASK_ENV=
+# Set this to something secure
+SECRET_KEY=
+# Mail Config
 MAIL_SERVER=
 MAIL_PORT=2525
 MAIL_USERNAME=
 MAIL_PASSWORD=
 MAIL_USE_TLS=true
 MAIL_DEFAULT_SENDER=
+# This needs to be at the bottom
 ALLOWED_APP_VERSION=

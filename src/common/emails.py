@@ -74,6 +74,12 @@ def email(user_id, job_name, email_type):
 
 
 def update_user_score(user, email_type):
+    """
+    Updates the user score for the given user depending on how the print_job went
+    Args:
+        user: the user object associated with the print_job
+        email_type: Either 0, 1 or 2. With 0 being completed, 1 being a failure and 2 being a rejection.
+    """
     cur_score = user.social_credit_score
     if email_type == 0:
         new_score = cur_score + 1
@@ -89,6 +95,12 @@ def update_user_score(user, email_type):
 
 
 def send_async_email(app, msg):
+    """
+    Creates a new app on a thread to send the email to free up the main thread.
+    Args:
+        app: a new app object created from the current_app context
+        msg: the message object being sent
+    """
     with app.app_context():
         try:
             mail.send(msg)
