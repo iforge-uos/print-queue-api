@@ -84,7 +84,7 @@ class printer_model (db.Model):
     def get_printer_by_id(id):
         """
         Function to get a single printer from the database by its ID
-        Arguments: 
+        Arguments:
             id: the PK of the printer
         Returns:
             query_object: a query object containing the printer
@@ -95,7 +95,7 @@ class printer_model (db.Model):
     def get_printer_by_name(value):
         """
         Function to get a single printer from the database by its name
-        Arguments: 
+        Arguments:
             name: the string name of the printer
         Returns:
             query_object: a query object containing the printer

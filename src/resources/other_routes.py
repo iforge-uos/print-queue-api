@@ -5,6 +5,7 @@ other_api = Blueprint('misc', __name__)
 
 # This whole file is more or less of a joke
 
+
 @other_api.route('/toast', methods=["GET"])
 def test():
     '''

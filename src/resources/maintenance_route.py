@@ -13,7 +13,11 @@ NOTFOUNDMAINTENANCE = "maintenance route not found"
 @maintenance_api.route('/update/<int:log_id>', methods=['PUT'])
 def update_by_id(log_id):
     """
-    Updates a single log via its ID
+    Function to update a logs details.
+    Arguments:
+        log_id: Integer PK of the log record to update
+    Returns:
+        Response: error or serialized updated log
     """
     req_data = request.get_json()
     log = maintenance_model.get_maintenance_log_by_id(log_id)
@@ -23,7 +27,11 @@ def update_by_id(log_id):
 @maintenance_api.route('/view/single/<int:log_id>', methods=['GET'])
 def view_single_by_id(log_id):
     """
-    Get a single log via its ID
+    Function to get a single log via its ID
+    Arguments:
+        log_id: Integer PK of the log record to retrieve
+    Returns:
+        Response: error or serialized log
     """
     return get_log_details(maintenance_model.get_maintenance_log_by_id(log_id))
 
@@ -34,7 +42,7 @@ def view_all_by_printer_name(printer_name):
     Get all logs via their linked printers name
     Arguments:
         printer_name: the string name of the printer
-    Returns: 
+    Returns:
         response: an error or the serialized printers
     """
     # First check if the printer_name is valid
@@ -53,7 +61,7 @@ def view_all_by_printer_id(printer_id):
     Get all log via their linked printers name
     Arguments:
         printer_id: the integer id of the printer
-    Returns: 
+    Returns:
         response: an error or the serialized printers
     """
     return get_multiple_log_details(
@@ -76,6 +84,8 @@ def delete_by_id(log_id):
 def create():
     """
     Create Log Function
+    Arguments:
+        none:
     Returns:
         Response: error or a success message
     """
@@ -133,7 +143,7 @@ def get_multiple_log_details(logs):
     Function to take a query object and serialize each log inside it.
     Arguments:
         logs: the query object containing all the logs
-    Returns: 
+    Returns:
         response: error the a list of serialized log objects.
     """
     if not logs:
@@ -150,7 +160,7 @@ def update_log_details(log, req_data):
     Arguments:
         log: the log object to be updated.
         req_data: the request body data
-    Returns: 
+    Returns:
         Response: error or the serialized data of the updated object.
     """
     if not log:

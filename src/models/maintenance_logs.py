@@ -59,7 +59,7 @@ class maintenance_model (db.Model):
     def get_maintenance_log_by_id(id):
         """
         Function to get a single maintennance logs from the database
-        Arguments: 
+        Arguments:
             id: the PK of the log
         Returns:
             query_object: a query object containing the maintenance log
@@ -70,10 +70,10 @@ class maintenance_model (db.Model):
     def get_maintenance_logs_by_printer_id(value):
         """
         Function to get all maintennance logs associated with a certain printer from the database
-        Arguments: 
+        Arguments:
             value: the PK of the printer in the database
         Returns:
-            query_object: a query object containing the maintenance logs associated with that printer 
+            query_object: a query object containing the maintenance logs associated with that printer
         """
         return maintenance_model.query.filter_by(printer_id=value).all()
 

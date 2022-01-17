@@ -16,12 +16,13 @@ Any ideas to make this better are appreciated
 
 def generate_client_auth_token(expiration, client_version):
     """
-    Generate an authentication token for usage of basic features of the API.
+    Generate an authentication token for usage of basic features of the API. \n
     By default, this will expire after 24 hours
-    Args:
+    Arguments:
         expiration: Seconds after which to expire the token.
         client_version : The version of the print Q client used for API
     Returns:
+        None:
     """
     s = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
     return s.dumps({'CLIENT_VERSION': client_version})
@@ -29,8 +30,8 @@ def generate_client_auth_token(expiration, client_version):
 
 def verify_client_auth_token(token):
     """
-    Verifies the supplied authentication token.
-    Args:
+    Verifies the supplied authentication token. \n
+    Arguments:
         token: The user's authentication token.
     Returns:
         boolean: if the token is verified or not
@@ -47,7 +48,7 @@ def verify_client_auth_token(token):
 
 def write_version_to_dotenv(value):
     """
-    Writes the new verifier to the env file so that the data persists through server reboots.
+    Writes the new verifier to the env file so that the data persists through server reboots. \n
     Args:
         value: the new client version string in the format (YYYYMMDD)
     Returns:

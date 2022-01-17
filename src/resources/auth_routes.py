@@ -8,7 +8,9 @@ auth_api = Blueprint('auth', __name__)
 @auth_api.route('/app/update', methods=['POST'])
 def change_allowed_version():
     """
-    Route to change the current environment version of the server used to verify print queue clients
+    Route to change the current environment version of the server used to verify print queue clients \n
+    Arguments:
+        none:
     Returns:
         response: success or error
     """
@@ -23,7 +25,9 @@ def change_allowed_version():
 @auth_api.route('/app/get', methods=['GET'])
 def get_allowed_version():
     """
-    Route to get the current environment version of the server used to verify print queue clients
+    Route to get the current environment version of the server used to verify print queue clients \n
+    Arguments:
+        none:
     Returns:
         response: value or error
     """
@@ -31,4 +35,5 @@ def get_allowed_version():
     if app_ver is not None:
         return custom_response({"version": int(app_ver)}, 200)
     else:
-        return custom_response({"error": "App version not set, please set it"}, 404)
+        return custom_response(
+            {"error": "App version not set, please set it"}, 404)

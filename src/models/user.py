@@ -65,7 +65,7 @@ class user_model(db.Model):
     def get_user_by_id(id):
         """
         Function to get a user by their ID
-        Arguments: 
+        Arguments:
             id: the PK of the user
         Returns:
             query_object: a query object containing the user

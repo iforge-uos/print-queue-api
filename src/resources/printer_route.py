@@ -12,7 +12,11 @@ NOTFOUNDPRINTER = "printer not found"
 @printer_api.route('/update/<int:printer_id>', methods=['PUT'])
 def update_by_id(printer_id):
     """
-    Updates a single printer by its ID
+    Function to increment a printers details by its name \n
+    Arguments:
+        printer_id: the integer PK of the printer record
+    Returns:
+        Response: error or serialized updated printer
     """
     req_data = request.get_json()
     printer = printer_model.get_printer_by_id(printer_id)
@@ -22,7 +26,11 @@ def update_by_id(printer_id):
 @printer_api.route('/update/<string:printer_name>', methods=['PUT'])
 def update_by_name(printer_name):
     """
-    Updates a single printer by its name
+    Function to update a printers details by its name \n
+    Arguments:
+        printer_name: the string name of the printer record
+    Returns:
+        Response: error or serialized updated printer
     """
     req_data = request.get_json()
     printer = printer_model.get_printer_by_name(printer_name)
@@ -32,7 +40,11 @@ def update_by_name(printer_name):
 @printer_api.route('/increment/<int:printer_id>', methods=['PUT'])
 def increment_by_id(printer_id):
     """
-    Updates a single printer by its ID
+    Function to increment a printers details by its ID \n
+    Arguments:
+        printer_id: the integer PK of the printer record
+    Returns:
+        Response: error or serialized incremented printer
     """
     req_data = request.get_json()
     printer = printer_model.get_printer_by_id(printer_id)
@@ -42,7 +54,11 @@ def increment_by_id(printer_id):
 @printer_api.route('/increment/<string:printer_name>', methods=['PUT'])
 def increment_by_name(printer_name):
     """
-    Updates a single printer by its name
+    Function to increment a printers details by its name \n
+    Arguments:
+        printer_name: the string name of the printer record
+    Returns:
+        Response: error or serialized incremented printer
     """
     req_data = request.get_json()
     printer = printer_model.get_printer_by_name(printer_name)
@@ -55,7 +71,11 @@ def increment_by_name(printer_name):
 @printer_api.route('/view/all/', methods=['GET'])
 def view_all_printers():
     """
-    View all printers and their details
+    Function to view all printer records in the database \n
+    Arguments:
+        none:
+    Returns:
+        Response: error or serialized printers
     """
     return get_multiple_printer_details(printer_model.get_all_printers())
 
@@ -63,7 +83,11 @@ def view_all_printers():
 @printer_api.route('/view/individual/<int:printer_id>', methods=['GET'])
 def view_by_id(printer_id):
     """
-    Get a single printer by its ID
+    Function to view a printer record in the database \n
+    Arguments:
+        printer_id: the integer PK of the printer record
+    Returns:
+        Response: error or serialized printer
     """
     return get_printer_details(printer_model.get_printer_by_id(printer_id))
 
@@ -71,7 +95,11 @@ def view_by_id(printer_id):
 @printer_api.route('/view/individual/<string:printer_name>', methods=['GET'])
 def view_by_name(printer_name):
     """
-    Get a single printer by its name
+    Function to view a printer record in the database \n
+    Arguments:
+        printer_name: the string name of the printer
+    Returns:
+        Response: error or serialized printer
     """
     return get_printer_details(printer_model.get_printer_by_name(printer_name))
 
@@ -79,7 +107,11 @@ def view_by_name(printer_name):
 @printer_api.route('/delete/<int:printer_id>', methods=['DELETE'])
 def delete_by_id(printer_id):
     """
-    Delete a single printer by its ID
+    Function to delete a printer record in the database \n
+    Arguments:
+        printer_id: the integer PK of the printer record
+    Returns:
+        Response: error or success message
     """
     return delete_printer(printer_model.get_printer_by_id(printer_id))
 
@@ -87,7 +119,11 @@ def delete_by_id(printer_id):
 @printer_api.route('/delete/<string:printer_name>', methods=['DELETE'])
 def delete_by_name(printer_name):
     """
-    Delete a single printer by its ID
+    Function to delete a printer record in the database \n
+    Arguments:
+        printer_name: the string name of the printer
+    Returns:
+        Response: error or success message
     """
     return delete_printer(printer_model.get_printer_by_name(printer_name))
 
@@ -95,7 +131,11 @@ def delete_by_name(printer_name):
 @printer_api.route('/add', methods=['POST'])
 def create():
     """
-    Create Printer Function
+    Function to create a new printer record in the database \n
+    Arguments:
+        None:
+    Returns:
+        Response: error or success message
     """
     req_data = request.get_json()
 
@@ -120,6 +160,13 @@ def create():
 
 
 def delete_printer(printer):
+    """
+    Function to delete a printer record from the database \n
+    Arguments:
+        printer: the printer object to delete
+    Returns:
+        Response: error or success message
+    """
     if not printer:
         return custom_response({'error': NOTFOUNDPRINTER}, 404)
     printer.delete()
@@ -127,6 +174,13 @@ def delete_printer(printer):
 
 
 def get_printer_details(printer):
+    """
+    Function to serialize a printers details \n
+    Arguments:
+        printer: the printer object to serialize
+    Returns:
+        Response: error or serialized printer
+    """
     if not printer:
         return custom_response({'error': NOTFOUNDPRINTER}, 404)
     ser_printer = printer_schema.dump(printer)
@@ -134,6 +188,14 @@ def get_printer_details(printer):
 
 
 def update_printer_details(printer, req_data):
+    """
+    Function to take a dictionary of values, and update the printer to match those values \n
+    Arguments:
+        printer: the printer object to update
+        req_data: the dictionary of values used to update the printer
+    Returns:
+        Response: error or serialized updated printer
+    """
     if not printer:
         return custom_response({'error': NOTFOUNDPRINTER}, 404)
 
@@ -151,6 +213,14 @@ def update_printer_details(printer, req_data):
 
 
 def increment_printer_details(printer, req_data):
+    """
+    Function to take a dictionary of values, and increment the printer telemetry by those values \n
+    Arguments:
+        printer: the printer object to increment
+        req_data: the dictionary of values used to increment the printer
+    Returns:
+        Response: error or serialized updated printer
+    """
     allowed_keys = ("total_time_printed", "completed_prints",
                     "failed_prints", "total_filament_used", "days_on_time")
     if not printer:
@@ -190,10 +260,15 @@ def increment_printer_details(printer, req_data):
 
 
 def get_multiple_printer_details(printers):
+    """
+    Function to take a query object of multiple printers and serialize them \n
+    Arguments:
+        printers: the query object containing printers
+    Returns:
+        Response: error or a list of serialized printers
+    """
     if not printers:
         return custom_response({'error': NOTFOUNDPRINTER}, 404)
-    # This is jank af but it works and I can't think of a better way to do
-    # this lol
     jason = []
     for printer in printers:
         jason.append(printer_schema.dump(printer))

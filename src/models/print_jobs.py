@@ -135,7 +135,7 @@ class print_job_model (db.Model):
     def get_print_job_by_id(id):
         """
         Function to get a single print job from the database
-        Arguments: 
+        Arguments:
             id: the PK of the job
         Returns:
             query_object: a query object containing the print job
@@ -146,7 +146,7 @@ class print_job_model (db.Model):
     def get_print_jobs_by_status(status):
         """
         Function to get all the pint jobs from the database filtered by the job status
-        Arguments: 
+        Arguments:
             status: the key of the status enum that carries the job state
         Returns:
             query_object: a query object containing all the print jobs of the aforementioned status

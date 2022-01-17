@@ -19,7 +19,11 @@ USERIDERROR = "user not found"
 @print_job_api.route('/add', methods=['POST'])
 def create():
     """
-    Create Print Job Function
+    Function to create a new job from json sent in the POST request \n
+    Arguments:
+        None:
+    Returns:
+        Response: error or success message
     """
     req_data = request.get_json()
     # Check if printer_id exists
@@ -66,7 +70,11 @@ def create():
 @print_job_api.route('/view/single/<int:job_id>', methods=['GET'])
 def view_job_single(job_id):
     """
-    View Single Job by its ID
+    Function return a serialized job by its id \n
+    Arguments:
+        job_id: PK of the job record to retrieve
+    Returns:
+        Respose: error or serialized job
     """
     return get_single_job_details(print_job_model.get_print_job_by_id(job_id))
 
@@ -74,7 +82,11 @@ def view_job_single(job_id):
 @print_job_api.route('/view/all/<string:status>', methods=['GET'])
 def view_jobs_by_status(status):
     """
-    View all jobs with given job status e.g. queued
+    Function to return a list of serialized jobs filtered by their status \n
+    Arguments:
+        status: string status from the job_status enum of which status to filter by
+    Returns:
+        Respose: error or list of serialized jobs matching filter
     """
     # Sanity check url
     if status not in job_status._member_names_:
@@ -87,7 +99,11 @@ def view_jobs_by_status(status):
 @print_job_api.route('/approve/accept/<int:job_id>', methods=['PUT'])
 def accept_awaiting_job(job_id):
     """
-    Accept an awaiting job by its ID
+    Function to mark an awaited job asapproved and add to the queue \n
+    Arguments:
+        job_id: integer PK of the print_job record
+    Returns:
+        Respose: error or serialized updated job record
     """
     job = print_job_model.get_print_job_by_id(job_id)
 
@@ -95,21 +111,25 @@ def accept_awaiting_job(job_id):
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
     if job.status != job_status.awaiting:
-        return custom_response({'error' : "wrong job status"}, 400)
+        return custom_response({'error': "wrong job status"}, 400)
     return update_job_details(job, {"status": "queued"})
 
 
 @print_job_api.route('/approve/reject/<int:job_id>', methods=['PUT'])
 def reject_awaiting_job(job_id):
     """
-    Reject an awaiting job by its ID and email user
+    Function to mark an awaited job asapproved and add to the queue \n
+    Arguments:
+        job_id: integer PK of the print_job record
+    Returns:
+        Respose: error or serialized updated job record
     """
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response({'error': NOTFOUNDJOB}, 404)
     if job.status != job_status.awaiting:
-        return custom_response({'error' : "wrong job status"}, 400)
+        return custom_response({'error': "wrong job status"}, 400)
     result = email(job.user_id, job.print_name, 2)
     if not result:
         return custom_response({'error': USERIDERROR}, 404)
@@ -119,7 +139,11 @@ def reject_awaiting_job(job_id):
 @print_job_api.route('/start/<int:job_id>', methods=['PUT'])
 def start_queued_job(job_id):
     """
-    Start an queued job and check printer details
+    Function to mark a print job as started if the printer selected is not already in use. \n
+    Arguments:
+        job_id: integer PK of the print_job record
+    Returns:
+        Respose: error or serialized updated job record
     """
     req_data = request.get_json()
     # Check if the request body has the correct keys
@@ -151,7 +175,11 @@ def start_queued_job(job_id):
 @print_job_api.route('/complete/<int:job_id>', methods=['PUT'])
 def complete_queued_job(job_id):
     """
-    Mark a running print job as complete and email the user.
+    Function to mark a print job as completed, email the user and change the printer telemetry \n
+    Arguments:
+        job_id: integer PK of the print_job record
+    Returns:
+        Respose: error or serialized updated job record
     """
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
@@ -203,7 +231,11 @@ def complete_queued_job(job_id):
 @print_job_api.route('/fail/<int:job_id>', methods=['PUT'])
 def fail_queued_job(job_id):
     """
-    Fail a running print job and email a user
+    Function to mark a print job as failed, email the user and change the printer telemetry \n
+    Arguments:
+        job_id: integer PK of the print_job record
+    Returns:
+        Respose: error or serialized updated job record
     """
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
@@ -255,7 +287,11 @@ def fail_queued_job(job_id):
 @print_job_api.route('/delete/<int:job_id>', methods=['DELETE'])
 def delete_job(job_id):
     """
-    Delete a single print job by its ID
+    Function to take a job ID and delete it from the database \n
+    Arguments:
+        job_id: integer PK of the record in the database.
+    Returns:
+        Response: error or confirmation message
     """
     job = print_job_model.get_print_job_by_id(job_id)
     if not job:
@@ -267,8 +303,8 @@ def delete_job(job_id):
 # Helper Functions
 def filter_request_to_keys(req, keys):
     """
-    Function to take a dict and a list of keys and return the dict containing only the keys supplied
-    Arguments: 
+    Function to take a dict and a list of keys and return the dict containing only the keys supplied \n
+    Arguments:
         req: the request dictionary that is to be filtered
         keys: a list of keys to filter by
     Returns:
@@ -279,7 +315,7 @@ def filter_request_to_keys(req, keys):
 
 def check_printer_id(printer_id):
     """
-    Function to verify that a printer_id exists in the datbase
+    Function to verify that a printer_id exists in the datbase \n
     Arguments:
         printer_id: the PK of the printer to search for
     Returns:
@@ -292,8 +328,8 @@ def check_printer_id(printer_id):
 
 def running_on_printer(printer_id):
     """
-    Function to check if a job is running on the same printer as another printer
-    Arguments: 
+    Function to check if a job is running on the same printer as another printer \n
+    Arguments:
         printer_id: the ID of the printer to be checked
     Returns:
         boolean: true if it is running on another printer (therefore do not run the job) or False if it is not
@@ -309,8 +345,8 @@ def running_on_printer(printer_id):
 
 def check_user_id(user_id):
     """
-    Function to verify a users level.
-    Arguments: 
+    Function to verify a users level. \n
+    Arguments:
         user_id: the pk to lookup in the user_database
     Returns:
         user_level: the level of the user or None if it does not exist
@@ -323,10 +359,10 @@ def check_user_id(user_id):
 
 def check_rep_id(rep_id):
     """
-    Function to verify if a user is a rep or not.
-    Arguments: 
+    Function to verify if a user is a rep or not. \n
+    Arguments:
         rep_id: the PK of the user object to be checked
-    Returns: 
+    Returns:
         boolean: true if successful, false otherwise
     """
     user = user_model.get_user_by_id(rep_id)
@@ -337,10 +373,10 @@ def check_rep_id(rep_id):
 
 def get_single_job_details(job):
     """
-    Function to take a job object and serialize it.
-    Arguments: 
+    Function to take a job object and serialize it. \n
+    Arguments:
         job: the job object
-    Returns: 
+    Returns:
         Response: error or the serialized object
     """
     if not job:
@@ -352,10 +388,10 @@ def get_single_job_details(job):
 
 def get_multiple_job_details(jobs):
     """
-    Function to take a query object of multiple print jobs and serialize them
+    Function to take a query object of multiple print jobs and serialize them \n
     Arguments:
         jobs: the query object containing print jobs
-    Returns: 
+    Returns:
         Response: error or a list of serialized print jobs
     """
     if not jobs:
@@ -368,11 +404,11 @@ def get_multiple_job_details(jobs):
 
 def update_job_details(job, req_data):
     """
-    Function to update the details of a job by a request.
+    Function to update the details of a job by a request. \n
     Arguments:
         job: the job object to be updated
         req_data: the http body containing the data to be updated
-    Returns: 
+    Returns:
         response: error or the serialized updated print job
     """
     # Try and load Job data to the schema

@@ -17,8 +17,12 @@ load_dotenv("../.env")
 
 
 def create_app(config_object=app_config[os.getenv('FLASK_ENV')]):
-    """Create application factory,
-    :param config_object: The configuration object to use.
+    """
+    Create application factory, \n
+    Arguments:
+        config_object: The configuration object to use.
+    Returns:
+        app: The newly created application
     """
     app = Flask(__name__.split(".")[0])
     api_bp = Blueprint('api', __name__)
@@ -32,7 +36,13 @@ def create_app(config_object=app_config[os.getenv('FLASK_ENV')]):
 
 
 def register_extensions(app):
-    """Register Flask extensions."""
+    """
+    Register Flask extensions. \n
+    Arguments:
+        app: the flask application
+    Returns:
+        None:
+    """
     db.init_app(app)
     mail.init_app(app)
     migrate.init_app(app, db)
@@ -40,7 +50,13 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    """Register Flask blueprints."""
+    """
+    Register Flask blueprints. \n
+    Arguments:
+        app: the flask application
+    Returns:
+        None:
+    """
     api_prefix = app.config['API_PREFIX']
     app.register_blueprint(
         user_route.user_api,
@@ -64,7 +80,14 @@ def register_blueprints(app):
 
 
 def register_errorhandlers(app):
-    """Register error handlers."""
+    """
+    Register error handlers. \n
+    Arguments:
+        app: the flask application
+    Returns:
+        None:
+    """
+    # TODO IMPLEMENT
     return None
 
 
