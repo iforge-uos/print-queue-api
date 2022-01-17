@@ -13,7 +13,7 @@ NOTFOUNDMAINTENANCE = "maintenance route not found"
 @maintenance_api.route('/update/<int:log_id>', methods=['PUT'])
 def update_by_id(log_id):
     """
-    Function to update a logs details.
+    Function to update a logs details. \n
     Arguments:
         log_id: Integer PK of the log record to update
     Returns:
@@ -27,7 +27,7 @@ def update_by_id(log_id):
 @maintenance_api.route('/view/single/<int:log_id>', methods=['GET'])
 def view_single_by_id(log_id):
     """
-    Function to get a single log via its ID
+    Function to get a single log via its ID \n
     Arguments:
         log_id: Integer PK of the log record to retrieve
     Returns:
@@ -39,7 +39,7 @@ def view_single_by_id(log_id):
 @maintenance_api.route('/view/all/<string:printer_name>', methods=['GET'])
 def view_all_by_printer_name(printer_name):
     """
-    Get all logs via their linked printers name
+    Get all logs via their linked printers name \n
     Arguments:
         printer_name: the string name of the printer
     Returns:
@@ -58,7 +58,7 @@ def view_all_by_printer_name(printer_name):
 @maintenance_api.route('/view/all/<int:printer_id>', methods=['GET'])
 def view_all_by_printer_id(printer_id):
     """
-    Get all log via their linked printers name
+    Get all logs via their linked printers name \n
     Arguments:
         printer_id: the integer id of the printer
     Returns:
@@ -71,7 +71,7 @@ def view_all_by_printer_id(printer_id):
 @maintenance_api.route('/delete/<int:log_id>', methods=['DELETE'])
 def delete_by_id(log_id):
     """
-    Delete a single log via its ID
+    Delete a single log via its ID \n
     Arguments:
         log_id: the PK of the log
     Returns:
@@ -83,7 +83,7 @@ def delete_by_id(log_id):
 @maintenance_api.route('/add', methods=['POST'])
 def create():
     """
-    Create Log Function
+    Create Log Function \n
     Arguments:
         none:
     Returns:
@@ -112,7 +112,7 @@ def create():
 
 def delete_log(log):
     """
-    Function to check if the log exists then delete it
+    Function to check if the log exists then delete it \n
     Arguments:
         log: the log object
     Returns:
@@ -126,7 +126,7 @@ def delete_log(log):
 
 def get_log_details(log):
     """
-    Function to check if a log exists and serialize it
+    Function to check if a log exists and serialize it \n
     Arguments:
         log: the log object
     Returns:
@@ -140,7 +140,7 @@ def get_log_details(log):
 
 def get_multiple_log_details(logs):
     """
-    Function to take a query object and serialize each log inside it.
+    Function to take a query object and serialize each log inside it. \n
     Arguments:
         logs: the query object containing all the logs
     Returns:
@@ -156,7 +156,7 @@ def get_multiple_log_details(logs):
 
 def update_log_details(log, req_data):
     """
-    Function to update a log object by certain allowed parameters
+    Function to update a log object by certain allowed parameters \n
     Arguments:
         log: the log object to be updated.
         req_data: the request body data
