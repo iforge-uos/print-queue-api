@@ -14,7 +14,7 @@ user_level_struct = {
     50: "Insane"
 }
 
-NOTFOUNDUSER = "user not found"
+NOTFOUNDUSER = "user(s) not found"
 
 
 @user_api.route('/update/<int:user_id>', methods=['PUT'])

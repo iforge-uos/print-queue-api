@@ -7,7 +7,7 @@ from common.routing import custom_response
 printer_api = Blueprint('printers', __name__)
 printer_schema = printer_schema()
 
-NOTFOUNDPRINTER = "printer not found"
+NOTFOUNDPRINTER = "printer(s) not found"
 
 
 @printer_api.route('/update/<int:printer_id>', methods=['PUT'])

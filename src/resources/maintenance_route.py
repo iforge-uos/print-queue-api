@@ -8,7 +8,7 @@ from common.routing import custom_response
 maintenance_api = Blueprint('maintenance logs', __name__)
 maintenance_schema = maintenance_schema()
 
-NOTFOUNDMAINTENANCE = "maintenance route not found"
+NOTFOUNDMAINTENANCE = "maintenance log(s) not found"
 
 
 @maintenance_api.route('/update/<int:log_id>', methods=['PUT'])

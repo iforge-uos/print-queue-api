@@ -12,8 +12,8 @@ from datetime import datetime
 print_job_api = Blueprint('print jobs', __name__)
 print_job_schema = print_job_schema()
 
-NOTFOUNDJOB = "job not found"
-USERIDERROR = "user not found"
+NOTFOUNDJOB = "job(s) not found"
+USERIDERROR = "user(s) not found"
 
 
 @print_job_api.route('/add', methods=['POST'])
