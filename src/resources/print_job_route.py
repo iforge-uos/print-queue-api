@@ -1,5 +1,6 @@
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
+from auth import requires_access_level
 from resources.printer_route import increment_printer_details
 from models.print_jobs import print_job_model, print_job_schema, project_types, job_status
 from models.printers import printer_model
@@ -7,7 +8,6 @@ from models.user import user_model
 from common.routing import custom_response
 from common.emails import email
 from datetime import datetime
-from copy import deepcopy
 
 print_job_api = Blueprint('print jobs', __name__)
 print_job_schema = print_job_schema()
@@ -17,6 +17,7 @@ USERIDERROR = "user not found"
 
 
 @print_job_api.route('/add', methods=['POST'])
+@requires_access_level(1)
 def create():
     """
     Function to create a new job from json sent in the POST request
@@ -65,6 +66,7 @@ def create():
 
 
 @print_job_api.route('/view/single/<int:job_id>', methods=['GET'])
+@requires_access_level(1)
 def view_job_single(job_id):
     """
     Function return a serialized job by its id
@@ -75,6 +77,7 @@ def view_job_single(job_id):
 
 
 @print_job_api.route('/view/all/<string:status>', methods=['GET'])
+@requires_access_level(1)
 def view_jobs_by_status(status):
     """
     Function to return a list of serialized jobs filtered by their status
@@ -90,6 +93,7 @@ def view_jobs_by_status(status):
 
 
 @print_job_api.route('/approve/accept/<int:job_id>', methods=['PUT'])
+@requires_access_level(2)
 def accept_awaiting_job(job_id):
     """
     Function to mark an awaited job asapproved and add to the queue
@@ -107,6 +111,7 @@ def accept_awaiting_job(job_id):
 
 
 @print_job_api.route('/approve/reject/<int:job_id>', methods=['PUT'])
+@requires_access_level(2)
 def reject_awaiting_job(job_id):
     """
     Function to mark an awaited job asapproved and add to the queue
@@ -126,6 +131,7 @@ def reject_awaiting_job(job_id):
 
 
 @print_job_api.route('/start/<int:job_id>', methods=['PUT'])
+@requires_access_level(2)
 def start_queued_job(job_id):
     """
     Function to mark a print job as started if the printer selected is not already in use.
@@ -160,6 +166,7 @@ def start_queued_job(job_id):
 
 
 @print_job_api.route('/complete/<int:job_id>', methods=['PUT'])
+@requires_access_level(2)
 def complete_queued_job(job_id):
     """
     Function to mark a print job as completed, email the user and change the printer telemetry
@@ -214,6 +221,7 @@ def complete_queued_job(job_id):
 
 
 @print_job_api.route('/fail/<int:job_id>', methods=['PUT'])
+@requires_access_level(2)
 def fail_queued_job(job_id):
     """
     Function to mark a print job as failed, email the user and change the printer telemetry
@@ -268,6 +276,7 @@ def fail_queued_job(job_id):
 
 
 @print_job_api.route('/delete/<int:job_id>', methods=['DELETE'])
+@requires_access_level(3)
 def delete_job(job_id):
     """
     Function to take a job ID and delete it from the database

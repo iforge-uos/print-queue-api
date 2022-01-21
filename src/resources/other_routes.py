@@ -1,4 +1,5 @@
 from flask import Blueprint
+from auth import requires_access_level
 from common.routing import custom_response
 
 other_api = Blueprint('misc', __name__)
@@ -7,6 +8,7 @@ other_api = Blueprint('misc', __name__)
 
 
 @other_api.route('/toast', methods=["GET"])
+@requires_access_level(0)
 def test():
     '''
     Test Endpoint 1
@@ -15,6 +17,7 @@ def test():
 
 
 @other_api.route('/legal', methods=["GET"])
+@requires_access_level(0)
 def test_2():
     '''
     Test Endpoint 2

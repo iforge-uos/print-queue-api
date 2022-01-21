@@ -38,17 +38,3 @@ def create_key():
     key = auth_model(data)
     key.save()
     return custom_response({"Key": api_key}, 200)
-
-
-@auth_api.route('/app/get', methods=['GET'])
-def get_allowed_version():
-    """
-    Route to get the current environment version of the server used to verify print queue clients
-    :return response: success or error
-    """
-    app_ver = current_app.config['ALLOWED_APP_VERSION']
-    if app_ver is not None:
-        return custom_response({"version": int(app_ver)}, 200)
-    else:
-        return custom_response(
-            {"error": "App version not set, please set it"}, 404)

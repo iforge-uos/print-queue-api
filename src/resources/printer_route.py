@@ -1,5 +1,6 @@
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
+from auth import requires_access_level
 from models.printers import printer_model, printer_schema
 from common.routing import custom_response
 
@@ -10,6 +11,7 @@ NOTFOUNDPRINTER = "printer not found"
 
 
 @printer_api.route('/update/<int:printer_id>', methods=['PUT'])
+@requires_access_level(2)
 def update_by_id(printer_id):
     """
     Function to increment a printers details by its name \n
@@ -22,6 +24,7 @@ def update_by_id(printer_id):
 
 
 @printer_api.route('/update/<string:printer_name>', methods=['PUT'])
+@requires_access_level(2)
 def update_by_name(printer_name):
     """
     Function to update a printers details by its name
@@ -34,6 +37,7 @@ def update_by_name(printer_name):
 
 
 @printer_api.route('/increment/<int:printer_id>', methods=['PUT'])
+@requires_access_level(2)
 def increment_by_id(printer_id):
     """
     Function to increment a printers details by its ID \n
@@ -48,6 +52,7 @@ def increment_by_id(printer_id):
 
 
 @printer_api.route('/increment/<string:printer_name>', methods=['PUT'])
+@requires_access_level(2)
 def increment_by_name(printer_name):
     """
     Function to increment a printers details by its name
@@ -63,6 +68,7 @@ def increment_by_name(printer_name):
 
 
 @printer_api.route('/view/all/', methods=['GET'])
+@requires_access_level(2)
 def view_all_printers():
     """
     Function to view all printer records in the database
@@ -72,6 +78,7 @@ def view_all_printers():
 
 
 @printer_api.route('/view/individual/<int:printer_id>', methods=['GET'])
+@requires_access_level(2)
 def view_by_id(printer_id):
     """
     Function to view a printer record in the database
@@ -82,6 +89,7 @@ def view_by_id(printer_id):
 
 
 @printer_api.route('/view/individual/<string:printer_name>', methods=['GET'])
+@requires_access_level(2)
 def view_by_name(printer_name):
     """
     Function to view a printer record in the database
@@ -92,6 +100,7 @@ def view_by_name(printer_name):
 
 
 @printer_api.route('/delete/<int:printer_id>', methods=['DELETE'])
+@requires_access_level(3)
 def delete_by_id(printer_id):
     """
     Function to delete a printer record in the database
@@ -102,6 +111,7 @@ def delete_by_id(printer_id):
 
 
 @printer_api.route('/delete/<string:printer_name>', methods=['DELETE'])
+@requires_access_level(3)
 def delete_by_name(printer_name):
     """
     Function to delete a printer record in the database
@@ -112,6 +122,7 @@ def delete_by_name(printer_name):
 
 
 @printer_api.route('/add', methods=['POST'])
+@requires_access_level(2)
 def create():
     """
     Function to create a new printer record in the database
