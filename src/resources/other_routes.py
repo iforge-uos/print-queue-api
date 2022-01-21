@@ -1,5 +1,5 @@
 from flask import Blueprint
-from auth import requires_access_level
+from common.auth import requires_access_level
 from common.routing import custom_response
 
 other_api = Blueprint('misc', __name__)
