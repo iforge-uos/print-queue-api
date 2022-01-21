@@ -13,11 +13,9 @@ NOTFOUNDMAINTENANCE = "maintenance route not found"
 @maintenance_api.route('/update/<int:log_id>', methods=['PUT'])
 def update_by_id(log_id):
     """
-    Function to update a logs details. \n
-    Arguments:
-        log_id: Integer PK of the log record to update
-    Returns:
-        Response: error or serialized updated log
+    Function to update a logs details.
+    :param int log_id: PK of the log record to update
+    :return response: error or serialized updated log
     """
     req_data = request.get_json()
     log = maintenance_model.get_maintenance_log_by_id(log_id)
@@ -27,11 +25,9 @@ def update_by_id(log_id):
 @maintenance_api.route('/view/single/<int:log_id>', methods=['GET'])
 def view_single_by_id(log_id):
     """
-    Function to get a single log via its ID \n
-    Arguments:
-        log_id: Integer PK of the log record to retrieve
-    Returns:
-        Response: error or serialized log
+    Function to get a single log via its ID
+    :param int log_id: PK of the log record to retrieve
+    :return response: error or serialized log
     """
     return get_log_details(maintenance_model.get_maintenance_log_by_id(log_id))
 
@@ -39,11 +35,9 @@ def view_single_by_id(log_id):
 @maintenance_api.route('/view/all/<string:printer_name>', methods=['GET'])
 def view_all_by_printer_name(printer_name):
     """
-    Get all logs via their linked printers name \n
-    Arguments:
-        printer_name: the string name of the printer
-    Returns:
-        response: an error or the serialized printers
+    Get all logs via their linked printers name
+    :param str printer_name: name of the printer
+    :return response: an error or the serialized printers
     """
     # First check if the printer_name is valid
     printer = printer_model.get_printer_by_name(printer_name)
@@ -58,11 +52,9 @@ def view_all_by_printer_name(printer_name):
 @maintenance_api.route('/view/all/<int:printer_id>', methods=['GET'])
 def view_all_by_printer_id(printer_id):
     """
-    Get all logs via their linked printers name \n
-    Arguments:
-        printer_id: the integer id of the printer
-    Returns:
-        response: an error or the serialized printers
+    Get all logs via their linked printers name
+    :param int printer_id: PK ID of the printer
+    :return response: an error or the serialized printers
     """
     return get_multiple_log_details(
         maintenance_model.get_maintenance_logs_by_printer_id(printer_id))
@@ -71,11 +63,9 @@ def view_all_by_printer_id(printer_id):
 @maintenance_api.route('/delete/<int:log_id>', methods=['DELETE'])
 def delete_by_id(log_id):
     """
-    Delete a single log via its ID \n
-    Arguments:
-        log_id: the PK of the log
-    Returns:
-        response: error or a success message
+    Delete a single log via its ID
+    :param int log_id: the PK of the log
+    :return response: error or a success message
     """
     return delete_log(maintenance_model.get_maintenance_log_by_id(log_id))
 
@@ -83,11 +73,8 @@ def delete_by_id(log_id):
 @maintenance_api.route('/add', methods=['POST'])
 def create():
     """
-    Create Log Function \n
-    Arguments:
-        none:
-    Returns:
-        Response: error or a success message
+    Create Log Function
+    :return response: error or a success message
     """
     req_data = request.get_json()
 
@@ -112,11 +99,9 @@ def create():
 
 def delete_log(log):
     """
-    Function to check if the log exists then delete it \n
-    Arguments:
-        log: the log object
-    Returns:
-        Response: error or a success message
+    Function to check if the log exists then delete it
+    :param log: the log object
+    :return response: error or a success message
     """
     if not log:
         return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
@@ -126,11 +111,9 @@ def delete_log(log):
 
 def get_log_details(log):
     """
-    Function to check if a log exists and serialize it \n
-    Arguments:
-        log: the log object
-    Returns:
-        Response: error or the serialized log object
+    Function to check if a log exists and serialize it
+    :param log: the log object
+    :return response: error or the serialized log object
     """
     if not log:
         return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
@@ -140,11 +123,9 @@ def get_log_details(log):
 
 def get_multiple_log_details(logs):
     """
-    Function to take a query object and serialize each log inside it. \n
-    Arguments:
-        logs: the query object containing all the logs
-    Returns:
-        response: error the a list of serialized log objects.
+    Function to take a query object and serialize each log inside it.
+    :param logs: the query object containing all the logs
+    :return response: error the a list of serialized log objects.
     """
     if not logs:
         return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
@@ -156,12 +137,10 @@ def get_multiple_log_details(logs):
 
 def update_log_details(log, req_data):
     """
-    Function to update a log object by certain allowed parameters \n
-    Arguments:
-        log: the log object to be updated.
-        req_data: the request body data
-    Returns:
-        Response: error or the serialized data of the updated object.
+    Function to update a log object by certain allowed parameters
+    :param log: the log object to be updated.
+    :param dict req_data: the request body data
+    :return response: error or the serialized data of the updated object.
     """
     if not log:
         return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)

@@ -126,8 +126,7 @@ class print_job_model (db.Model):
     def get_all_print_jobs():
         """
         Function to get all the print jobs in the database
-        Returns:
-            query_object: a query object containing all the print jobs
+        :return query_object: a query object containing all the print jobs
         """
         return print_job_model.query.all()
 
@@ -135,10 +134,8 @@ class print_job_model (db.Model):
     def get_print_job_by_id(id):
         """
         Function to get a single print job from the database
-        Arguments:
-            id: the PK of the job
-        Returns:
-            query_object: a query object containing the print job
+        :param int id: the PK of the job
+        :return query_object: a query object containing the print job
         """
         return print_job_model.query.get(id)
 
@@ -146,10 +143,8 @@ class print_job_model (db.Model):
     def get_print_jobs_by_status(status):
         """
         Function to get all the pint jobs from the database filtered by the job status
-        Arguments:
-            status: the key of the status enum that carries the job state
-        Returns:
-            query_object: a query object containing all the print jobs of the aforementioned status
+        :param str status: the key of the status enum that carries the job state
+        :return query_object: a query object containing all the print jobs of the aforementioned status
         """
         return print_job_model.query.filter_by(status=job_status[status]).all()
 

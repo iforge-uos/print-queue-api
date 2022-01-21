@@ -40,13 +40,11 @@ email_type_struct = [[FINISHED_EMAIL_HEADER, FINISHED_EMAIL_BODY], [
 
 def email(user_id, job_name, email_type):
     """
-    Emails the associated user with the print_job name and what type of message it is. \n
-    Arguments:
-        user_id: The id of the user
-        job_name: The name of the job
-        email_type: Either 0, 1 or 2. With 0 being completed, 1 being a failure and 2 being a rejection.
-    Returns:
-        boolean: True if successful else false.
+    Emails the associated user with the print_job name and what type of message it is.
+    :param int user_id: The id of the user
+    :param str job_name: The name of the job
+    :param int email_type: Either 0, 1 or 2. With 0 being completed, 1 being a failure and 2 being a rejection.
+    :return bool success: True if successful else false.
     """
     user = user_model.get_user_by_id(user_id)
     if user is None:
@@ -75,12 +73,10 @@ def email(user_id, job_name, email_type):
 
 def update_user_score(user, email_type):
     """
-    Updates the user score for the given user depending on how the print_job went \n
-    Arguments:
-        user: the user object associated with the print_job
-        email_type: Either 0, 1 or 2. With 0 being completed, 1 being a failure and 2 being a rejection.
-    Returns:
-        None:
+    Updates the user score for the given user depending on how the print_job went
+    :param user: the user object associated with the print_job
+    :param int email_type: Either 0, 1 or 2. With 0 being completed, 1 being a failure and 2 being a rejection.
+    :return: None
     """
     cur_score = user.social_credit_score
     if email_type == 0:
@@ -98,12 +94,10 @@ def update_user_score(user, email_type):
 
 def send_async_email(app, msg):
     """
-    Creates a new app on a thread to send the email to free up the main thread. \n
-    Arguments:
-        app: a new app object created from the current_app context
-        msg: the message object being sent
-    Returns:
-        None:
+    Creates a new app on a thread to send the email to free up the main thread.
+    :param app: a new app object created from the current_app context
+    :param msg: the message object being sent
+    :return: None
     """
     with app.app_context():
         try:

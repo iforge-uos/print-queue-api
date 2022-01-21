@@ -56,8 +56,7 @@ class user_model(db.Model):
     def get_all_users():
         """
         Function to get all the users in the database
-        Returns:
-            query_object: a query object containing all the users
+        :return query_object: a query object containing all the users
         """
         return user_model.query.all()
 
@@ -65,10 +64,8 @@ class user_model(db.Model):
     def get_user_by_id(id):
         """
         Function to get a user by their ID
-        Arguments:
-            id: the PK of the user
-        Returns:
-            query_object: a query object containing the user
+        :param int id: the PK of the user
+        :return query_object: a query object containing the user
         """
         return user_model.query.get(id)
 
@@ -76,10 +73,8 @@ class user_model(db.Model):
     def get_user_by_email(value):
         """
         Function to get a user by their email
-        Arguments:
-            value: the email of the user
-        Returns:
-            query_object: a query object containing the user
+        :param str value: the email of the user
+        :return query_object: a query object containing the user
         """
         return user_model.query.filter_by(email=value).first()
 

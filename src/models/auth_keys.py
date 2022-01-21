@@ -59,8 +59,7 @@ class auth_model(db.Model):
     def get_all_keys():
         """
         Function to get all the keys in the database
-        Returns:
-            query_object: a query object containing all the keys
+        :return query_object: a query object containing all the keys
         """
         return auth_model.query.all()
 
@@ -68,10 +67,8 @@ class auth_model(db.Model):
     def get_key_by_id(id):
         """
         Function to get a key by their ID
-        Arguments:
-            id: the PK of the key
-        Returns:
-            query_object: a query object containing the key
+        :param int id: PK of the key
+        :return query_object: a query object containing the key
         """
         return auth_model.query.get(id)
 
@@ -79,10 +76,8 @@ class auth_model(db.Model):
     def get_key_by_key(key):
         """
         Function to get a key by their ID
-        Arguments:
-            key: the key value
-        Returns:
-            query_object: a query object containing the key
+        :param str key: the key value
+        :return query_object: a query object containing the key
         """
         return auth_model.query.filter_by(key=key).first()
 
@@ -91,10 +86,8 @@ class auth_model(db.Model):
     def get_keys_by_associated_version(version):
         """
         Function to get keys by its associated version
-        Arguments:
-            version: the software version of the client used with the key
-        Returns:
-            query_object: a query object containing the keys
+        :param str version: the software version of the client used with the key
+        :return query_object: a query object containing the keys
         """
         return auth_model.query.filter_by(associated_version=version).all()
 

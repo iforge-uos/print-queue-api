@@ -66,8 +66,7 @@ class printer_model (db.Model):
     def get_model_dict(self):
         """
         Function to get the models attributes as a dictionary
-        Returns:
-            dictionary: a dict containing all the objects attributes
+        :return dictionary: a dict containing all the objects attributes
         """
         return self.__dict__
 
@@ -75,8 +74,7 @@ class printer_model (db.Model):
     def get_all_printers():
         """
         Function to get all the printers in the database
-        Returns:
-            query_object: a query object containing all the printer
+        :return query_object: a query object containing all the printer
         """
         return printer_model.query.all()
 
@@ -84,10 +82,8 @@ class printer_model (db.Model):
     def get_printer_by_id(id):
         """
         Function to get a single printer from the database by its ID
-        Arguments:
-            id: the PK of the printer
-        Returns:
-            query_object: a query object containing the printer
+        :param int id: the PK of the printer
+        :return query_object: a query object containing the printer
         """
         return printer_model.query.get(id)
 
@@ -95,10 +91,8 @@ class printer_model (db.Model):
     def get_printer_by_name(value):
         """
         Function to get a single printer from the database by its name
-        Arguments:
-            name: the string name of the printer
-        Returns:
-            query_object: a query object containing the printer
+        :param str name: the string name of the printer
+        :return query_object: a query object containing the printer
         """
         return printer_model.query.filter_by(printer_name=value).first()
 

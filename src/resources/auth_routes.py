@@ -9,25 +9,22 @@ auth_api = Blueprint('auth', __name__)
 auth_schema = auth_schema()
 
 
-@auth_api.route('/generate-key/<int:permission_level>', methods=['POST'])
+@auth_api.route('/generate-key', methods=['POST'])
 @requires_access_level(3)
-def create_key(permission_level):
+def create_key():
     """
-    Route to change the current environment version of the server used to verify print queue clients \n
-    Arguments:
-        permission_level: the permission level for the key
-    Returns:
-        response: success or error
+    Route to change the current environment version of the server used to verify print queue clients
+    :return response: success or error
     """
-    if permission_level not in [0,1,2,3]:
-        return custom_response({"Error": "Invalid permission_level"}, 400)
     req_data = request.get_json()
+
+    if req_data['permission_value'] not in [0,1,2,3]:
+        return custom_response({"Error": "Invalid permission value supplied"}, 400)
 
     # generate new api_key
     api_key = generate_hash_key()
     req_data['key'] = api_key
-    req_data['permission_value'] = permission_level
-    print(req_data)
+    
 
     # Try and load the data into the model
     try:
@@ -40,17 +37,14 @@ def create_key(permission_level):
 
     key = auth_model(data)
     key.save()
-    return custom_response({"new key": api_key}, 200)
+    return custom_response({"Key": api_key}, 200)
 
 
 @auth_api.route('/app/get', methods=['GET'])
 def get_allowed_version():
     """
-    Route to get the current environment version of the server used to verify print queue clients \n
-    Arguments:
-        none:
-    Returns:
-        response: value or error
+    Route to get the current environment version of the server used to verify print queue clients
+    :return response: success or error
     """
     app_ver = current_app.config['ALLOWED_APP_VERSION']
     if app_ver is not None:
