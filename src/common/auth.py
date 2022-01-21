@@ -1,67 +1,48 @@
-from dotenv import find_dotenv
-from flask import current_app
-from itsdangerous import (TimedJSONWebSignatureSerializer
-                          as Serializer, BadSignature, SignatureExpired)
-
-# TODO
-# Auth Print Q Clients
-# Auth Admin Clients
-# Return a token for either auth state
-
-"""
-Honestly this file is gonna be a bit of a mess.
-Any ideas to make this better are appreciated
-"""
+from functools import wraps
+from flask import request
+from models.auth_keys import auth_model
+from common.routing import custom_response
+import secrets
 
 
-def generate_client_auth_token(expiration, client_version):
+def generate_hash_key():
     """
-    Generate an authentication token for usage of basic features of the API. \n
-    By default, this will expire after 24 hours
-    Arguments:
-        expiration: Seconds after which to expire the token.
-        client_version : The version of the print Q client used for API
+    Function to generate keys for the clients to use for the API \n
+    Parameters:
+        none:
     Returns:
-        None:
+        key: the hashkey
     """
-    s = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
-    return s.dumps({'CLIENT_VERSION': client_version})
+    return secrets.token_urlsafe(64)
 
 
-def verify_client_auth_token(token):
-    """
-    Verifies the supplied authentication token. \n
-    Arguments:
-        token: The user's authentication token.
-    Returns:
-        boolean: if the token is verified or not
-    """
-    s = Serializer(current_app.config['SECRET_KEY'])
-    try:
-        data = s.loads(token)
-    except SignatureExpired:
-        return False  # Valid token supplied, but expired
-    except BadSignature:
-        return False  # Invalid token supplied
-    return data['CLIENT_VERSION'] >= current_app.config['ALLOWED_APP_VERSION']
+def verify_key_and_access_level(key, level):
+   """
+   Match API keys and discard ip
+   @param key: API key from request
+   @return: boolean
+   """
+   print(key)
+   if key is None:
+      return False
+   api_key = auth_model.get_key_by_key(key)
+   if api_key is None:
+      return False
+   # check the permission level of the key is higher than what is required for this resource 
+   elif api_key.permission_value >= level:
+      return True
+   return False
 
 
-def write_version_to_dotenv(value):
-    """
-    Writes the new verifier to the env file so that the data persists through server reboots. \n
-    Args:
-        value: the new client version string in the format (YYYYMMDD)
-    Returns:
-        boolean: if the write was successful or not.
-    """
-    dotenv = find_dotenv()
-    try:
-        with open(dotenv, "r") as f:
-            data = f.readlines()
-        data[-1] = f"ALLOWED_APP_VERSION={value}"
-        with open(dotenv, "w") as f:
-            f.writelines(data)
-    except IOError:
-        return False
-    current_app.config['ALLOWED_APP_VERSION'] = str(value)
-    return True
+def requires_access_level(access_level):
+   def decorator(f):
+      @wraps(f)
+      def decorated_function(*args, **kwargs):
+         key = request.headers.get("x-api-key")
+         if key is None:
+            return custom_response({"error" : "please supply api key in the request header"}, 400)
+         if not verify_key_and_access_level(key, access_level):
+            return custom_response({"error" : "you are not allowed to access this resource"}, 401)
+         return f(*args, **kwargs)
+      return decorated_function
+   return decorator

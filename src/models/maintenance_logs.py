@@ -15,6 +15,7 @@ class maintenance_model (db.Model):
     maintenance_date = db.Column(db.DateTime(
         timezone=True), server_default=func.now(), onupdate=func.now())
     maintenance_info = db.Column(db.String, nullable=False)
+    done_by = db.Column(db.String, nullable=False)
 
     # class constructor
     def __init__(self, data):
@@ -23,6 +24,7 @@ class maintenance_model (db.Model):
         """
         self.printer_id = data.get('printer_id')
         self.maintenance_info = data.get('maintenance_info')
+        self.done_by = data.get('done_by')
 
     def save(self):
         """
@@ -89,3 +91,4 @@ class maintenance_schema(Schema):
     printer_id = fields.Int(required=True)
     maintenance_date = fields.Date()
     maintenance_info = fields.String(required=True)
+    done_by = fields.String(required=True)

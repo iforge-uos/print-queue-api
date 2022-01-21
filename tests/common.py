@@ -5,6 +5,7 @@ from src.app import create_app
 
 load_dotenv("../.env.test")
 
+
 class BaseCase(unittest.TestCase):
 
     def setUp(self):

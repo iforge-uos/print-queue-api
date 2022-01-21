@@ -2,6 +2,7 @@ import json
 
 from tests.common import BaseCase
 
+
 class test_users(BaseCase):
 
     def test_user_add(self):
