@@ -24,7 +24,6 @@ def verify_key_and_access_level(key, level):
         return False
     # check the permission level of the key is higher than what is required for this resource
     elif api_key.permission_value >= level:
-        print("here")
         return True
     return False
 
