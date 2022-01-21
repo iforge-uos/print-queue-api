@@ -15,7 +15,6 @@ mail_default_sender = os.getenv('MAIL_DEFAULT_SENDER')
 port = os.getenv('PORT')
 api_prefix = os.getenv('API_PREFIX')
 allowed_app_version = os.getenv('ALLOWED_APP_VERSION')
-secret_key = os.getenv('SECRET_KEY')
 
 
 class Development(object):
@@ -34,7 +33,6 @@ class Development(object):
     MAIL_USE_SSL = False
     DEBUG = True
     TESTING = False
-    SECRET_KEY = secret_key
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = f"postgresql://{username}:{password}@{server_name}:{server_port}/{db_name}"
 
@@ -55,7 +53,6 @@ class Production(object):
     MAIL_USE_SSL = False
     DEBUG = False
     TESTING = False
-    SECRET_KEY = secret_key
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = f"postgresql://{username}:{password}@{server_name}:{server_port}/{db_name}"
 
@@ -75,7 +72,6 @@ class Testing(object):
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     TESTING = True
-    SECRET_KEY = secret_key
     SQLALCHEMY_DATABASE_URI = f"postgresql://{username}:{password}@{server_name}:{server_port}/{db_name}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

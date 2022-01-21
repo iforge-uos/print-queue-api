@@ -8,8 +8,6 @@ DB_PASSWORD=
 PORT=
 API_PREFIX=
 FLASK_ENV=
-# Set this to something secure
-SECRET_KEY=
 # Mail Config
 MAIL_SERVER=
 MAIL_PORT=2525
