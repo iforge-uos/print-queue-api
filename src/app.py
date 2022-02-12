@@ -1,5 +1,6 @@
 import os
 from flask import Flask, Blueprint
+from flask_bootstrap import Bootstrap
 from flask_restful import Api
 from dotenv import load_dotenv
 from config import app_config
@@ -30,6 +31,7 @@ def create_app(config_object=app_config[os.getenv('FLASK_ENV')]):
     register_extensions(app)
     register_blueprints(app)
     register_errorhandlers(app)
+    Bootstrap(app)
     return app
 
 
