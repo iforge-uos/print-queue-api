@@ -12,7 +12,7 @@ from extensions import (
     mail
 )
 # Resources
-from resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes
+from resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes, management_route
 
 load_dotenv("../.env")
 
@@ -70,6 +70,9 @@ def register_blueprints(app):
     app.register_blueprint(
         auth_routes.auth_api,
         url_prefix=f'{api_prefix}/auth')
+    app.register_blueprint(
+        management_route.management_view,
+        url_prefix='/')
     return None
 
 
