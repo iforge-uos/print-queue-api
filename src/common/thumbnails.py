@@ -16,7 +16,7 @@ def extract_thumbnail(gcode_file_path):
         for line in g_file:
             line = line.decode("utf-8", "ignore")
             if line.startswith(";"):
-                concat_string += line
+                concat_string += line@
         # match the thumbnail regex to the string.
         matches = re.findall(regex, concat_string, re.MULTILINE)
         # CHeck the thumbnail exists
@@ -27,6 +27,3 @@ def extract_thumbnail(gcode_file_path):
                 img.write(base64.b64decode(matches[-1:][0].replace("; ", "").encode()))
         else:
             return None
-
-if __name__ == '__main__':
-    extract_thumbnail("D:\\hexcase-base_0.2mm_PETG_MINI_3h57m.gcode")

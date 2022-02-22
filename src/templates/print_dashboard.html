@@ -1,0 +1,64 @@
+{% extends "base_layout.html" %}
+{% block title %}Print Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('management view.home_page') }}">Home</a></li>
+        <li class="breadcrumb-item active">Print Dashboard</li>
+    </ol>
+
+    <h1>Print Dashboard</h1>
+    <div class="btn-group">
+        <button type="button" class="btn btn-info">{{  selected_status  }}</button>
+        <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+            <a class="dropdown-item" href="{{ url_for('management view.print_dashboard', status='queued') }}">Queued</a>
+            <a class="dropdown-item" href="{{ url_for('management view.print_dashboard', status='failed') }}">Failed</a>
+            <a class="dropdown-item"
+                href="{{ url_for('management view.print_dashboard', status='rejected') }}">Rejected</a>
+            <a class="dropdown-item"
+                href="{{ url_for('management view.print_dashboard', status='complete') }}">Complete</a>
+            <a class="dropdown-item" href="{{ url_for('management view.print_dashboard', status='awaiting') }}">Awaiting
+                Approval</a>
+            <a class="dropdown-item"
+                href="{{ url_for('management view.print_dashboard', status='under_review') }}">Under Review</a>
+        </div>
+    </div>
+    {% if print_jobs %}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Job Name</th>
+                <th scope="col">User ID</th>
+                <th scope="col">Date Added</th>
+                <th scope="col">Upload Notes</th>
+                <th scope="col">Print time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in print_jobs %}
+            <tr>
+                <td>
+                    {{ job.print_name }}
+                </td>
+                <td>{{ job.user_id }}</td>
+                <td>{{ job.date_added.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ job.upload_notes }}</td>
+                <td>{{ job.print_time }}</td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-primary">
+        There are no jobs currently in the queue.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
