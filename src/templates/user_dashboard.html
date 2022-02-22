@@ -1,0 +1,49 @@
+{% extends "base_layout.html" %}
+{% block title %}Print Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('management view.home_page') }}">Home</a></li>
+        <li class="breadcrumb-item active">User Dashboard</li>
+    </ol>
+
+    <h1>User Dashboard</h1>
+    {% if users %}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">User ID</th>
+                <th scope="col">User Name</th>
+                <th scope="col">User Preferred Name</th>
+                <th scope="col">User Email</th>
+                <th scope="col">User Score</th>
+                <th scope="col">User Level</th>
+                <th scope="col">Date Added</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>
+                    {{ user.id }}
+                </td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.short_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.social_credit_score }}</td>
+                <td>{{ level_calculate(user.social_credit_score) }}</td>
+                <td>{{ user.date_added.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-primary">
+        There are no users currently in the database.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

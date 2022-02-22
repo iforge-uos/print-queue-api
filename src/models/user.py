@@ -1,3 +1,4 @@
+from sqlalchemy.sql import func
 from marshmallow import fields, Schema
 from extensions import db
 
@@ -15,6 +16,8 @@ class user_model(db.Model):
     is_rep = db.Column(db.Boolean, nullable=False)
     score_editable = db.Column(db.Boolean, default=True)
     short_name = db.Column(db.String, nullable=True)
+    date_added = db.Column(db.DateTime(timezone=True),
+                           server_default=func.now())
 
     # class constructor
     def __init__(self, data):
@@ -97,3 +100,4 @@ class user_schema(Schema):
     is_rep = fields.Boolean(required=True)
     score_editable = fields.Boolean(required=True)
     short_name = fields.String(required=False)
+    date_added = fields.DateTime(required=False)

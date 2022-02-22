@@ -39,10 +39,13 @@
     <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="{{ url_for('management view.home_page') }}">Home</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('management view.print_dashboard', status='queued') }}">Print Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('management view.user_dashboard') }}">User Dashboard</a>
             </li>
         </ul>
 
