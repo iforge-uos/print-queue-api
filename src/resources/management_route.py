@@ -15,7 +15,7 @@ def home_page():
     """
     Gets the main print dashboard for the reps
     """
-    return render_template('base_layout.html', page_title="Home")
+    return render_template('base_layout.j2', page_title="Home")
 
 
 @management_view.route('/print_dashboard', methods=['GET'])
@@ -25,11 +25,11 @@ def print_dashboard():
     """
     args = request.args.to_dict()
     if len(args) == 0:
-        return render_template('print_dashboard.html', page_title="Print Dashboard")
+        return render_template('print_dashboard.j2', page_title="Print Dashboard")
     status = args["status"]
     if status not in job_status._member_names_:
-        return render_template('print_dashboard.html', page_title="Print Dashboard")
-    return render_template('print_dashboard.html', page_title="Print Dashboard", print_jobs=print_jobs_by_status(status), selected_status=job_status[status].value)
+        return render_template('print_dashboard.j2', page_title="Print Dashboard")
+    return render_template('print_dashboard.j2', page_title="Print Dashboard", print_jobs=print_jobs_by_status(status), selected_status=job_status[status].value)
 
 
 @management_view.route('/user_dashboard', methods=['GET'])
@@ -37,7 +37,7 @@ def user_dashboard():
     """
     Gets the main print dashboard for the reps
     """
-    return render_template('user_dashboard.html', page_title="User Dashboard", users=user_model.get_all_users(), level_calculate=calculate_level_from_score)
+    return render_template('user_dashboard.j2', page_title="User Dashboard", users=user_model.get_all_users(), level_calculate=calculate_level_from_score)
 
 
 def print_jobs_by_status(status) -> list:

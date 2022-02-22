@@ -1,4 +1,4 @@
-{% extends "base_layout.html" %}
+{% extends "base_layout.j2" %}
 {% block title %}Print Dashboard{% endblock %}
 
 {% block content %}
@@ -21,6 +21,7 @@
                 <th scope="col">User Score</th>
                 <th scope="col">User Level</th>
                 <th scope="col">Date Added</th>
+                <th scope="col">Rep?</th>
             </tr>
         </thead>
         <tbody>
@@ -35,6 +36,11 @@
                 <td>{{ user.social_credit_score }}</td>
                 <td>{{ level_calculate(user.social_credit_score) }}</td>
                 <td>{{ user.date_added.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                {% if user.is_rep %}
+                    <td>Yes</td>
+                {% else %}
+                    <td>No</td>
+                {% endif %}
             </tr>
             {% endfor %}
 
