@@ -1,11 +1,22 @@
 const webpack = require('webpack');
-const resolve = require('path').resolve;const config = {
- entry: __dirname + '/js/index.jsx',
- output:{
-      path: resolve('../public'),
-      filename: 'bundle.js',
-      publicPath: resolve('../public')},
- resolve: {
-  extensions: ['.js','.jsx','.css']
- },
-};module.exports = config;
+const config = {
+    entry:  __dirname + '/js/index.js',
+    output: {
+        path: __dirname + '/dist',
+        filename: 'bundle.js',
+    },
+    resolve: {
+        extensions: ['.js', '.jsx', '.css']
+    },
+  
+    module: {
+        rules: [
+            {
+            test: /\.(js|jsx)?/,
+                exclude: /node_modules/,
+                use: 'babel-loader'     
+            }        
+        ]
+    }
+};
+module.exports = config;

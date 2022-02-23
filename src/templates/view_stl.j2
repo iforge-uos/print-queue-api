@@ -1,8 +1,4 @@
 {% extends "base_layout.j2" %}
-{% block head %}
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
-<script src = "{{ url_for('static', filename='js/stl.js') }}"></script>
-{% endblock head %}
 {% block title %}
     STL Viewer
 {% endblock title %}
@@ -11,6 +7,7 @@
         <div class="px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
             <h1 class="display-4">Hello World</h1>
         </div>
-        <stl-part-viewer src="{{ url_for('static', filename='print_models/test.stl') }}"></stl-part-viewer>
+        <div id="react-root"></div>
+        <script src="{{ url_for('static', filename='dist/bundle.js') }}"></script>
     </div>
 {% endblock content %}
