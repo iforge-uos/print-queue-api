@@ -40,7 +40,28 @@ def user_dashboard():
     return render_template('user_dashboard.j2', page_title="User Dashboard", users=user_model.get_all_users(), level_calculate=calculate_level_from_score)
 
 
+@management_view.route('/view_stl', methods=['GET'])
+def view_stl():
+    """
+    Gets the main print dashboard for the reps
+    """
+    return render_template('view_stl.j2', page_title="STL Viewer")
+
+
+@management_view.route('/view_gcode', methods=['GET'])
+def view_gcode():
+    """
+    Gets the main print dashboard for the reps
+    """
+    return render_template('view_gcode.j2', page_title="GCode Viewer")
+
+
 def print_jobs_by_status(status) -> list:
+    """
+    Function to take print jobs and serialize them to a list
+    :param status: status in the job_status enum
+    :return list: list of jobs matching the status
+    """
     if status not in job_status._member_names_:
         return []
     jason = []

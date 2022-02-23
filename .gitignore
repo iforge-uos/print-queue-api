@@ -155,3 +155,4 @@ cython_debug/
 
 # Other Env
 .env.test
+**/node_modules
