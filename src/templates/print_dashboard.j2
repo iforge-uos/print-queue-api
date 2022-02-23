@@ -1,5 +1,5 @@
 {% extends "base_layout.j2" %}
-{% block title %}Print Dashboard{% endblock %}
+{% block title %}Print Dashboard{% endblock title %}
 
 {% block content %}
 
@@ -11,7 +11,7 @@
 
     <h1>Print Dashboard</h1>
     <div class="btn-group">
-        <button type="button" class="btn btn-info">{{  selected_status  }}</button>
+        <button type="button" class="btn btn-info">{{ selected_status }}</button>
         <button type="button" class="btn btn-info dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             <span class="sr-only">Toggle Dropdown</span>
@@ -61,4 +61,4 @@
     </div>
     {% endif %}
 </div>
-{% endblock %}
+{% endblock content %}
