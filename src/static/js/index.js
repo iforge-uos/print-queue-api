@@ -7,8 +7,8 @@ const url = "https://storage.googleapis.com/ucloud-v3/ccab50f18fb14c91ccca300a.s
 const style = {
     top: 0,
     left: 0,
-    width: '100vw',
-    height: '100vh',
+    width: '50vw',
+    height: '50vh',
 }
 
 function App() {
