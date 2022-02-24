@@ -3,9 +3,10 @@ import ReactDOM from 'react-dom';
 import {StlViewer} from "react-stl-viewer";
 
 const url = "https://storage.googleapis.com/ucloud-v3/ccab50f18fb14c91ccca300a.stl"
+const _param = "pepis";
 
-
-function App() {
+function App(param) {
+    console.log(param);
     return (
         <StlViewer
             className ="stlviewer align-items-center row mx-auto"
@@ -16,4 +17,4 @@ function App() {
     );
 }
 
-ReactDOM.render(<App />, document.getElementById('react-root'));
+ReactDOM.render(<App param = {_param}/>, document.getElementById('react-root'));
