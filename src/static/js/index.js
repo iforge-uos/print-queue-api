@@ -8,9 +8,9 @@ const url = "https://storage.googleapis.com/ucloud-v3/ccab50f18fb14c91ccca300a.s
 function App() {
     return (
         <StlViewer
-            class ="stlviewer align-items-center row mx-auto"
+            className ="stlviewer align-items-center row mx-auto"
             orbitControls
-            shadows
+            //shadows
             url={url}
         />
     );
