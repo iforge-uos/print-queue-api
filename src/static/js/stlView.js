@@ -1,6 +1,6 @@
 import React from 'react';
 import { StlViewer } from "react-stl-viewer";
-import { BrowserRouter as Router, useLocation, useSearchParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 
 function useQuery() {
@@ -8,27 +8,18 @@ function useQuery() {
     return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
-export default function STLViewerBase() {
-    return (
-        <Router>
-            <App />
-        </Router>
-    );
-}
-
-function App() {
-    //TODO Add failsafes
+let STLRenderer = () => {
     let query = useQuery()
     let useShadows = query.get('shadows').toLowerCase() == 'true';
     return (
-        <div>
-            <StlViewer
-                className="stlviewer align-items-center row mx-auto"
-                orbitControls
-                shadows={useShadows}
-                url={query.get("stl_url")}
-            />
-            
-        </div>
+        <StlViewer
+            className="viewer align-items-center row mx-auto"
+            orbitControls
+            shadows={useShadows}
+            showAxes
+            url={query.get("stl_url")}
+        />
     );
 }
+
+export default STLRenderer;
