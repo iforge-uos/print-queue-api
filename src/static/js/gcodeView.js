@@ -11,11 +11,18 @@ function useQuery() {
 
 let GCodeRenderer = () => {
     let query = useQuery();
+    var fprop = {
+        gridWidth: 2,
+        gridHeight: 2
+    }
     return (
         <div>
             <GCodeViewer
                 className="viewer align-items-center row mx-auto"
                 orbitControls
+                quality={0.7}
+                floorProps={fprop}
+                layerColor={'cyan'}
                 url={query.get("gcode_url")}
             />
         </div>

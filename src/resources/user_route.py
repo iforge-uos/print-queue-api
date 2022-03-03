@@ -156,10 +156,8 @@ def update_user_details(user, req_data):
         return custom_response({'error': NOTFOUNDUSER}, 404)
 
     # Check if user score is being changed and level needs to be updated
-    if (req_data.get('social_credit_score') is not None):
-        # Check if user score can be changed
-        if (not user.score_editable):
-            req_data['social_credit_score'] = user.social_credit_score
+    if (req_data.get('social_credit_score') is not None) and not user.score_editable:
+        req_data['social_credit_score'] = user.social_credit_score
     # Try and load user data to the schema
     try:
         data = user_schema.load(req_data, partial=True)
