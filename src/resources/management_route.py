@@ -11,21 +11,13 @@ management_view = Blueprint("management view", __name__)
 
 
 @management_view.route('/', methods=['GET'])
-def home_page():
-    """
-    Gets the main print dashboard for the reps
-    """
-    return render_template('base_layout.j2', page_title="Home")
-
-
-@management_view.route('/print_dashboard', methods=['GET'])
 def print_dashboard():
     """
     Gets the main print dashboard for the reps
     """
     args = request.args.to_dict()
     if len(args) == 0:
-        return render_template('print_dashboard.j2', page_title="Print Dashboard")
+        return render_template('print_dashboard.j2', page_title="Print Dashboard", print_jobs=print_jobs_by_status('queued'), selected_status=job_status['queued'].value)
     status = args["status"]
     if status not in job_status._member_names_:
         return render_template('print_dashboard.j2', page_title="Print Dashboard")
@@ -46,6 +38,14 @@ def view_stl():
     Gets the main print dashboard for the reps
     """
     return render_template('view_stl.j2', page_title="STL Viewer")
+
+
+@management_view.route('/print_upload', methods=['GET'])
+def print_upload():
+    """
+    Gets the main print dashboard for the reps
+    """
+    return render_template('print_upload.j2', page_title="Print Upload")
 
 
 @management_view.route('/view_gcode', methods=['GET'])
