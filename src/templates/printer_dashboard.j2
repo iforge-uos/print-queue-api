@@ -30,6 +30,15 @@
             {% for printer in printers %}
             <tr>
                 <td>{{ printer.id }}</td>
+                <td>{{ printer.printer_name }}</td>
+                <td>{{ printer.printer_type.value }}</td>
+                <td>{{ printer.ip }}</td>
+                <td>{{ printer.api_key }}</td>
+                <td>{{ printer.total_time_printed }}</td>
+                <td>{{ printer.completed_prints }}</td>
+                <td>{{ printer.failed_prints }}</td>
+                <td>{{ printer.total_filament_used }}</td>
+                <td>{{ printer.days_on_time }}</td>
             </tr>
             {% endfor %}
 

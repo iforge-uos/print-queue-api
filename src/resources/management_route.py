@@ -4,6 +4,7 @@ from common.routing import custom_response
 from common.auth import generate_hash_key, requires_access_level
 from models.print_jobs import print_job_model, job_status
 from models.user import user_model
+from models.printers import printer_model, printer_type
 from resources.user_route import calculate_level_from_score
 
 
@@ -27,7 +28,7 @@ def print_dashboard():
 @management_view.route('/user_dashboard', methods=['GET'])
 def user_dashboard():
     """
-    Gets the main print dashboard for the reps
+    Gets the user dashboard for the reps
     """
     return render_template('user_dashboard.j2', page_title="User Dashboard", users=user_model.get_all_users(), level_calculate=calculate_level_from_score)
 
@@ -35,15 +36,22 @@ def user_dashboard():
 @management_view.route('/view_stl', methods=['GET'])
 def view_stl():
     """
-    Gets the main print dashboard for the reps
+    Loads the STL Viewer
     """
     return render_template('view_stl.j2', page_title="STL Viewer")
 
 
+@management_view.route('/printer_dashboard', methods=['GET'])
+def printer_dashboard():
+    """
+    Gets the printer dashboard for the reps
+    """
+    return render_template('printer_dashboard.j2', page_title="Printer Dashboard", printers=printer_model.get_all_printers())
+
 @management_view.route('/print_upload', methods=['GET'])
 def print_upload():
     """
-    Gets the main print dashboard for the reps
+    Gets the print_upload page
     """
     return render_template('print_upload.j2', page_title="Print Upload")
 
@@ -51,7 +59,7 @@ def print_upload():
 @management_view.route('/view_gcode', methods=['GET'])
 def view_gcode():
     """
-    Gets the main print dashboard for the reps
+    Loads the GCODE Viewer
     """
     return render_template('view_gcode.j2', page_title="GCode Viewer")
 
