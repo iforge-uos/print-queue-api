@@ -48,7 +48,9 @@
                         <th scope="col">Date Added</th>
                         <th scope="col">Rep Check</th>
                         <th scope="col">Printer Type</th>
-                        <th scope="col">Printer</th>
+                        {% if not selected_status == "Queued" and not selected_status == "Under Review" %}
+                            <th scope="col">Printer</th>
+                        {% endif %}
                         <th scope="col">Upload Notes</th>
                         <th scope="col">Queue Notes</th>
                     </tr>
@@ -61,11 +63,17 @@
                             <td>{{ job.print_name }}</td>
                             <td>{{ job.print_time }}</td>
                             <td>{{ job.filament_usage }}</td>
-                            <td>{{ "ENUM TO VALUE" + " " + "PROJECT STRING IF EXISTS" }}</td>
+                            {% if job.project_string is not none %}
+                                <td>{{ job.project.value + " " + job.project_string }}</td>
+                            {% else %}
+                                <td>{{ job.project.value }}</td>
+                            {% endif %}
                             <td>{{ job.date_added.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                             <td>REP USER PLACEHOLDER</td>
-                            <td>{{ job.printer_type }}</td>
+                            <td>{{ job.printer_type.value }}</td>
+                            {% if not selected_status == "Queued" and not selected_status == "Under Review" %}
                             <td>{{ job.printer }}</td>
+                            {% endif %}
                             <td>{{ job.upload_notes }}</td>
                             <td>{{ job.queue_notes }}</td>
                         </tr>
