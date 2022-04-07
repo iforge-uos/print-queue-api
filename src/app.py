@@ -9,7 +9,8 @@ from common.errors import errors
 from extensions import (
     db,
     migrate,
-    mail
+    mail,
+    bootstrap
 )
 # Resources
 from resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes, management_route
@@ -31,7 +32,6 @@ def create_app(config_object=app_config[os.getenv('FLASK_ENV')]):
     register_extensions(app)
     register_blueprints(app)
     register_errorhandlers(app)
-    Bootstrap(app)
     return app
 
 
@@ -43,6 +43,7 @@ def register_extensions(app):
     db.init_app(app)
     mail.init_app(app)
     migrate.init_app(app, db)
+    bootstrap.init_app(app)
     return None
 
 
