@@ -1,4 +1,5 @@
 import os
+import dotenv
 from pydrive.auth import GoogleAuth, ServiceAccountCredentials
 from pydrive.drive import GoogleDrive
 
@@ -10,26 +11,25 @@ def upload_file(file_path: str) -> str:
     :param file_path: The path to the file to upload.
     :return: The slug of the file in the google drive.
     """
-    # TODO MAKE THIS .ENV
     gauth = GoogleAuth()
     scope = ["https://www.googleapis.com/auth/drive"]
     gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name(
-        '../../iforge-print-queue-5908fc90eea8_secret.json', scope)
+        f"../../{os.getenv('DRIVE_CREDENTIALS_FILENAME')}", scope)
+
     drive = GoogleDrive(gauth)
 
-    # TODO make this .ENV
     f = drive.CreateFile({
         'title': os.path.basename(file_path),
         'parents': [{
             'kind': 'drive#fileLink',
-            'teamDriveId': '0ACBtghjfnl3UUk9PVA',
-            'id': '1epWmYouqcg_l25Zr8H9U6CLngohTcsZ8'
+            'teamDriveId': os.getenv('DRIVE_TEAM_DRIVE_ID'),
+            'id': os.getenv('DRIVE_PARENT_FOLDER_ID')
         }]
     })
-    f.SetContentFile(file_path)
 
+    f.SetContentFile(file_path)
     f.Upload(param={'supportsTeamDrives': True})
     f.content.close()
+
     os.remove(file_path)
     return f['id']
-
