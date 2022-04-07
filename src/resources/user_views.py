@@ -8,10 +8,10 @@ from models.printers import printer_model, printer_type
 from resources.user_route import calculate_level_from_score
 
 
-management_view = Blueprint("management view", __name__)
+user_view = Blueprint("user view", __name__)
 
 
-@management_view.route('/', methods=['GET'])
+@user_view.route('/', methods=['GET'])
 def print_dashboard():
     """
     Gets the main print dashboard for the reps
@@ -25,7 +25,7 @@ def print_dashboard():
     return render_template('print_dashboard.j2', page_title="Print Dashboard", print_jobs=print_jobs_by_status(status), selected_status=job_status[status].value)
 
 
-@management_view.route('/user_dashboard', methods=['GET'])
+@user_view.route('/user_dashboard', methods=['GET'])
 def user_dashboard():
     """
     Gets the user dashboard for the reps
@@ -33,7 +33,7 @@ def user_dashboard():
     return render_template('user_dashboard.j2', page_title="User Dashboard", users=user_model.get_all_users(), level_calculate=calculate_level_from_score)
 
 
-@management_view.route('/view_stl', methods=['GET'])
+@user_view.route('/view_stl', methods=['GET'])
 def view_stl():
     """
     Loads the STL Viewer
@@ -41,14 +41,14 @@ def view_stl():
     return render_template('view_stl.j2', page_title="STL Viewer")
 
 
-@management_view.route('/printer_dashboard', methods=['GET'])
+@user_view.route('/printer_dashboard', methods=['GET'])
 def printer_dashboard():
     """
     Gets the printer dashboard for the reps
     """
     return render_template('printer_dashboard.j2', page_title="Printer Dashboard", printers=printer_model.get_all_printers())
 
-@management_view.route('/print_upload', methods=['GET'])
+@user_view.route('/print_upload', methods=['GET'])
 def print_upload():
     """
     Gets the print_upload page
@@ -56,7 +56,7 @@ def print_upload():
     return render_template('print_upload.j2', page_title="Print Upload")
 
 
-@management_view.route('/view_gcode', methods=['GET'])
+@user_view.route('/view_gcode', methods=['GET'])
 def view_gcode():
     """
     Loads the GCODE Viewer

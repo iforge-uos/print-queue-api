@@ -13,7 +13,7 @@ from extensions import (
     bootstrap
 )
 # Resources
-from resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes, management_route
+from resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes, user_views
 
 load_dotenv("../.env")
 
@@ -72,7 +72,7 @@ def register_blueprints(app):
         auth_routes.auth_api,
         url_prefix=f'{api_prefix}/auth')
     app.register_blueprint(
-        management_route.management_view,
+        user_views.management_view,
         url_prefix='/')
     return None
 

@@ -32,4 +32,3 @@ def upload_file(file_path: str) -> str:
     f.content.close()
     os.remove(file_path)
     return f['id']
-
