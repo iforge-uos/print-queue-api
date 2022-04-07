@@ -72,7 +72,7 @@ def register_blueprints(app):
         auth_routes.auth_api,
         url_prefix=f'{api_prefix}/auth')
     app.register_blueprint(
-        user_views.management_view,
+        user_views.user_view,
         url_prefix='/')
     return None
 
