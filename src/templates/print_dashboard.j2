@@ -20,18 +20,18 @@
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                     <a class="dropdown-item"
-                       href="{{ url_for('management view.print_dashboard', status='queued') }}">Queued</a>
+                       href="{{ url_for('user view.print_dashboard', status='queued') }}">Queued</a>
                     <a class="dropdown-item"
-                       href="{{ url_for('management view.print_dashboard', status='failed') }}">Failed</a>
+                       href="{{ url_for('user view.print_dashboard', status='failed') }}">Failed</a>
                     <a class="dropdown-item"
-                       href="{{ url_for('management view.print_dashboard', status='rejected') }}">Rejected</a>
+                       href="{{ url_for('user view.print_dashboard', status='rejected') }}">Rejected</a>
                     <a class="dropdown-item"
-                       href="{{ url_for('management view.print_dashboard', status='complete') }}">Complete</a>
+                       href="{{ url_for('user view.print_dashboard', status='complete') }}">Complete</a>
                     <a class="dropdown-item"
-                       href="{{ url_for('management view.print_dashboard', status='awaiting') }}">Awaiting
+                       href="{{ url_for('user view.print_dashboard', status='awaiting') }}">Awaiting
                     Approval</a>
                     <a class="dropdown-item"
-                       href="{{ url_for('management view.print_dashboard', status='under_review') }}">Under Review</a>
+                       href="{{ url_for('user view.print_dashboard', status='under_review') }}">Under Review</a>
                 </div>
             </div>
             </div>
