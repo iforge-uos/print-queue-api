@@ -48,24 +48,24 @@
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
                         <a class="nav-link"
-                           href="{{ url_for('management view.print_dashboard', status='queued') }}">Print Dashboard</a>
+                           href="{{ url_for('user view.print_dashboard', status='queued') }}">Print Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('management view.print_upload') }}">Print Upload</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           href="{{ url_for('management view.user_dashboard') }}">User Dashboard</a>
+                        <a class="nav-link" href="{{ url_for('user view.print_upload') }}">Print Upload</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link"
-                           href="{{ url_for('management view.printer_dashboard') }}">Printer Dashboard</a>
+                           href="{{ url_for('user view.user_dashboard') }}">User Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('management view.view_stl') }}">STL Viewer</a>
+                        <a class="nav-link"
+                           href="{{ url_for('user view.printer_dashboard') }}">Printer Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('management view.view_gcode') }}">GCode Viewer</a>
+                        <a class="nav-link" href="{{ url_for('user view.view_stl') }}">STL Viewer</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user view.view_gcode') }}">GCode Viewer</a>
                     </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
