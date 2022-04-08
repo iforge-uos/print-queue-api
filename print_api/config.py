@@ -15,6 +15,7 @@ mail_default_sender = os.getenv('MAIL_DEFAULT_SENDER')
 port = os.getenv('PORT')
 api_prefix = os.getenv('API_PREFIX')
 allowed_app_version = os.getenv('ALLOWED_APP_VERSION')
+log_level = os.getenv('LOG_LEVEL')
 
 
 class Development(object):
@@ -24,6 +25,7 @@ class Development(object):
     ALLOWED_APP_VERSION = allowed_app_version
     API_PREFIX = api_prefix
     PORT = port
+    LOG_LEVEL = log_level
     MAIL_SERVER = mail_server
     MAIL_PORT = mail_port
     MAIL_USERNAME = mail_username
@@ -44,6 +46,7 @@ class Production(object):
     ALLOWED_APP_VERSION = allowed_app_version
     API_PREFIX = api_prefix
     PORT = port
+    LOG_LEVEL = log_level
     MAIL_SERVER = mail_server
     MAIL_PORT = mail_port
     MAIL_USERNAME = mail_username
@@ -64,6 +67,7 @@ class Testing(object):
     ALLOWED_APP_VERSION = allowed_app_version
     API_PREFIX = api_prefix
     PORT = port
+    LOG_LEVEL = log_level
     MAIL_SERVER = mail_server
     MAIL_PORT = mail_port
     MAIL_USERNAME = mail_username

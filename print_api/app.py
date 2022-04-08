@@ -1,10 +1,10 @@
 import os
 import logging
-from flask import Flask, Blueprint
+import sys
+from flask import Flask, render_template
 from flask_restful import Api
 from dotenv import load_dotenv
 from print_api.config import app_config
-from print_api.common.errors import errors
 
 from print_api.extensions import (
     db,
@@ -30,6 +30,8 @@ def create_app(config_object=app_config[os.getenv('FLASK_ENV')]):
     register_extensions(app)
     register_blueprints(app)
     register_errorhandlers(app)
+    register_errorhandlers(app)
+    configure_logger(app)
     return app
 
 
@@ -81,12 +83,21 @@ def register_errorhandlers(app):
     Register error handlers.
     :param app: the flask application
     """
-    # TODO IMPLEMENT
+    def render_error(error):
+        """Render error template."""
+        # If a HTTPException, pull the `code` attribute; default to 500
+        error_code = getattr(error, "code", 500)
+        return render_template(f"{error_code}.j2"), error_code
+
+    for errcode in [401, 404, 500]:
+        app.errorhandler(errcode)(render_error)
     return None
 
 def configure_logger(app):
     """
     Configer the logger
     """
-    # TODO IMPLEMENT
+    handler = logging.StreamHandler(sys.stdout)
+    if not app.logger.handlers:
+        app.logger.addHandler(handler)
     return None
