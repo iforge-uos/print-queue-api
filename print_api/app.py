@@ -1,6 +1,6 @@
 import os
+import logging
 from flask import Flask, Blueprint
-from flask_bootstrap import Bootstrap
 from flask_restful import Api
 from dotenv import load_dotenv
 from print_api.config import app_config
@@ -10,7 +10,8 @@ from print_api.extensions import (
     db,
     migrate,
     mail,
-    bootstrap
+    bootstrap,
+    api
 )
 # Resources
 from print_api.resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes, user_views
@@ -25,9 +26,6 @@ def create_app(config_object=app_config[os.getenv('FLASK_ENV')]):
     :return app: The newly created application
     """
     app = Flask(__name__.split(".")[0])
-    api_bp = Blueprint('api', __name__)
-    api = Api(api_bp, errors=errors)
-    app.register_blueprint(api_bp)
     app.config.from_object(config_object)
     register_extensions(app)
     register_blueprints(app)
@@ -40,6 +38,7 @@ def register_extensions(app):
     Register Flask extensions.
     :param app: the flask application
     """
+    api.init_app(app)
     db.init_app(app)
     mail.init_app(app)
     migrate.init_app(app, db)
