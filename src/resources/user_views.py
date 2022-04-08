@@ -2,7 +2,7 @@ from flask import Blueprint, request, render_template
 from marshmallow.exceptions import ValidationError
 from common.routing import custom_response
 from common.auth import generate_hash_key, requires_access_level
-from models.print_jobs import print_job_model, job_status
+from models.print_jobs import print_job_model, job_status, project_types
 from models.user import user_model
 from models.printers import printer_model, printer_type
 from resources.user_route import calculate_level_from_score
@@ -53,7 +53,7 @@ def print_upload():
     """
     Gets the print_upload page
     """
-    return render_template('print_upload.j2', page_title="Print Upload")
+    return render_template('print_upload.j2', page_title="Print Upload", project_types=project_types)
 
 
 @user_view.route('/view_gcode', methods=['GET'])
