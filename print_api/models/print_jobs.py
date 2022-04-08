@@ -21,7 +21,9 @@ class project_types(enum.Enum):
     personal = "Personal"
     uni_module = "Module"
     co_curricular = "Co-curricular"
+    society = "Society"
     other = "Other"
+
 
 
 class print_job_model (db.Model):
