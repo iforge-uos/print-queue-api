@@ -95,7 +95,7 @@ def register_errorhandlers(app):
 
 def configure_logger(app):
     """
-    Configer the logger
+    Configure the logger
     """
     handler = logging.StreamHandler(sys.stdout)
     if not app.logger.handlers:

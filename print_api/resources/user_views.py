@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template
+from flask import Blueprint, request, render_template, current_app
 from marshmallow.exceptions import ValidationError
 from print_api.common.routing import custom_response
 from print_api.common.auth import generate_hash_key, requires_access_level
@@ -48,12 +48,14 @@ def printer_dashboard():
     """
     return render_template('printer_dashboard.j2', page_title="Printer Dashboard", printers=printer_model.get_all_printers())
 
-@user_view.route('/print_upload', methods=['GET'])
+@user_view.route('/print_upload', methods=['GET', 'POST'])
 def print_upload():
     """
     Gets the print_upload page
     """
-    return render_template('print_upload.j2', page_title="Print Upload", project_types=project_types)
+    selected_project = request.form['project_type'] if 'project_type' in request.form else None
+    current_app.logger.debug("Selected project: %s", selected_project)
+    return render_template('print_upload.j2', page_title="Print Upload", project_types=project_types, selected_project=selected_project)
 
 
 @user_view.route('/view_gcode', methods=['GET'])

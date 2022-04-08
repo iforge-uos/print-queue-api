@@ -13,7 +13,7 @@
         <div class="px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
             <h1 class="display-4">Print Upload</h1>
         </div>
-        <form class="row g-3">
+        <form class="row g-3" name="f" method="post">
             <div class="col-md-6 form-group">
                 <label for="inputUsername" class="form-label">Username</label>
                 <input type="text"
@@ -21,15 +21,36 @@
                        id="inputUsername"
                        placeholder="aca19scp">
             </div>
-            <div class="col-md-6 form-group">
-                <label for="inputProject" class="form-label">Project Type</label>
-                <select class="form-control" id="inputProject" aria-label="">
-                {% for project in project_types %}
-                    <option value="{{project.name}}">{{project.value}}</option>
-                {% endfor %}
+            <div {% if selected_project != "personal" %}class="col-md-6 form-group" {% else %}class="col-md-6 form-group"{% endif %}>
+                <div class="form row">
+                    <div class="col form-group">
+                        <label for="inputProject" class="form-label">Project Type</label>
+                        <select name="project_type"
+                                class="form-control"
+                                id="inputProject"
+                                aria-label=""
+                                onchange="document.f.submit();">
+                            {% for project in project_types %}
+                                <option value="{{ project.name }}"
+                                        {% if project.name == selected_project %}selected="selected"{% endif %}>
+                                    {{ project.value }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if selected_project != "personal" %}
+                        <div class="col form-group">
+                            <label for="inputProjectDetails" class="form-label">Project Details</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="inputProjectDetails"
+                                   placeholder="Project Details">
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary">Sign in</button>
+            <div class="col-auto mx-auto">
+                <button type="submit" class="btn btn-primary">Upload</button>
             </div>
         </form>
     </div>
