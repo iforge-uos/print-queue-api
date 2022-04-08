@@ -1,7 +1,7 @@
 import unittest
 from dotenv import load_dotenv
 
-from src.app import create_app
+from print_api.app import create_app
 
 load_dotenv("../.env.test")
 

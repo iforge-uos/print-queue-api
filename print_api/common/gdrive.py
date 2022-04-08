@@ -1,5 +1,4 @@
 import os
-import dotenv
 from pydrive.auth import GoogleAuth, ServiceAccountCredentials
 from pydrive.drive import GoogleDrive
 

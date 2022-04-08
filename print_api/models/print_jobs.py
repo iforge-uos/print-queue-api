@@ -1,10 +1,10 @@
 import enum
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
-from extensions import db
+from print_api.extensions import db
 from sqlalchemy.sql import func
-from models.user import user_model
-from models.printers import printer_model, printer_type
+from print_api.models.user import user_model
+from print_api.models.printers import printer_model, printer_type
 
 
 class job_status(enum.Enum):

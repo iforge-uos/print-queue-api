@@ -1,6 +1,6 @@
 from marshmallow import fields, Schema
-from extensions import db
-from models.printers import printer_model
+from print_api.extensions import db
+from print_api.models.printers import printer_model
 from sqlalchemy.sql import func
 
 

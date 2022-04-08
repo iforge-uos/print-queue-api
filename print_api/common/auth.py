@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import request
-from models.auth_keys import auth_model
-from common.routing import custom_response
+from print_api.models.auth_keys import auth_model
+from print_api.common.routing import custom_response
 import secrets
 
 

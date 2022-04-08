@@ -1,5 +1,5 @@
 from marshmallow import fields, Schema
-from extensions import db
+from print_api.extensions import db
 from sqlalchemy.sql import func
 
 """

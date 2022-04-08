@@ -1,9 +1,9 @@
 from flask import current_app
 from flask_mail import Message
-from models.user import user_model
-from resources.user_route import calculate_level_from_score
-from common.errors import InternalServerError
-from extensions import mail
+from print_api.models.user import user_model
+from print_api.resources.user_route import calculate_level_from_score
+from print_api.common.errors import InternalServerError
+from print_api.extensions import mail
 from threading import Thread
 import time
 

@@ -1,8 +1,8 @@
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
-from common.auth import requires_access_level
-from models.user import user_model, user_schema
-from common.routing import custom_response
+from print_api.common.auth import requires_access_level
+from print_api.models.user import user_model, user_schema
+from print_api.common.routing import custom_response
 
 user_api = Blueprint('users', __name__)
 user_schema = user_schema()

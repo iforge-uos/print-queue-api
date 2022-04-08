@@ -1,9 +1,9 @@
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
-from common.auth import requires_access_level
-from models.maintenance_logs import maintenance_model, maintenance_schema
-from models.printers import printer_model
-from common.routing import custom_response
+from print_api.common.auth import requires_access_level
+from print_api.models.maintenance_logs import maintenance_model, maintenance_schema
+from print_api.models.printers import printer_model
+from print_api.common.routing import custom_response
 
 maintenance_api = Blueprint('maintenance logs', __name__)
 maintenance_schema = maintenance_schema()

@@ -1,8 +1,8 @@
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
-from common.auth import requires_access_level
-from models.printers import printer_model, printer_schema
-from common.routing import custom_response
+from print_api.common.auth import requires_access_level
+from print_api.models.printers import printer_model, printer_schema
+from print_api.common.routing import custom_response
 
 printer_api = Blueprint('printers', __name__)
 printer_schema = printer_schema()

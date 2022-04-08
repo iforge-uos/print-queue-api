@@ -1,6 +1,6 @@
 from sqlalchemy.sql import func
 from marshmallow import fields, Schema
-from extensions import db
+from print_api.extensions import db
 
 
 class user_model(db.Model):

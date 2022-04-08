@@ -3,17 +3,17 @@ from flask import Flask, Blueprint
 from flask_bootstrap import Bootstrap
 from flask_restful import Api
 from dotenv import load_dotenv
-from config import app_config
-from common.errors import errors
+from print_api.config import app_config
+from print_api.common.errors import errors
 
-from extensions import (
+from print_api.extensions import (
     db,
     migrate,
     mail,
     bootstrap
 )
 # Resources
-from resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes, user_views
+from print_api.resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes, user_views
 
 load_dotenv("../.env")
 
@@ -85,7 +85,9 @@ def register_errorhandlers(app):
     # TODO IMPLEMENT
     return None
 
-
-if __name__ == '__main__':
-    app = create_app()
-    app.run(host="0.0.0.0", port=app.config['PORT'])
+def configure_logger(app):
+    """
+    Configer the logger
+    """
+    # TODO IMPLEMENT
+    return None

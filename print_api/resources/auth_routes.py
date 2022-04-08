@@ -1,8 +1,8 @@
 from flask import Blueprint, request
 from marshmallow.exceptions import ValidationError
-from common.routing import custom_response
-from common.auth import generate_hash_key, requires_access_level
-from models.auth_keys import auth_model, auth_schema
+from print_api.common.routing import custom_response
+from print_api.common.auth import generate_hash_key, requires_access_level
+from print_api.models.auth_keys import auth_model, auth_schema
 
 
 auth_api = Blueprint('auth', __name__)
