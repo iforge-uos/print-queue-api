@@ -53,7 +53,7 @@ def print_upload():
     """
     Gets the print_upload page
     """
-    selected_project = request.form['project_type'] if 'project_type' in request.form else project_types.personal
+    selected_project = request.form['project_type'] if 'project_type' in request.form else "personal"
     current_app.logger.debug("Selected project: %s", selected_project)
     return render_template('print_upload.j2', page_title="Print Upload", project_types=project_types, selected_project=selected_project)
 
