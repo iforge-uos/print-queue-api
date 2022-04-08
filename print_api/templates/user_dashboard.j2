@@ -34,8 +34,8 @@
                 <td>{{ user.name }}</td>
                 <td>{{ user.short_name }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ user.social_credit_score }}</td>
-                <td>{{ level_calculate(user.social_credit_score) }}</td>
+                <td>{{ user.user_score }}</td>
+                <td>{{ level_calculate(user.user_score) }}</td>
                 <td>{{ user.date_added.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                 {% if user.is_rep %}
                     <td>Yes</td>

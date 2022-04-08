@@ -98,7 +98,7 @@ def create():
 
     # Calculate the user level from score
     req_data['user_level'] = calculate_level_from_score(
-        req_data['social_credit_score'])
+        req_data['user_score'])
 
     try:
         data = user_schema.load(req_data)
@@ -141,7 +141,7 @@ def get_user_details(user):
     if not user:
         return custom_response({'error': NOTFOUNDUSER}, 404)
     ser_user = user_schema.dump(user)
-    ser_user['user_level'] = calculate_level_from_score(user.social_credit_score)
+    ser_user['user_level'] = calculate_level_from_score(user.user_score)
     return custom_response(ser_user, 200)
 
 
@@ -156,8 +156,8 @@ def update_user_details(user, req_data):
         return custom_response({'error': NOTFOUNDUSER}, 404)
 
     # Check if user score is being changed and level needs to be updated
-    if (req_data.get('social_credit_score') is not None) and not user.score_editable:
-        req_data['social_credit_score'] = user.social_credit_score
+    if (req_data.get('user_score') is not None) and not user.score_editable:
+        req_data['user_score'] = user.user_score
     # Try and load user data to the schema
     try:
         data = user_schema.load(req_data, partial=True)

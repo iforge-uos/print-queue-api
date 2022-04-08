@@ -78,7 +78,7 @@ def update_user_score(user, email_type):
     :param int email_type: Either 0, 1 or 2. With 0 being completed, 1 being a failure and 2 being a rejection.
     :return: None
     """
-    cur_score = user.social_credit_score
+    cur_score = user.user_score
     if email_type == 0:
         new_score = cur_score + 1
     else:
@@ -88,7 +88,7 @@ def update_user_score(user, email_type):
     new_level = calculate_level_from_score(new_score)
 
     # Load updated data into the user_schema
-    data = {"social_credit_score": new_score, "user_level": new_level}
+    data = {"user_score": new_score, "user_level": new_level}
     user.update(data)
 
 

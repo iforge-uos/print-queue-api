@@ -9,7 +9,7 @@ class test_users(BaseCase):
         payload = json.dumps({
             "name": "Samuel Piper",
             "email": "test@test.com",
-            "social_credit_score": 5,
+            "user_score": 5,
             "is_rep": True,
             "score_editable": True,
             "short_name": "Sam"
