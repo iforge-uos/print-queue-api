@@ -155,5 +155,5 @@ cython_debug/
 
 # Other Env
 .env.test
-**/node_modules
+**/node_modules/**
 *_secret.json
