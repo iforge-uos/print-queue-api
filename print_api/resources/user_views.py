@@ -5,7 +5,7 @@ from print_api.common.auth import generate_hash_key, requires_access_level
 from print_api.models.print_jobs import print_job_model, job_status, project_types
 from print_api.models.user import user_model
 from print_api.models.printers import printer_model, printer_type
-from print_api.resources.user_route import calculate_level_from_score
+from print_api.resources.api_routes.user_route import calculate_level_from_score
 
 
 user_view = Blueprint("user view", __name__)

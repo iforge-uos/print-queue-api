@@ -1,7 +1,7 @@
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
 from print_api.common.auth import requires_access_level
-from print_api.resources.printer_route import increment_printer_details
+from print_api.resources.api_routes.printer_route import increment_printer_details
 from print_api.models.print_jobs import print_job_model, print_job_schema, project_types, job_status
 from print_api.models.printers import printer_model
 from print_api.models.user import user_model

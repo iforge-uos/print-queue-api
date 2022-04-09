@@ -14,7 +14,8 @@ from print_api.extensions import (
     api
 )
 # Resources
-from print_api.resources import user_route, printer_route, print_job_route, maintenance_route, other_routes, auth_routes, user_views
+from print_api.resources import user_views
+from print_api.resources.api_routes import auth_routes, maintenance_route, other_routes, print_job_route, printer_route, user_route
 
 load_dotenv("../.env")
 
