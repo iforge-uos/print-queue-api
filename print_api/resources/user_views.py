@@ -1,15 +1,17 @@
+import re
 from flask import Blueprint, request, render_template, current_app
 from marshmallow.exceptions import ValidationError
+from print_api.common.ldap import get_ldap_data
 from print_api.common.routing import custom_response
 from print_api.common.auth import generate_hash_key, requires_access_level
 from print_api.models.print_jobs import print_job_model, job_status, project_types
-from print_api.models.user import user_model
+from print_api.models.user import user_model, user_schema
 from print_api.models.printers import printer_model, printer_type
 from print_api.resources.api_routes.user_route import calculate_level_from_score
 
 
 user_view = Blueprint("user view", __name__)
-
+user_schema = user_schema()
 
 @user_view.route('/', methods=['GET'])
 def print_dashboard():
@@ -53,9 +55,10 @@ def print_upload():
     """
     Gets the print_upload page
     """
+    current_app.logger.debug(match_uni_username_to_user_data("aca19scp"))
     selected_project = request.form['project_type'] if 'project_type' in request.form else "personal"
     current_app.logger.debug("Selected project: %s", selected_project)
-    return render_template('print_upload.j2', page_title="Print Upload", project_types=project_types, selected_project=selected_project)
+    return render_template('print_upload.j2', page_title="Print Upload", project_types=project_types, selected_project=selected_project, get_user_data=match_uni_username_to_user_data)
 
 
 @user_view.route('/view_gcode', methods=['GET'])
@@ -78,3 +81,23 @@ def print_jobs_by_status(status) -> list:
     for job in print_job_model.get_print_jobs_by_status(status):
         jason.append(job)
     return jason
+
+
+def match_uni_username_to_user_data(username : str) -> dict:
+    """
+    Function to match a username to a user data
+    :param username: username to match
+    :return dict: user data
+    """
+    # Check the username matches a university username regex
+    if not re.match(r'([a-zA-Z]{2,3}\d{1,3}[a-zA-Z]{2,3})', username):
+        return {}
+    ldap_data = get_ldap_data(username)
+    current_app.logger.debug("LDAP data: %s", ldap_data)
+    # Univeristy stores emails with capitalisation in the email
+    user = user_model.get_user_by_email(ldap_data['mail'][0].lower())
+    if user is None:
+        return {}
+    ser_user = user_schema.dump(user)
+    ser_user['user_level'] = calculate_level_from_score(ser_user['user_score'])
+    return ser_user
