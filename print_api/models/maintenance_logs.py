@@ -51,7 +51,7 @@ class maintenance_model (db.Model):
     @staticmethod
     def get_all_maintenance_logs():
         """
-        Function to get all the maintennance logs in the database
+        Function to get all the maintenance logs in the database
         :return query_object: a query object containing all the maintenance logs
         """
         return maintenance_model.query.all()
@@ -59,7 +59,7 @@ class maintenance_model (db.Model):
     @staticmethod
     def get_maintenance_log_by_id(id):
         """
-        Function to get a single maintennance logs from the database
+        Function to get a single maintenance logs from the database
         :param int id: the PK of the log
         :return query_object: a query object containing the maintenance log
         """
@@ -68,14 +68,14 @@ class maintenance_model (db.Model):
     @staticmethod
     def get_maintenance_logs_by_printer_id(value):
         """
-        Function to get all maintennance logs associated with a certain printer from the database
+        Function to get all maintenance logs associated with a certain printer from the database
         :param int value: the PK of the printer in the database
         :return query_object: a query object containing the maintenance logs associated with that printer
         """
         return maintenance_model.query.filter_by(printer_id=value).all()
 
     def __repr__(self):
-        return "<Maintennance ID: %r>" % self.id
+        return "<maintenance ID: %r>" % self.id
 
 
 class maintenance_schema(Schema):
