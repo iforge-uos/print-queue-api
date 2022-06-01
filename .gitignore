@@ -157,3 +157,4 @@ cython_debug/
 .env.test
 **/node_modules/**
 *_secret.json
+.pgdata/**

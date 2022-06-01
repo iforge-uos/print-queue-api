@@ -15,6 +15,7 @@ print_job_schema = print_job_schema()
 NOTFOUNDJOB = "job(s) not found"
 USERIDERROR = "user(s) not found"
 
+#TODO ADD CANCELLING JOBS
 
 @print_job_api.route('/add', methods=['POST'])
 @requires_access_level(1)
