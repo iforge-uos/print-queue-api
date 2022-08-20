@@ -2,7 +2,6 @@ import os
 import logging
 import sys
 from flask import Flask, render_template
-from flask_restful import Api
 from dotenv import load_dotenv
 from print_api.config import app_config
 
@@ -11,7 +10,8 @@ from print_api.extensions import (
     migrate,
     mail,
     bootstrap,
-    api
+    api,
+    cors
 )
 # Resources
 from print_api.resources import user_views
@@ -46,6 +46,7 @@ def register_extensions(app):
     mail.init_app(app)
     migrate.init_app(app, db)
     bootstrap.init_app(app)
+    cors.init_app(app)
     return None
 
 
@@ -99,6 +100,7 @@ def configure_logger(app):
     Configure the logger
     """
     handler = logging.StreamHandler(sys.stdout)
+    logging.getLogger('flask_cors').level = logging.DEBUG
     if not app.logger.handlers:
         app.logger.addHandler(handler)
     return None
