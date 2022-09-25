@@ -194,5 +194,7 @@ def get_multiple_user_details(users):
         return custom_response({"error": "Users not found"}, 404)
     jason = []
     for user in users:
-        jason.append(user_schema.dump(user))
+        user_dict = user_schema.dump(user)
+        user_dict["user_level"] = calculate_level_from_score(user.user_score)
+        jason.append(user_dict)
     return custom_response(jason, 200)
