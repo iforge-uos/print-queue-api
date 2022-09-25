@@ -7,7 +7,8 @@ class user_model(db.Model):
     """
     User Model
     """
-    __tablename__ = 'users'
+
+    __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     email = db.Column(db.String(80), nullable=False)
@@ -15,8 +16,7 @@ class user_model(db.Model):
     is_rep = db.Column(db.Boolean, nullable=False)
     score_editable = db.Column(db.Boolean, default=True)
     short_name = db.Column(db.String, nullable=True)
-    date_added = db.Column(db.DateTime(timezone=True),
-                           server_default=func.now())
+    date_added = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     # class constructor
     def __init__(self, data):
@@ -24,12 +24,12 @@ class user_model(db.Model):
         Class constructor
         """
         print(data)
-        self.name = data.get('name')
-        self.email = data.get('email')
-        self.user_score = data.get('user_score')
-        self.is_rep = data.get('is_rep')
-        self.score_editable = data.get('score_editable')
-        self.short_name = data.get('short_name')
+        self.name = data.get("name")
+        self.email = data.get("email")
+        self.user_score = data.get("user_score")
+        self.is_rep = data.get("is_rep")
+        self.score_editable = data.get("score_editable")
+        self.short_name = data.get("short_name")
 
     def save(self):
         """
@@ -90,6 +90,7 @@ class user_schema(Schema):
     """
     User Schema
     """
+
     id = fields.Int(dump_only=True)
     name = fields.String(required=True)
     email = fields.String(required=True)

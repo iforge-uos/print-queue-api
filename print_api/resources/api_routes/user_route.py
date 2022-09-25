@@ -4,20 +4,15 @@ from print_api.common.auth import requires_access_level
 from print_api.models.user import user_model, user_schema
 from print_api.common.routing import custom_response
 
-user_api = Blueprint('users', __name__)
+user_api = Blueprint("users", __name__)
 user_schema = user_schema()
 
-user_level_struct = {
-    0: "Beginner",
-    5: "Advanced",
-    10: "Expert",
-    50: "Insane"
-}
+user_level_struct = {0: "Beginner", 5: "Advanced", 10: "Expert", 50: "Insane"}
 
 NOTFOUNDUSER = "user(s) not found"
 
 
-@user_api.route('/update/<int:user_id>', methods=['PUT'])
+@user_api.route("/update/<int:user_id>", methods=["PUT"])
 @requires_access_level(2)
 def update_by_id(user_id):
     """
@@ -30,7 +25,7 @@ def update_by_id(user_id):
     return update_user_details(user, req_data)
 
 
-@user_api.route('/update/<string:user_email>', methods=['PUT'])
+@user_api.route("/update/<string:user_email>", methods=["PUT"])
 @requires_access_level(2)
 def update_by_email(user_email):
     """
@@ -43,7 +38,7 @@ def update_by_email(user_email):
     return update_user_details(user, req_data)
 
 
-@user_api.route('/view/<int:user_id>', methods=['GET'])
+@user_api.route("/view/<int:user_id>", methods=["GET"])
 @requires_access_level(1)
 def view_by_id(user_id):
     """
@@ -54,7 +49,7 @@ def view_by_id(user_id):
     return get_user_details(user_model.get_user_by_id(user_id))
 
 
-@user_api.route('/view/<string:user_email>', methods=['GET'])
+@user_api.route("/view/<string:user_email>", methods=["GET"])
 @requires_access_level(1)
 def view_by_email(user_email):
     """
@@ -65,7 +60,7 @@ def view_by_email(user_email):
     return get_user_details(user_model.get_user_by_email(user_email))
 
 
-@user_api.route('/delete/<int:user_id>', methods=['DELETE'])
+@user_api.route("/delete/<int:user_id>", methods=["DELETE"])
 @requires_access_level(3)
 def delete_by_id(user_id):
     """
@@ -76,7 +71,7 @@ def delete_by_id(user_id):
     return delete_user(user_model.get_user_by_id(user_id))
 
 
-@user_api.route('/delete/<string:user_email>', methods=['DELETE'])
+@user_api.route("/delete/<string:user_email>", methods=["DELETE"])
 @requires_access_level(3)
 def delete_by_email(user_email):
     """
@@ -87,7 +82,17 @@ def delete_by_email(user_email):
     return delete_user(user_model.get_user_by_email(user_email))
 
 
-@user_api.route('/add', methods=['POST'])
+@user_api.route("/view/all", methods=["GET"])
+@requires_access_level(1)
+def view_all_users():
+    """
+    Function to serialize all users
+    :return response: error or serialized user
+    """
+    return get_multiple_user_details(user_model.get_all_users())
+
+
+@user_api.route("/add", methods=["POST"])
 @requires_access_level(1)
 def create():
     """
@@ -105,10 +110,9 @@ def create():
         return custom_response(err.messages, 400)
 
     # check if user already exist in the db
-    user_in_db = user_model.get_user_by_email(data.get('email'))
+    user_in_db = user_model.get_user_by_email(data.get("email"))
     if user_in_db:
-        message = {
-            'error': 'User already exists, please supply another email address'}
+        message = {"error": "User already exists, please supply another email address"}
         return custom_response(message, 400)
 
     user = user_model(data)
@@ -123,9 +127,9 @@ def delete_user(user):
     :return response: error or success message
     """
     if not user:
-        return custom_response({'error': NOTFOUNDUSER}, 404)
+        return custom_response({"error": NOTFOUNDUSER}, 404)
     user.delete()
-    return custom_response({'message': 'deleted'}, 200)
+    return custom_response({"message": "deleted"}, 200)
 
 
 def get_user_details(user):
@@ -135,9 +139,9 @@ def get_user_details(user):
     :return response: error or serialized user
     """
     if not user:
-        return custom_response({'error': NOTFOUNDUSER}, 404)
+        return custom_response({"error": NOTFOUNDUSER}, 404)
     ser_user = user_schema.dump(user)
-    ser_user['user_level'] = calculate_level_from_score(user.user_score)
+    ser_user["user_level"] = calculate_level_from_score(user.user_score)
     return custom_response(ser_user, 200)
 
 
@@ -149,11 +153,11 @@ def update_user_details(user, req_data):
     :return response: error or serialized updated user details
     """
     if not user:
-        return custom_response({'error': NOTFOUNDUSER}, 404)
+        return custom_response({"error": NOTFOUNDUSER}, 404)
 
     # Check if user score is being changed and level needs to be updated
-    if (req_data.get('user_score') is not None) and not user.score_editable:
-        req_data['user_score'] = user.user_score
+    if (req_data.get("user_score") is not None) and not user.score_editable:
+        req_data["user_score"] = user.user_score
     # Try and load user data to the schema
     try:
         data = user_schema.load(req_data, partial=True)
@@ -178,3 +182,17 @@ def calculate_level_from_score(score):
         if score >= key:
             level = value
     return level
+
+
+def get_multiple_user_details(users):
+    """
+    Function to take a query object of multiple users and serialize them
+    :param jobs: the query object containing the users
+    :return response: error or a list of serialized user data
+    """
+    if not users:
+        return custom_response({"error": "Users not found"}, 404)
+    jason = []
+    for user in users:
+        jason.append(user_schema.dump(user))
+    return custom_response(jason, 200)
