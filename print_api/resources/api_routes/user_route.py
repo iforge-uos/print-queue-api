@@ -96,10 +96,6 @@ def create():
     """
     req_data = request.get_json()
 
-    # Calculate the user level from score
-    req_data['user_level'] = calculate_level_from_score(
-        req_data['user_score'])
-
     try:
         data = user_schema.load(req_data)
     except ValidationError as err:

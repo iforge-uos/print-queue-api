@@ -1,23 +1,31 @@
+from importlib.metadata import requires
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
 from print_api.common.auth import requires_access_level
 from print_api.resources.api_routes.printer_route import increment_printer_details
-from print_api.models.print_jobs import print_job_model, print_job_schema, project_types, job_status
+from print_api.models.print_jobs import (
+    print_job_model,
+    print_job_schema,
+    project_types,
+    job_status,
+)
 from print_api.models.printers import printer_model
 from print_api.models.user import user_model
+from print_api.resources.api_routes.user_route import calculate_level_from_score
 from print_api.common.routing import custom_response
 from print_api.common.emails import email
 from datetime import datetime
 
-print_job_api = Blueprint('print jobs', __name__)
+print_job_api = Blueprint("print jobs", __name__)
 print_job_schema = print_job_schema()
 
 NOTFOUNDJOB = "job(s) not found"
 USERIDERROR = "user(s) not found"
 
-#TODO ADD CANCELLING JOBS
+# TODO ADD CANCELLING JOBS
 
-@print_job_api.route('/add', methods=['POST'])
+
+@print_job_api.route("/add", methods=["POST"])
 @requires_access_level(1)
 def create():
     """
@@ -30,17 +38,17 @@ def create():
     #   return custom_response({"error" : "printer is not found"}, 404)
 
     # Get user level
-    user_level = check_user_id(req_data['user_id'])
+    user_level = check_user_id(req_data["user_id"])
     if user_level is None:
         return custom_response({"error": "user is not found"}, 404)
 
     # Check if a rep approved this print <- this should pass but sanity check
-    if user_level == "Beginner" and not check_rep_id(req_data['checked_by']):
-        return({"error": "rep details are incorrect"}, 404)
+    if user_level == "Beginner" and not check_rep_id(req_data["checked_by"]):
+        return ({"error": "rep details are incorrect"}, 404)
     elif user_level == "Advanced":
         req_data["status"] = "awaiting"
         if not "stl_slug" in req_data:
-            return({"error": "stl slug needed"}, 404)
+            return ({"error": "stl slug needed"}, 404)
         req_data.pop("checked_by")
     else:
         req_data["status"] = "queued"
@@ -66,7 +74,7 @@ def create():
     return custom_response({"message": "success"}, 200)
 
 
-@print_job_api.route('/view/single/<int:job_id>', methods=['GET'])
+@print_job_api.route("/view/single/<int:job_id>", methods=["GET"])
 @requires_access_level(1)
 def view_job_single(job_id):
     """
@@ -77,7 +85,7 @@ def view_job_single(job_id):
     return get_single_job_details(print_job_model.get_print_job_by_id(job_id))
 
 
-@print_job_api.route('/view/all/<string:status>', methods=['GET'])
+@print_job_api.route("/view/all/<string:status>", methods=["GET"])
 @requires_access_level(1)
 def view_jobs_by_status(status):
     """
@@ -89,11 +97,10 @@ def view_jobs_by_status(status):
     if status not in job_status._member_names_:
         return custom_response({"error": "Status not found"}, 404)
     # Return a list of jason objects that match status query
-    return get_multiple_job_details(
-        print_job_model.get_print_jobs_by_status(status))
+    return get_multiple_job_details(print_job_model.get_print_jobs_by_status(status))
 
 
-@print_job_api.route('/approve/accept/<int:job_id>', methods=['PUT'])
+@print_job_api.route("/approve/accept/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
 def accept_awaiting_job(job_id):
     """
@@ -105,13 +112,13 @@ def accept_awaiting_job(job_id):
 
     # Check job exists
     if not job:
-        return custom_response({'error': NOTFOUNDJOB}, 404)
+        return custom_response({"error": NOTFOUNDJOB}, 404)
     if job.status != job_status.awaiting:
-        return custom_response({'error': "wrong job status"}, 400)
+        return custom_response({"error": "wrong job status"}, 400)
     return update_job_details(job, {"status": "queued"})
 
 
-@print_job_api.route('/approve/reject/<int:job_id>', methods=['PUT'])
+@print_job_api.route("/approve/reject/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
 def reject_awaiting_job(job_id):
     """
@@ -122,16 +129,16 @@ def reject_awaiting_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({'error': NOTFOUNDJOB}, 404)
+        return custom_response({"error": NOTFOUNDJOB}, 404)
     if job.status != job_status.awaiting:
-        return custom_response({'error': "wrong job status"}, 400)
+        return custom_response({"error": "wrong job status"}, 400)
     result = email(job.user_id, job.print_name, 2)
     if not result:
-        return custom_response({'error': USERIDERROR}, 404)
+        return custom_response({"error": USERIDERROR}, 404)
     return update_job_details(job, {"status": "rejected"})
 
 
-@print_job_api.route('/start/<int:job_id>', methods=['PUT'])
+@print_job_api.route("/start/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
 def start_queued_job(job_id):
     """
@@ -148,25 +155,24 @@ def start_queued_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({'error': NOTFOUNDJOB}, 404)
+        return custom_response({"error": NOTFOUNDJOB}, 404)
     # Check job is allowed to run
     if job.status != job_status.queued:
-        return custom_response({'error': "Job Cannot be run"}, 400)
-    printer_id = request_dict['printer']
+        return custom_response({"error": "Job Cannot be run"}, 400)
+    printer_id = request_dict["printer"]
     if not check_printer_id(printer_id):
-        return custom_response({'error': "Printer Not Found"}, 404)
-    if printer_model.get_printer_by_id(
-            printer_id).printer_type != job.printer_type:
-        return custom_response({'error': "Printer Type mismatch"}, 400)
+        return custom_response({"error": "Printer Not Found"}, 404)
+    if printer_model.get_printer_by_id(printer_id).printer_type != job.printer_type:
+        return custom_response({"error": "Printer Type mismatch"}, 400)
     if running_on_printer(printer_id):
-        return custom_response({'error': "Associated Printer is in use"}, 400)
+        return custom_response({"error": "Associated Printer is in use"}, 400)
 
-    request_dict['status'] = "running"
-    request_dict['date_started'] = datetime.now().isoformat()
+    request_dict["status"] = "running"
+    request_dict["date_started"] = datetime.now().isoformat()
     return update_job_details(job, request_dict)
 
 
-@print_job_api.route('/complete/<int:job_id>', methods=['PUT'])
+@print_job_api.route("/complete/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
 def complete_queued_job(job_id):
     """
@@ -177,35 +183,36 @@ def complete_queued_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({'error': NOTFOUNDJOB}, 404)
+        return custom_response({"error": NOTFOUNDJOB}, 404)
 
     # Check the job is running otherwise error
     if job.status != job_status.running:
-        return custom_response({'error': "Job not running"}, 400)
+        return custom_response({"error": "Job not running"}, 400)
 
     # Change job details
     printer_increment_values = {
         "total_time_printed": job.print_time,
         "completed_prints": 1,
-        "total_filament_used": job.filament_usage
+        "total_filament_used": job.filament_usage,
     }
 
     # Increment Printer Values
     ser_printer = increment_printer_details(
-        printer_model.get_printer_by_id(job.printer), printer_increment_values)
+        printer_model.get_printer_by_id(job.printer), printer_increment_values
+    )
     if ser_printer is None:
         return custom_response({"error": "Printer Increment Error"}, 400)
 
     # Email user that the print is complete
     result = email(job.user_id, job.print_name, 0)
     if not result:
-        return custom_response({'error': USERIDERROR}, 404)
+        return custom_response({"error": USERIDERROR}, 404)
 
     # Change job values
     job_change_values = {
         "is_queued": False,
         "status": "complete",
-        "date_ended": datetime.now().isoformat()
+        "date_ended": datetime.now().isoformat(),
     }
 
     try:
@@ -221,7 +228,75 @@ def complete_queued_job(job_id):
     return custom_response(ser_job, 200)
 
 
-@print_job_api.route('/fail/<int:job_id>', methods=['PUT'])
+@print_job_api.route("/cancel", methods=["PUT"])
+@requires_access_level(2)
+def cancel_queued_job():
+    """
+    Function to cancel a print job, with the option to requeue, email the user and change the printer telemetry
+    :param int job_id: PK of the print_job record
+    :return response: error or serialized updated job record
+    """
+    requeue = request.args.get("requeue", None)
+    job_id = request.args.get("job_id", None)
+
+    if requeue not in {"yes", "no"}:
+        return custom_response(
+            {"error": "Invalid Parameters in Request: Requeue needs to be yes or no"},
+            400,
+        )
+
+    job = print_job_model.get_print_job_by_id(job_id)
+    # Check job exists
+    if not job:
+        return custom_response({"error": NOTFOUNDJOB}, 404)
+
+    # Check the job is running otherwise error
+    if job.status != job_status.running:
+        return custom_response({"error": "Job not running"}, 400)
+
+    # Change job details
+    printer_increment_values = {
+        "total_time_printed": job.print_time,
+        "failed_prints": 1,
+        "total_filament_used": job.filament_usage,
+    }
+
+    # Increment Printer Values
+    ser_printer = increment_printer_details(
+        printer_model.get_printer_by_id(job.printer), printer_increment_values
+    )
+    if ser_printer is None:
+        return custom_response({"error": "Printer Increment Error"}, 400)
+
+    # Change job values depending on requeue
+    if requeue == "yes":
+        job_change_values = {"is_queued": True, "status": "queued"}
+
+    else:
+        job_change_values = {
+            "is_queued": False,
+            "status": "failed",
+            "date_ended": datetime.now().isoformat(),
+        }
+        # Email user that the print is failed
+        result = email(job.user_id, job.print_name, 1)
+        if not result:
+            return custom_response({"error": USERIDERROR}, 404)
+
+    try:
+        data = print_job_schema.load(job_change_values, partial=True)
+    except ValidationError as err:
+        # => {"email": ['"foo" is not a valid email address.']}
+        print(err.messages)
+        print(err.valid_data)  # => {"name": "John"}
+        return custom_response(err.messages, 400)
+    job.update(data)
+    ser_job = print_job_schema.dump(job)
+
+    return custom_response(ser_job, 200)
+
+
+@print_job_api.route("/fail/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
 def fail_queued_job(job_id):
     """
@@ -232,35 +307,36 @@ def fail_queued_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({'error': NOTFOUNDJOB}, 404)
+        return custom_response({"error": NOTFOUNDJOB}, 404)
 
     # Check the job is running otherwise error
     if job.status != job_status.running:
-        return custom_response({'error': "Job not running"}, 400)
+        return custom_response({"error": "Job not running"}, 400)
 
     # Change job details
     printer_increment_values = {
         "total_time_printed": job.print_time,
         "failed_prints": 1,
-        "total_filament_used": job.filament_usage
+        "total_filament_used": job.filament_usage,
     }
 
     # Increment Printer Values
     ser_printer = increment_printer_details(
-        printer_model.get_printer_by_id(job.printer), printer_increment_values)
+        printer_model.get_printer_by_id(job.printer), printer_increment_values
+    )
     if ser_printer is None:
         return custom_response({"error": "Printer Increment Error"}, 400)
 
     # Email user that the print is complete
     result = email(job.user_id, job.print_name, 1)
     if not result:
-        return custom_response({'error': USERIDERROR}, 404)
+        return custom_response({"error": USERIDERROR}, 404)
 
     # Change job values
     job_change_values = {
         "is_queued": False,
         "status": "failed",
-        "date_ended": datetime.now().isoformat()
+        "date_ended": datetime.now().isoformat(),
     }
 
     try:
@@ -276,7 +352,7 @@ def fail_queued_job(job_id):
     return custom_response(ser_job, 200)
 
 
-@print_job_api.route('/delete/<int:job_id>', methods=['DELETE'])
+@print_job_api.route("/delete/<int:job_id>", methods=["DELETE"])
 @requires_access_level(3)
 def delete_job(job_id):
     """
@@ -286,9 +362,9 @@ def delete_job(job_id):
     """
     job = print_job_model.get_print_job_by_id(job_id)
     if not job:
-        return custom_response({'error': NOTFOUNDJOB}, 404)
+        return custom_response({"error": NOTFOUNDJOB}, 404)
     job.delete()
-    return custom_response({'message': 'deleted'}, 200)
+    return custom_response({"message": "deleted"}, 200)
 
 
 # Helper Functions
@@ -308,7 +384,7 @@ def check_printer_id(printer_id):
     :param int printer_id: PK of the printer to search for
     :return bool result: true if it exists, false otherwise
     """
-    if (printer_model.get_printer_by_id(printer_id) is None):
+    if printer_model.get_printer_by_id(printer_id) is None:
         return False
     return True
 
@@ -322,7 +398,7 @@ def running_on_printer(printer_id):
     used_printer_ids = []
     running_jobs = print_job_model.get_print_jobs_by_status("running")
     for job in running_jobs:
-        used_printer_ids.append(print_job_schema.dump(job)['printer'])
+        used_printer_ids.append(print_job_schema.dump(job)["printer"])
     if printer_id not in used_printer_ids:
         return False
     return True
@@ -335,9 +411,10 @@ def check_user_id(user_id):
     :return str user_level: the level of the user or None if it does not exist
     """
     user = user_model.get_user_by_id(user_id)
-    if (user is None):
+    if user is None:
         return None
-    return user.user_level
+    user_level = calculate_level_from_score(user.user_score)
+    return user_level
 
 
 def check_rep_id(user_id):
@@ -347,7 +424,7 @@ def check_rep_id(user_id):
     :return bool result: true if successful, false otherwise
     """
     user = user_model.get_user_by_id(user_id)
-    if (user is None or user.is_rep == False):
+    if user is None or user.is_rep == False:
         return False
     return True
 
@@ -359,7 +436,7 @@ def get_single_job_details(job):
     :return response: error or the serialized object
     """
     if not job:
-        return custom_response({'error': NOTFOUNDJOB}, 404)
+        return custom_response({"error": NOTFOUNDJOB}, 404)
     ser_job = print_job_schema.dump(job)
     print(ser_job)
     return custom_response(ser_job, 200)
@@ -372,7 +449,7 @@ def get_multiple_job_details(jobs):
     :return response: error or a list of serialized print jobs
     """
     if not jobs:
-        return custom_response({'error': "Jobs not found"}, 404)
+        return custom_response({"error": "Jobs not found"}, 404)
     jason = []
     for job in jobs:
         jason.append(print_job_schema.dump(job))
