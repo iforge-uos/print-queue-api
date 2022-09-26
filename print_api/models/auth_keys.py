@@ -2,6 +2,8 @@ from marshmallow import fields, Schema
 from print_api.extensions import db
 from sqlalchemy.sql import func
 
+# TODO COMPLETELY REFACTOR INCLUDING PERMISSIONS MATRICES (WITH TEAM FILTERING) + JWT TOKENS (OR OAUTH)
+
 """
 Permission Values
 3 All Rights (Admin Access)
@@ -11,16 +13,17 @@ Permission Values
 
 """
 
+
 class auth_model(db.Model):
     """
     Auth Model
     """
-    __tablename__ = 'auth'
+
+    __tablename__ = "auth"
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String, nullable=False)
-    date_added = db.Column(db.DateTime(timezone=True),
-                           server_default=func.now())
-    associated_version = db.Column(db.String,nullable=True)
+    date_added = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    associated_version = db.Column(db.String, nullable=True)
     permission_value = db.Column(db.Integer, nullable=False)
     # class constructor
 
@@ -28,10 +31,9 @@ class auth_model(db.Model):
         """
         Class constructor
         """
-        print(data)
-        self.key = data.get('key')
-        self.associated_version = data.get('associated_version')
-        self.permission_value = data.get('permission_value')
+        self.key = data.get("key")
+        self.associated_version = data.get("associated_version")
+        self.permission_value = data.get("permission_value")
 
     def save(self):
         """
@@ -81,7 +83,6 @@ class auth_model(db.Model):
         """
         return auth_model.query.filter_by(key=key).first()
 
-
     @staticmethod
     def get_keys_by_associated_version(version):
         """
@@ -99,6 +100,7 @@ class auth_schema(Schema):
     """
     Key Schema
     """
+
     id = fields.Int(dump_only=True)
     key = fields.String(required=True)
     date_added = fields.DateTime(required=False)

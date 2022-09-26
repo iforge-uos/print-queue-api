@@ -1,7 +1,13 @@
+from importlib.metadata import requires
 from marshmallow import fields, Schema
 from marshmallow_enum import EnumField
 from print_api.extensions import db
 import enum
+
+
+class printer_location(enum.Enum):
+    heartspace = "Heartspace"
+    diamond = "Diamond"
 
 
 class printer_type(enum.Enum):
@@ -9,11 +15,12 @@ class printer_type(enum.Enum):
     prusa = "Prusa MK3S+"
 
 
-class printer_model (db.Model):
+class printer_model(db.Model):
     """
-        Printer Model
+    Printer Model
     """
-    __tablename__ = 'printers'
+
+    __tablename__ = "printers"
     id = db.Column(db.Integer, primary_key=True)
     printer_name = db.Column(db.String(50), nullable=False, unique=True)
     printer_type = db.Column(db.Enum(printer_type), nullable=False)
@@ -24,6 +31,7 @@ class printer_model (db.Model):
     failed_prints = db.Column(db.Integer(), nullable=True)
     total_filament_used = db.Column(db.Integer(), nullable=True)
     days_on_time = db.Column(db.Integer(), nullable=True)
+    location = db.Column(db.Enum(printer_location), nullable=False)
 
     # class constructor
 
@@ -31,15 +39,16 @@ class printer_model (db.Model):
         """
         Class constructor
         """
-        self.printer_name = data.get('printer_name')
-        self.printer_type = data.get('printer_type')
-        self.ip = data.get('ip') or None
-        self.api_key = data.get('api_key') or None
-        self.total_time_printed = data.get('total_timed_printed')
-        self.completed_prints = data.get('completed_prints')
-        self.failed_prints = data.get('failed_prints')
-        self.total_filament_used = data.get('total_filament_used')
-        self.days_on_time = data.get('days_on_time')
+        self.printer_name = data.get("printer_name")
+        self.printer_type = data.get("printer_type")
+        self.ip = data.get("ip") or None
+        self.api_key = data.get("api_key") or None
+        self.total_time_printed = data.get("total_timed_printed")
+        self.completed_prints = data.get("completed_prints")
+        self.failed_prints = data.get("failed_prints")
+        self.total_filament_used = data.get("total_filament_used")
+        self.days_on_time = data.get("days_on_time")
+        self.location = data.get("location")
 
     def save(self):
         """
@@ -104,6 +113,7 @@ class printer_schema(Schema):
     """
     Printer Schema
     """
+
     id = fields.Int(dump_only=True)
     printer_name = fields.String(required=True)
     printer_type = EnumField(printer_type, required=True)
@@ -114,3 +124,4 @@ class printer_schema(Schema):
     failed_prints = fields.Int(required=False)
     total_filament_used = fields.Int(required=False)
     days_on_time = fields.Int(required=False)
+    location = EnumField(printer_location, required=True)

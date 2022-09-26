@@ -23,7 +23,6 @@ class user_model(db.Model):
         """
         Class constructor
         """
-        print(data)
         self.name = data.get("name")
         self.email = data.get("email")
         self.user_score = data.get("user_score")

@@ -438,7 +438,6 @@ def get_single_job_details(job):
     if not job:
         return custom_response({"error": NOTFOUNDJOB}, 404)
     ser_job = print_job_schema.dump(job)
-    print(ser_job)
     return custom_response(ser_job, 200)
 
 
