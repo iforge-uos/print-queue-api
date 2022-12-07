@@ -31,6 +31,7 @@ def create_app(config_object=app_config[os.getenv("FLASK_ENV")]):
     register_extensions(app)
     register_blueprints(app)
     configure_logger(app)
+    register_error_handlers(app)
     return app
 
 
@@ -66,6 +67,15 @@ def register_blueprints(app):
     )
     app.register_blueprint(other_routes.other_api, url_prefix=f"{api_prefix}/misc")
     app.register_blueprint(auth_routes.auth_api, url_prefix=f"{api_prefix}/auth")
+    return None
+
+
+def register_error_handlers(app):
+    """
+    Register error handlers
+    :param app: the flask application
+    """
+    # TODO add error handlers
     return None
 
 
