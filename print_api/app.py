@@ -4,7 +4,7 @@ import sys
 from flask import Flask, render_template
 from dotenv import load_dotenv
 from print_api.config import app_config
-
+from print_api.common.routing import custom_response
 from print_api.extensions import db, migrate, mail, bootstrap, api, cors
 
 # Resources
@@ -31,7 +31,7 @@ def create_app(config_object=app_config[os.getenv("FLASK_ENV")]):
     register_extensions(app)
     register_blueprints(app)
     configure_logger(app)
-    register_error_handlers(app)
+    register_errorhandlers(app)
     return app
 
 
@@ -70,12 +70,18 @@ def register_blueprints(app):
     return None
 
 
-def register_error_handlers(app):
-    """
-    Register error handlers
-    :param app: the flask application
-    """
-    # TODO add error handlers
+def register_errorhandlers(app):
+    """Register error handlers."""
+
+    def render_error(error):
+        """Render error template."""
+        # If a HTTPException, pull the `code` attribute; default to 500
+        error_code = getattr(error, "code", 500)
+        #! should return different errors not just a description since this is a public api
+        return custom_response({"error": error.description}, error_code)
+
+    for errcode in [401, 404, 500]:
+        app.errorhandler(errcode)(render_error)
     return None
 
 
