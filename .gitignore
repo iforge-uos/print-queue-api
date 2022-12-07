@@ -158,3 +158,4 @@ cython_debug/
 **/node_modules/**
 *_secret.json
 .pgdata/**
+.idea/
