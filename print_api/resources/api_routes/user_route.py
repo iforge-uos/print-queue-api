@@ -82,6 +82,16 @@ def delete_by_email(user_email):
     return delete_user(user_model.get_user_by_email(user_email))
 
 
+@user_api.route("/view/all", methods=["GET"])
+@requires_access_level(1)
+def view_all_users():
+    """
+    Function to serialize all users
+    :return response: error or serialized user
+    """
+    return get_multiple_user_details(user_model.get_all_users())
+
+
 @user_api.route("/add", methods=["POST"])
 @requires_access_level(1)
 def create():
@@ -172,3 +182,19 @@ def calculate_level_from_score(score):
         if score >= key:
             level = value
     return level
+
+
+def get_multiple_user_details(users):
+    """
+    Function to take a query object of multiple users and serialize them
+    :param jobs: the query object containing the users
+    :return response: error or a list of serialized user data
+    """
+    if not users:
+        return custom_response({"error": "Users not found"}, 404)
+    jason = []
+    for user in users:
+        user_dict = user_schema.dump(user)
+        user_dict["user_level"] = calculate_level_from_score(user.user_score)
+        jason.append(user_dict)
+    return custom_response(jason, 200)
