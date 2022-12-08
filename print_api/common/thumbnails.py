@@ -11,12 +11,12 @@ def extract_thumbnail(gcode_file_path):
     """
     regex = r"(?:^; thumbnail begin \d+[x ]\d+ \d+)(?:\n|\r\n?)((?:.+(?:\n|\r\n?))+?)(?:^; thumbnail end)"
     # Open the file and extract all the comments to a string.
-    with open(gcode_file_path, 'rb') as g_file:
+    with open(gcode_file_path, "rb") as g_file:
         concat_string = ""
         for line in g_file:
             line = line.decode("utf-8", "ignore")
             if line.startswith(";"):
-                concat_string += line@
+                concat_string += line
         # match the thumbnail regex to the string.
         matches = re.findall(regex, concat_string, re.MULTILINE)
         # CHeck the thumbnail exists

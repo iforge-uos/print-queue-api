@@ -1,0 +1,58 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: CI / CD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:        
+  deploy-staging:
+    runs-on: [self-hosted, linux, x64, if-dev]
+    if: github.ref == 'refs/heads/staging'
+     
+    steps:
+    - name: Stop Webserver
+      working-directory: /home/sampiiiii/iforge/print_api_runner/
+      run: |
+        sudo service print-api stop
+    
+    - name: Checkout repository
+      working-directory: /home/sampiiiii/iforge/print_api_runner/
+      run: |
+        git pull
+        
+    - name: Install pip dependencies
+      working-directory: /home/sampiiiii/iforge/print_api_runner/
+      run: |
+        source venv/bin/activate
+        pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
+    - name: Get Current Date
+      id: date
+      run: echo "::set-output name=date::$(date +'%d-%m-%Y')"
+      
+    - name: Get Current Time
+      id: time
+      run: echo "::set-output name=date::$(date +'%H-%M')"
+
+    - name: Create Flask Database Migration
+      working-directory: /home/sampiiiii/iforge/print_api_runner/
+      run: |
+        source venv/bin/activate
+        flask db migrate -m "PR ${{ github.event.head_commit.message }} at ${{ steps.date.outputs.time }} on ${{ steps.date.outputs.date }}"
+
+    - name: Update PostgreSQL Database schema
+      working-directory: /home/sampiiiii/iforge/print_api_runner/
+      run: |
+        source venv/bin/activate
+        flask db upgrade
+        
+    - name: Start Webserver
+      working-directory: /home/sampiiiii/iforge/print_api_runner/
+      run: |
+        sudo service print-api start
