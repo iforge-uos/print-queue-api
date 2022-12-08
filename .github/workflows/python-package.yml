@@ -15,8 +15,6 @@ jobs:
     if: github.ref == 'refs/heads/staging'
      
     steps:
-    - name: Who am I
-      run: whoami
     - name: Stop Webserver
       working-directory: /home/sampiiiii/iforge/print_api_runner/
       run: |
