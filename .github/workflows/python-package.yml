@@ -43,13 +43,13 @@ jobs:
     - name: Create Flask Database Migration
       working-directory: /home/sampiiiii/iforge/print_api_runner/
       run: |
-        source venv/bin/activate
+        source .venv/bin/activate
         flask db migrate -m "PR ${{ github.event.head_commit.message }} at ${{ steps.date.outputs.time }} on ${{ steps.date.outputs.date }}"
 
     - name: Update PostgreSQL Database schema
       working-directory: /home/sampiiiii/iforge/print_api_runner/
       run: |
-        source venv/bin/activate
+        source .venv/bin/activate
         flask db upgrade
         
     - name: Start Webserver
