@@ -25,37 +25,30 @@ class project_types(enum.Enum):
     other = "Other"
 
 
-
-class print_job_model (db.Model):
+class print_job_model(db.Model):
     """
     Print Jobs Model
     """
-    __tablename__ = 'print_jobs'
+
+    __tablename__ = "print_jobs"
     id = db.Column(db.Integer, primary_key=True)
     is_queued = db.Column(db.Boolean, default=True)
     user_id = db.Column(db.Integer, db.ForeignKey(user_model.id))
     print_name = db.Column(db.String(60), nullable=False)
     gcode_slug = db.Column(db.String, nullable=False)
     stl_slug = db.Column(db.String, nullable=True)
-    date_added = db.Column(db.DateTime(timezone=True),
-                           server_default=func.now())
+    date_added = db.Column(db.DateTime(timezone=True), server_default=func.now())
     date_started = db.Column(
-        db.DateTime(
-            timezone=True),
-        nullable=True,
-        server_onupdate=func.now())
+        db.DateTime(timezone=True), nullable=True, server_onupdate=func.now()
+    )
     date_ended = db.Column(
-        db.DateTime(
-            timezone=True),
-        nullable=True,
-        server_onupdate=func.now())
+        db.DateTime(timezone=True), nullable=True, server_onupdate=func.now()
+    )
     colour = db.Column(db.String, nullable=True)
     upload_notes = db.Column(db.String, nullable=True)
     queue_notes = db.Column(db.String, nullable=True)
-    checked_by = db.Column(db.Integer, db.ForeignKey(
-        user_model.id), nullable=True)
-    printer = db.Column(db.Integer, db.ForeignKey(
-        printer_model.id), nullable=True)
+    checked_by = db.Column(db.Integer, db.ForeignKey(user_model.id), nullable=True)
+    printer = db.Column(db.Integer, db.ForeignKey(printer_model.id), nullable=True)
     printer_type = db.Column(db.Enum(printer_type), nullable=False)
     project = db.Column(db.Enum(project_types), nullable=False)
     project_string = db.Column(db.String, nullable=True)
@@ -71,36 +64,36 @@ class print_job_model (db.Model):
         Class constructor
         """
         # Making it so that approval jobs can be part of the print job model
-        if (data.get("status") == job_status.approval):
+        if data.get("status") == job_status.approval:
             self.is_queued = False
             self.status = job_status.approval
-            self.stl_slug = data.get('stl_slug')
+            self.stl_slug = data.get("stl_slug")
         else:
             self.is_queued = True
             self.status = job_status.queued
             self.stl_slug = None
 
         # If co-curricular or uni module store group name / code
-        project = data.get('project')
-        if (project == project_types.personal):
+        project = data.get("project")
+        if project == project_types.personal:
             self.project = project
         else:
             self.project = project
-            self.project_string = data.get('project_name')
+            self.project_string = data.get("project_name")
 
-        self.user_id = data.get('user_id')
-        self.print_name = data.get('print_name')
-        self.gcode_slug = data.get('gcode_slug')
+        self.user_id = data.get("user_id")
+        self.print_name = data.get("print_name")
+        self.gcode_slug = data.get("gcode_slug")
         self.date_started = None
         self.date_ended = None
         self.colour = None
-        self.upload_notes = data.get('upload_notes')
-        self.checked_by = data.get('checked_by')
+        self.upload_notes = data.get("upload_notes")
+        self.checked_by = data.get("checked_by")
         self.printer = None
-        self.project = data.get('project')
-        self.print_time = data.get('print_time')
-        self.printer_type = data.get('printer_type')
-        self.filament_usage = data.get('filament_usage')
+        self.project = data.get("project")
+        self.print_time = data.get("print_time")
+        self.printer_type = data.get("printer_type")
+        self.filament_usage = data.get("filament_usage")
 
     def save(self):
         """
@@ -158,6 +151,7 @@ class print_job_schema(Schema):
     """
     Print Job Schema
     """
+
     id = fields.Int(dump_only=True)
     is_queued = fields.Boolean(required=False)
     user_id = fields.Int(required=True)
