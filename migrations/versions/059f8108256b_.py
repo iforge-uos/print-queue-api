@@ -79,7 +79,7 @@ def upgrade():
     sa.Column('printer_type', sa.Enum('ultimaker', 'prusa', name='printer_type'), nullable=False),
     sa.Column('project', sa.Enum('personal', 'uni_module', 'co_curricular', 'society', 'other', name='project_types'), nullable=False),
     sa.Column('project_string', sa.String(), nullable=True),
-    sa.Column('status', sa.Enum('queued', 'awaiting', 'running', 'complete', 'failed', 'rejected', 'under_review', name='job_status'), nullable=False),
+    sa.Column('status', sa.Enum('queued', 'approval', 'running', 'complete', 'failed', 'rejected', 'under_review', name='job_status'), nullable=False),
     sa.Column('print_time', sa.Integer(), nullable=True),
     sa.Column('filament_usage', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['checked_by'], ['users.id'], ),

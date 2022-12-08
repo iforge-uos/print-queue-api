@@ -46,7 +46,7 @@ def create():
     if user_level == "Beginner" and not check_rep_id(req_data["checked_by"]):
         return ({"error": "rep details are incorrect"}, 404)
     elif user_level == "Advanced":
-        req_data["status"] = "awaiting"
+        req_data["status"] = "approval"
         if not "stl_slug" in req_data:
             return ({"error": "stl slug needed"}, 404)
         req_data.pop("checked_by")
@@ -102,7 +102,7 @@ def view_jobs_by_status(status):
 
 @print_job_api.route("/approve/accept/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
-def accept_awaiting_job(job_id):
+def accept_approval_job(job_id):
     """
     Function to mark an awaited job asapproved and add to the queue
     :param int job_id: PK of the print_job record
@@ -113,14 +113,14 @@ def accept_awaiting_job(job_id):
     # Check job exists
     if not job:
         return custom_response({"error": NOTFOUNDJOB}, 404)
-    if job.status != job_status.awaiting:
+    if job.status != job_status.approval:
         return custom_response({"error": "wrong job status"}, 400)
     return update_job_details(job, {"status": "queued"})
 
 
 @print_job_api.route("/approve/reject/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
-def reject_awaiting_job(job_id):
+def reject_approval_job(job_id):
     """
     Function to mark an awaited job asapproved and add to the queue
     :param int job_id: PK of the print_job record
@@ -130,7 +130,7 @@ def reject_awaiting_job(job_id):
     # Check job exists
     if not job:
         return custom_response({"error": NOTFOUNDJOB}, 404)
-    if job.status != job_status.awaiting:
+    if job.status != job_status.approval:
         return custom_response({"error": "wrong job status"}, 400)
     result = email(job.user_id, job.print_name, 2)
     if not result:

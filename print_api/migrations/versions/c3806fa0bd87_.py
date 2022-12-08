@@ -40,7 +40,7 @@ def upgrade():
                     sa.Column('project', sa.Enum('personal', 'uni_module',
                                                  'co_curricular', 'other', name='project_types'), nullable=False),
                     sa.Column('project_string', sa.String(), nullable=True),
-                    sa.Column('status', sa.Enum('queued', 'accepted', 'awaiting', 'running', 'complete',
+                    sa.Column('status', sa.Enum('queued', 'accepted', 'approval', 'running', 'complete',
                                                 'failed', 'rejected', 'under_review', name='job_status'), nullable=False),
                     sa.Column('print_time', sa.Integer(), nullable=True),
                     sa.Column('filament', sa.Integer(), nullable=True),

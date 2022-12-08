@@ -9,7 +9,7 @@ from print_api.models.printers import printer_model, printer_type
 
 class job_status(enum.Enum):
     queued = "Queued"
-    awaiting = "Awaiting Approval"
+    approval = "Awaiting Approval"
     running = "Running"
     complete = "Complete"
     failed = "Failed"
@@ -71,9 +71,9 @@ class print_job_model (db.Model):
         Class constructor
         """
         # Making it so that approval jobs can be part of the print job model
-        if (data.get("status") == job_status.awaiting):
+        if (data.get("status") == job_status.approval):
             self.is_queued = False
-            self.status = job_status.awaiting
+            self.status = job_status.approval
             self.stl_slug = data.get('stl_slug')
         else:
             self.is_queued = True
