@@ -32,7 +32,6 @@ class print_job_model(db.Model):
 
     __tablename__ = "print_jobs"
     id = db.Column(db.Integer, primary_key=True)
-    is_queued = db.Column(db.Boolean, default=True)
     user_id = db.Column(db.Integer, db.ForeignKey(user_model.id))
     print_name = db.Column(db.String(60), nullable=False)
     gcode_slug = db.Column(db.String, nullable=False)
@@ -65,11 +64,9 @@ class print_job_model(db.Model):
         """
         # Making it so that approval jobs can be part of the print job model
         if data.get("status") == job_status.approval:
-            self.is_queued = False
             self.status = job_status.approval
             self.stl_slug = data.get("stl_slug")
         else:
-            self.is_queued = True
             self.status = job_status.queued
             self.stl_slug = None
 
@@ -153,7 +150,6 @@ class print_job_schema(Schema):
     """
 
     id = fields.Int(dump_only=True)
-    is_queued = fields.Boolean(required=False)
     user_id = fields.Int(required=True)
     print_name = fields.String(required=True)
     gcode_slug = fields.String(required=True)

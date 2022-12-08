@@ -210,7 +210,6 @@ def complete_queued_job(job_id):
 
     # Change job values
     job_change_values = {
-        "is_queued": False,
         "status": "complete",
         "date_ended": datetime.now().isoformat(),
     }
@@ -270,11 +269,10 @@ def cancel_queued_job():
 
     # Change job values depending on requeue
     if requeue == "yes":
-        job_change_values = {"is_queued": True, "status": "queued"}
+        job_change_values = {"status": "queued"}
 
     else:
         job_change_values = {
-            "is_queued": False,
             "status": "failed",
             "date_ended": datetime.now().isoformat(),
         }
@@ -334,7 +332,6 @@ def fail_queued_job(job_id):
 
     # Change job values
     job_change_values = {
-        "is_queued": False,
         "status": "failed",
         "date_ended": datetime.now().isoformat(),
     }
