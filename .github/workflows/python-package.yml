@@ -28,7 +28,7 @@ jobs:
     - name: Install pip dependencies
       working-directory: /home/sampiiiii/iforge/print_api_runner/
       run: |
-        source venv/bin/activate
+        source .venv/bin/activate
         pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
