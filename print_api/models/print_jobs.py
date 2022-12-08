@@ -9,7 +9,7 @@ from print_api.models.printers import printer_model, printer_type
 
 class job_status(enum.Enum):
     queued = "Queued"
-    approval = "Awaiting Approval"
+    awaiting = "Awaiting Approval"
     running = "Running"
     complete = "Complete"
     failed = "Failed"
