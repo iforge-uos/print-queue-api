@@ -1,3 +1,5 @@
+import os
+
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
 from print_api.common.auth import requires_access_level
@@ -7,7 +9,12 @@ from print_api.common.routing import custom_response
 user_api = Blueprint("users", __name__)
 user_schema = user_schema()
 
-user_level_struct = {0: "Beginner", 5: "Advanced", 10: "Expert", 50: "Insane"}
+# get params from .env
+advanced_level = os.getenv('ADVANCED_LEVEL')
+expert_level = os.getenv('EXPERT_LEVEL')
+insane_level = os.getenv('INSANE_LEVEL')
+# set boundaries
+user_level_struct = {0: "Beginner", advanced_level: "Advanced", expert_level: "Expert", insane_level: "Insane"}
 
 NOTFOUNDUSER = "user(s) not found"
 
