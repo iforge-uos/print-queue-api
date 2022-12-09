@@ -1,4 +1,5 @@
 import enum
+import os
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
 from print_api.extensions import db
@@ -62,22 +63,6 @@ class print_job_model(db.Model):
         """
         Class constructor
         """
-        # Making it so that approval jobs can be part of the print job model
-        if data.get("status") == job_status.approval:
-            self.status = job_status.approval
-            self.stl_slug = data.get("stl_slug")
-        else:
-            self.status = job_status.queued
-            self.stl_slug = None
-
-        # If co-curricular or uni module store group name / code
-        project = data.get("project")
-        if project == project_types.personal:
-            self.project = project
-        else:
-            self.project = project
-            self.project_string = data.get("project_name")
-
         self.user_id = data.get("user_id")
         self.print_name = data.get("print_name")
         self.gcode_slug = data.get("gcode_slug")
@@ -91,6 +76,30 @@ class print_job_model(db.Model):
         self.print_time = data.get("print_time")
         self.printer_type = data.get("printer_type")
         self.filament_usage = data.get("filament_usage")
+
+        # Making it so that approval jobs can be part of the print job model
+        if data.get("status") == job_status.approval:
+            self.status = job_status.approval
+            self.stl_slug = data.get("stl_slug")
+        else:
+            self.stl_slug = None
+
+            # catch high failure risk and long prints with auto-review
+            fail_threshold = os.getenv('AUTOREVIEW_FAIL_THRESHOLD')
+            time_threshold = os.getenv('AUTOREVIEW_TIME_THRESHOLD')
+
+            check_rep = user_model.get_user_by_id(self.checked_by)
+            fail_rate = (check_rep.fail_count + check_rep.reject_count) / (check_rep.complete_count + check_rep.fail_count + check_rep.reject_count)
+
+            if fail_rate < fail_threshold and self.print_time < time_threshold:
+                self.status = job_status.queued
+            else:
+                self.status = job_status.under_review
+
+        # If co-curricular or uni module store group name / code
+        self.project = data.get("project")
+        if self.project is not project_types.personal:
+            self.project_string = data.get("project_name")
 
     def save(self):
         """
