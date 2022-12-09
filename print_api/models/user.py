@@ -17,6 +17,9 @@ class user_model(db.Model):
     score_editable = db.Column(db.Boolean, default=True)
     short_name = db.Column(db.String, nullable=True)
     date_added = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    complete_count = db.Column(db.Integer, nullable=False, default=0)
+    fail_count = db.Column(db.Integer, nullable=False, default=0)
+    reject_count = db.Column(db.Integer, nullable=False, default=0)
 
     # class constructor
     def __init__(self, data):
@@ -98,3 +101,6 @@ class user_schema(Schema):
     score_editable = fields.Boolean(required=True)
     short_name = fields.String(required=False)
     date_added = fields.DateTime(required=False)
+    complete_count = fields.Int(required=False)
+    fail_count = fields.Int(required=False)
+    reject_count = fields.Int(required=False)

@@ -67,7 +67,7 @@ def email(user_id, job_name, email_type):
     # Send email in separate thread to make api run faster
     Thread(target=send_async_email, args=(app, msg)).start()
 
-    update_user_score(user, type)
+    update_user_score(user, email_type)
     return True
 
 
@@ -78,17 +78,25 @@ def update_user_score(user, email_type):
     :param int email_type: Either 0, 1 or 2. With 0 being completed, 1 being a failure and 2 being a rejection.
     :return: None
     """
+    data = {}
     cur_score = user.user_score
-    if email_type == 0:
+    if email_type == 0:  # completed
         new_score = cur_score + 1
-    else:
+        data['complete_count'] = user.complete_count + 1
+    elif email_type == 1:  # failed
         new_score = cur_score - 1
+        data['fail_count'] = user.fail_count + 1
+    else:  # rejected
+        new_score = cur_score - 1
+        data['reject_count'] = user.reject_count + 1
+
     if new_score < 1:
         new_score = 1
     new_level = calculate_level_from_score(new_score)
 
     # Load updated data into the user_schema
-    data = {"user_score": new_score, "user_level": new_level}
+    data['user_score'] = new_score
+    data['user_level'] = new_level
     user.update(data)
 
 
