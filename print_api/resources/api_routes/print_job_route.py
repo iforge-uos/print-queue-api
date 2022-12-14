@@ -1,3 +1,4 @@
+import re
 from importlib.metadata import requires
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
@@ -19,8 +20,9 @@ from datetime import datetime
 print_job_api = Blueprint("print jobs", __name__)
 print_job_schema = print_job_schema()
 
-NOTFOUNDJOB = "job(s) not found"
+JOBNOTFOUND = "job(s) not found"
 USERIDERROR = "user(s) not found"
+STATUSERROR = "status not found"
 
 # TODO ADD CANCELLING JOBS
 
@@ -43,16 +45,16 @@ def create():
         return custom_response({"error": "user is not found"}, 404)
 
     # Check if a rep approved this print <- this should pass but sanity check
-    if user_level == "Beginner" and not check_rep_id(req_data["checked_by"]):
+    if user_level == "Beginner" and not check_rep_id(req_data["rep_check"]):
         return ({"error": "rep details are incorrect"}, 404)
     elif user_level == "Advanced":
         req_data["status"] = "approval"
         if not "stl_slug" in req_data:
             return ({"error": "stl slug needed"}, 404)
-        req_data.pop("checked_by")
+        req_data.pop("rep_check")
     else:
         req_data["status"] = "queued"
-        req_data.pop("checked_by")
+        req_data.pop("rep_check")
 
     # Tidying up some null values to make future functions easier
     if "filament_usage" not in req_data:
@@ -112,7 +114,7 @@ def accept_approval_job(job_id):
 
     # Check job exists
     if not job:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
+        return custom_response({"error": JOBNOTFOUND}, 404)
     if job.status != job_status.approval:
         return custom_response({"error": "wrong job status"}, 400)
     return update_job_details(job, {"status": "queued"})
@@ -129,7 +131,7 @@ def reject_approval_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
+        return custom_response({"error": JOBNOTFOUND}, 404)
     if job.status != job_status.approval:
         return custom_response({"error": "wrong job status"}, 400)
     result = email(job.user_id, job.print_name, 2)
@@ -155,7 +157,7 @@ def start_queued_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
+        return custom_response({"error": JOBNOTFOUND}, 404)
     # Check job is allowed to run
     if job.status != job_status.queued:
         return custom_response({"error": "Job Cannot be run"}, 400)
@@ -174,7 +176,7 @@ def start_queued_job(job_id):
 
 @print_job_api.route("/complete/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
-def complete_queued_job(job_id):
+def complete_job(job_id):
     """
     Function to mark a print job as completed, email the user and change the printer telemetry
     :param int job_id: PK of the print_job record
@@ -183,7 +185,7 @@ def complete_queued_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
+        return custom_response({"error": JOBNOTFOUND}, 404)
 
     # Check the job is running otherwise error
     if job.status != job_status.running:
@@ -203,16 +205,21 @@ def complete_queued_job(job_id):
     if ser_printer is None:
         return custom_response({"error": "Printer Increment Error"}, 400)
 
-    # Email user that the print is complete
-    result = email(job.user_id, job.print_name, 0)
+    # Change job values
+    job_change_values = {
+        "status": "completed",
+        "date_ended": datetime.now().isoformat(),
+    }
+
+    # Email user that the print is failed
+    result = email(job.user_id, job.print_name, status='completed')
     if not result:
         return custom_response({"error": USERIDERROR}, 404)
 
-    # Change job values
-    job_change_values = {
-        "status": "complete",
-        "date_ended": datetime.now().isoformat(),
-    }
+    # Update score of user and slicing rep
+    result = score_print(job.user_id, job.rep_check, status='completed')
+    if not result:
+        return custom_response({"error": STATUSERROR}, 404)
 
     try:
         data = print_job_schema.load(job_change_values, partial=True)
@@ -227,18 +234,17 @@ def complete_queued_job(job_id):
     return custom_response(ser_job, 200)
 
 
-@print_job_api.route("/cancel", methods=["PUT"])
+@print_job_api.route("/fail/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
-def cancel_queued_job():
+def fail_job(job_id):
     """
-    Function to cancel a print job, with the option to requeue, email the user and change the printer telemetry
+    Function to fail a print job (with the option to requeue), email the user, update scores, and change the printer telemetry
     :param int job_id: PK of the print_job record
     :return response: error or serialized updated job record
     """
-    requeue = request.args.get("requeue", None)
-    job_id = request.args.get("job_id", None)
+    requeue = request.args.get("requeue", default="no")
 
-    if requeue not in {"yes", "no"}:
+    if requeue not in ["yes", "no"]:
         return custom_response(
             {"error": "Invalid Parameters in Request: Requeue needs to be yes or no"},
             400,
@@ -247,7 +253,7 @@ def cancel_queued_job():
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
+        return custom_response({"error": JOBNOTFOUND}, 404)
 
     # Check the job is running otherwise error
     if job.status != job_status.running:
@@ -269,7 +275,21 @@ def cancel_queued_job():
 
     # Change job values depending on requeue
     if requeue == "yes":
-        job_change_values = {"status": "queued"}
+        queue_notes = job.queue_notes.splitlines()
+        # if notes are list of entries: ['irrelevant', 'Requeue #N', 'irrelevant', ...]
+        requeue_idx = [i for i, x in enumerate(queue_notes) if re.findall(r'(?<=[Rr]equeue \#)\d+', x) != []]
+        if len(requeue_idx) == 0:
+            # Not been requeued before, add requeue count marker
+            queue_notes.append("Requeue #1")
+        else:
+            # increase and append requeue count marker to notes
+            requeue_n = int(requeue_idx[-1])
+            queue_notes.append(f"Requeue #{requeue_n + 1}")
+
+        job_change_values = {
+            "status": "queued",
+            "queue_notes": '\n'.join(queue_notes)
+        }
 
     else:
         job_change_values = {
@@ -277,9 +297,14 @@ def cancel_queued_job():
             "date_ended": datetime.now().isoformat(),
         }
         # Email user that the print is failed
-        result = email(job.user_id, job.print_name, 1)
+        result = email(job.user_id, job.print_name, status='failed')
         if not result:
             return custom_response({"error": USERIDERROR}, 404)
+
+        # Update score of user and slicing rep
+        result = score_print(job.user_id, job.rep_check, status='failed')
+        if not result:
+            return custom_response({"error": STATUSERROR}, 404)
 
     try:
         data = print_job_schema.load(job_change_values, partial=True)
@@ -294,47 +319,37 @@ def cancel_queued_job():
     return custom_response(ser_job, 200)
 
 
-@print_job_api.route("/fail/<int:job_id>", methods=["PUT"])
+@print_job_api.route("/reject/<int:job_id>", methods=["PUT"])
 @requires_access_level(2)
-def fail_queued_job(job_id):
+def reject_job(job_id):
     """
-    Function to mark a print job as failed, email the user and change the printer telemetry
+    Function to mark a print job as rejected and email the user
     :param int job_id: PK of the print_job record
     :return response: error or serialized updated job record
     """
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
+        return custom_response({"error": JOBNOTFOUND}, 404)
 
-    # Check the job is running otherwise error
-    if job.status != job_status.running:
-        return custom_response({"error": "Job not running"}, 400)
+    # Check the job is queued or under-review
+    if job.status not in [job_status.queued, job_status.under_review]:
+        return custom_response({"error": "Job not under-review (or queued)"}, 400)
 
-    # Change job details
-    printer_increment_values = {
-        "total_time_printed": job.print_time,
-        "failed_prints": 1,
-        "total_filament_used": job.filament_usage,
+    job_change_values = {
+        "status": "rejected",
+        "date_ended": datetime.now().isoformat(),
     }
 
-    # Increment Printer Values
-    ser_printer = increment_printer_details(
-        printer_model.get_printer_by_id(job.printer), printer_increment_values
-    )
-    if ser_printer is None:
-        return custom_response({"error": "Printer Increment Error"}, 400)
-
-    # Email user that the print is complete
-    result = email(job.user_id, job.print_name, 1)
+    # Email user that the print is failed
+    result = email(job.user_id, job.print_name, status='rejected')
     if not result:
         return custom_response({"error": USERIDERROR}, 404)
 
-    # Change job values
-    job_change_values = {
-        "status": "failed",
-        "date_ended": datetime.now().isoformat(),
-    }
+    # Update score of user and slicing rep
+    result = score_print(job.user_id, job.rep_check, status='rejected')
+    if not result:
+        return custom_response({"error": STATUSERROR}, 404)
 
     try:
         data = print_job_schema.load(job_change_values, partial=True)
@@ -347,7 +362,6 @@ def fail_queued_job(job_id):
     ser_job = print_job_schema.dump(job)
 
     return custom_response(ser_job, 200)
-
 
 @print_job_api.route("/delete/<int:job_id>", methods=["DELETE"])
 @requires_access_level(3)
@@ -359,7 +373,7 @@ def delete_job(job_id):
     """
     job = print_job_model.get_print_job_by_id(job_id)
     if not job:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
+        return custom_response({"error": JOBNOTFOUND}, 404)
     job.delete()
     return custom_response({"message": "deleted"}, 200)
 
@@ -433,7 +447,7 @@ def get_single_job_details(job):
     :return response: error or the serialized object
     """
     if not job:
-        return custom_response({"error": NOTFOUNDJOB}, 404)
+        return custom_response({"error": JOBNOTFOUND}, 404)
     ser_job = print_job_schema.dump(job)
     return custom_response(ser_job, 200)
 
@@ -470,3 +484,32 @@ def update_job_details(job, req_data):
     job.update(data)
     ser_job = print_job_schema.dump(job)
     return custom_response(ser_job, 200)
+
+def score_print(user_id, rep_id, status):
+    """
+    :param str status: Either "completed", "failed" or "rejected".
+    """
+    status_increments = {'completed': 1, 'failed': -1, 'rejected': -1}
+
+    if status not in status_increments.keys():
+        return False
+
+    user = user_model.get_user_by_id(user_id)
+    rep = user_model.get_user_by_id(rep_id)
+
+    user_data = {}
+    rep_data = {}
+
+    # increment '{status}_count' (eg.'completed_count') depending on print outcome
+    user_data[f"{status}_count"] = getattr(user, f"{status}_count") + status_increments[status]
+    user_data['user_score'] = user.user_score + status_increments[status]
+    rep_data[f"slice_{status}_count"] = getattr(user, f"slice_{status}_count") + status_increments[status]
+
+    if user_data['user_score'] < 1:
+        user_data['user_score'] = 1
+    user_data['new_level'] = calculate_level_from_score(user_data['user_score'])
+
+    user.update(user_data)
+    rep.update(rep_data)
+
+    return True
