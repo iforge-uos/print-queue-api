@@ -135,8 +135,9 @@ def delete_user(user):
     """
     if not user:
         return custom_response({"error": NOTFOUNDUSER}, 404)
+    user_name = user.name
     user.delete()
-    return custom_response({"message": "deleted"}, 200)
+    return custom_response({"message": f"deleted user: {user_name}"}, 200)
 
 
 def get_user_details(user):
