@@ -12,7 +12,7 @@ class job_status(enum.Enum):
     queued = "Queued"
     approval = "Awaiting Approval"
     running = "Running"
-    complete = "Complete"
+    completed = "Completed"
     failed = "Failed"
     rejected = "Rejected"
     under_review = "Under Review"
@@ -46,8 +46,8 @@ class print_job_model(db.Model):
     )
     colour = db.Column(db.String, nullable=True)
     upload_notes = db.Column(db.String, nullable=True)
-    queue_notes = db.Column(db.String, nullable=True)
-    checked_by = db.Column(db.Integer, db.ForeignKey(user_model.id), nullable=True)
+    queue_notes = db.Column(db.String, nullable=True, default="")
+    rep_check = db.Column(db.Integer, db.ForeignKey(user_model.id), nullable=True)
     printer = db.Column(db.Integer, db.ForeignKey(printer_model.id), nullable=True)
     printer_type = db.Column(db.Enum(printer_type), nullable=False)
     project = db.Column(db.Enum(project_types), nullable=False)
@@ -70,7 +70,7 @@ class print_job_model(db.Model):
         self.date_ended = None
         self.colour = None
         self.upload_notes = data.get("upload_notes")
-        self.checked_by = data.get("checked_by")
+        self.rep_check = data.get("rep_check")
         self.printer = None
         self.project = data.get("project")
         self.print_time = data.get("print_time")
@@ -86,15 +86,22 @@ class print_job_model(db.Model):
 
             # catch high failure risk and long prints with auto-review
             fail_threshold = os.getenv('AUTOREVIEW_FAIL_THRESHOLD')
+            start_threshold = os.getenv('AUTOREVIEW_START_THRESHOLD')
             time_threshold = os.getenv('AUTOREVIEW_TIME_THRESHOLD')
 
-            check_rep = user_model.get_user_by_id(self.checked_by)
-            fail_rate = (check_rep.fail_count + check_rep.reject_count) / (check_rep.complete_count + check_rep.fail_count + check_rep.reject_count)
+            check_rep = user_model.get_user_by_id(self.rep_check)
 
-            if fail_rate < fail_threshold and self.print_time < time_threshold:
-                self.status = job_status.queued
-            else:
+            if (check_rep.slice_completed_count + check_rep.slice_failed_count + check_rep.slice_rejected_count) < start_threshold:
+                # catch when reps are only just starting slicing
                 self.status = job_status.under_review
+            else:
+                # catch based on failure(/reject) rate
+                fail_rate = (check_rep.slice_failed_count + check_rep.slice_rejected_count) / (check_rep.slice_completed_count + check_rep.slice_failed_count + check_rep.slice_rejected_count)
+                if fail_rate < fail_threshold and self.print_time < time_threshold:
+                    # failure rate low enough AND print short enough
+                    self.status = job_status.queued
+                else:
+                    self.status = job_status.under_review
 
         # If co-curricular or uni module store group name / code
         self.project = data.get("project")
@@ -169,7 +176,7 @@ class print_job_schema(Schema):
     colour = fields.String(required=False)
     upload_notes = fields.String(required=False)
     queue_notes = fields.String(required=False)
-    checked_by = fields.Int(required=False)
+    rep_check = fields.Int(required=False)
     printer = fields.Int(required=False)
     project = EnumField(project_types, required=True)
     printer_type = EnumField(printer_type, required=True)
