@@ -16,8 +16,6 @@ insane_level = int(os.getenv('INSANE_LEVEL'))
 # set boundaries
 user_level_struct = {0: "Beginner", advanced_level: "Advanced", expert_level: "Expert", insane_level: "Insane"}
 
-NOTFOUNDUSER = "user(s) not found"
-
 
 @user_api.route("/update/<int:user_id>", methods=["PUT"])
 @requires_access_level(2)
@@ -29,7 +27,7 @@ def update_by_id(user_id):
     """
     req_data = request.get_json()
     user = user_model.get_user_by_id(user_id)
-    return update_user_details(user, req_data)
+    return update_user_details(user, req_data, search_string=user_id)
 
 
 @user_api.route("/update/<string:user_email>", methods=["PUT"])
@@ -42,7 +40,7 @@ def update_by_email(user_email):
     """
     req_data = request.get_json()
     user = user_model.get_user_by_email(user_email)
-    return update_user_details(user, req_data)
+    return update_user_details(user, req_data, search_string=user_email)
 
 
 @user_api.route("/view/<int:user_id>", methods=["GET"])
@@ -53,7 +51,7 @@ def view_by_id(user_id):
     :param int user_id: PK of the user record
     :return response: error or serialized user
     """
-    return get_user_details(user_model.get_user_by_id(user_id))
+    return get_user_details(user_model.get_user_by_id(user_id), search_string=user_id)
 
 
 @user_api.route("/view/<string:user_email>", methods=["GET"])
@@ -64,7 +62,7 @@ def view_by_email(user_email):
     :param str user_email: email of the user record
     :return response: error or serialized user
     """
-    return get_user_details(user_model.get_user_by_email(user_email))
+    return get_user_details(user_model.get_user_by_email(user_email), search_string=user_email)
 
 
 @user_api.route("/delete/<int:user_id>", methods=["DELETE"])
@@ -75,7 +73,7 @@ def delete_by_id(user_id):
     :param int user_id: PK of the user record
     :return response: error or success message
     """
-    return delete_user(user_model.get_user_by_id(user_id))
+    return delete_user(user_model.get_user_by_id(user_id), search_string=user_id)
 
 
 @user_api.route("/delete/<string:user_email>", methods=["DELETE"])
@@ -86,7 +84,7 @@ def delete_by_email(user_email):
     :param str user_email: email of the user record
     :return response: error or success message
     """
-    return delete_user(user_model.get_user_by_email(user_email))
+    return delete_user(user_model.get_user_by_email(user_email), search_string=user_email)
 
 
 @user_api.route("/view/all", methods=["GET"])
@@ -127,33 +125,33 @@ def create():
     return custom_response({"message": "success"}, 200)
 
 
-def delete_user(user):
+def delete_user(user, search_string):
     """
     Function to delete a user from the database
     :param user: user object to be deleted
     :return response: error or success message
     """
     if not user:
-        return custom_response({"error": NOTFOUNDUSER}, 404)
+        return custom_response({"error": f"user '{search_string}' not found"}, 404)
     user_name = user.name
     user.delete()
     return custom_response({"message": f"deleted user: {user_name}"}, 200)
 
 
-def get_user_details(user):
+def get_user_details(user, search_string):
     """
     Function to serialize the details of a user
     :param user: user object to be serialized
     :return response: error or serialized user
     """
     if not user:
-        return custom_response({"error": NOTFOUNDUSER}, 404)
+        return custom_response({"error": f"user '{search_string}' not found"}, 404)
     ser_user = user_schema.dump(user)
     ser_user["user_level"] = calculate_level_from_score(user.user_score)
     return custom_response(ser_user, 200)
 
 
-def update_user_details(user, req_data):
+def update_user_details(user, req_data, search_string):
     """
     Function to update the details of a user
     :param user: user object to update
@@ -161,7 +159,7 @@ def update_user_details(user, req_data):
     :return response: error or serialized updated user details
     """
     if not user:
-        return custom_response({"error": NOTFOUNDUSER}, 404)
+        return custom_response({"error": f"user '{search_string}' not found"}, 404)
 
     # Check if user score is being changed and level needs to be updated
     if (req_data.get("user_score") is not None) and not user.score_editable:
