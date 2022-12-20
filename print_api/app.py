@@ -19,7 +19,10 @@ from print_api.resources.api_routes import (
 
 load_dotenv("../.env")
 
-
+# TODO
+# Change how config objects are handled to be more like more modern standards of flask
+# https://flask.palletsprojects.com/en/2.2.x/config/
+# This should also fix the issues with unittests and other funky deployments
 def create_app(config_object=app_config[os.getenv("FLASK_ENV")]):
     """
     Create application factory
