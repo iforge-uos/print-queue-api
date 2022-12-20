@@ -10,12 +10,12 @@ class user_model(db.Model):
 
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
     email = db.Column(db.String(80), nullable=False)
-    user_score = db.Column(db.Integer, nullable=False)
-    is_rep = db.Column(db.Boolean, nullable=False)
-    score_editable = db.Column(db.Boolean, default=True)
+    name = db.Column(db.String, nullable=False)
     short_name = db.Column(db.String, nullable=True)
+    user_score = db.Column(db.Integer, nullable=False, default=0)
+    is_rep = db.Column(db.Boolean, nullable=False, default=False)
+    score_editable = db.Column(db.Boolean, nullable=False, default=True)
     date_added = db.Column(db.DateTime(timezone=True), server_default=func.now())
     completed_count = db.Column(db.Integer, nullable=False, default=0)
     failed_count = db.Column(db.Integer, nullable=False, default=0)
@@ -31,10 +31,12 @@ class user_model(db.Model):
         """
         self.name = data.get("name")
         self.email = data.get("email")
+        self.short_name = data.get("short_name")
+
         self.user_score = data.get("user_score")
         self.is_rep = data.get("is_rep")
         self.score_editable = data.get("score_editable")
-        self.short_name = data.get("short_name")
+
 
     def save(self):
         """
@@ -97,12 +99,12 @@ class user_schema(Schema):
     """
 
     id = fields.Int(dump_only=True)
-    name = fields.String(required=True)
     email = fields.String(required=True)
-    user_score = fields.Int(required=True)
-    is_rep = fields.Boolean(required=True)
-    score_editable = fields.Boolean(required=True)
+    name = fields.String(required=True)
     short_name = fields.String(required=False)
+    user_score = fields.Int(required=False)
+    is_rep = fields.Boolean(required=False)
+    score_editable = fields.Boolean(required=False)
     date_added = fields.DateTime(required=False)
     completed_count = fields.Int(required=False)
     failed_count = fields.Int(required=False)
