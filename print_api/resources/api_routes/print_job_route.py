@@ -35,26 +35,24 @@ def create():
     :return response: error or success message
     """
     req_data = request.get_json()
-    # Check if printer_id exists
-    # if not check_printer_id(req_data['printer_id']):
-    #   return custom_response({"error" : "printer is not found"}, 404)
 
     # Get user level
     user_level = check_user_id(req_data["user_id"])
     if user_level is None:
         return custom_response({"error": "user is not found"}, 404)
 
-    # Check if a rep approved this print <- this should pass but sanity check
-    if user_level == "Beginner" and not check_rep_id(req_data["rep_check"]):
-        return ({"error": "rep details are incorrect"}, 404)
-    elif user_level == "Advanced":
+    if "rep_check" not in req_data:
+        req_data["rep_check"] = req_data["user_id"]
+
+    if not check_rep_id(req_data["rep_check"]):
+        return ({"error": "rep is incorrect or not permitted to check prints"}, 404)
+
+    if user_level == "advanced":
         req_data["status"] = "approval"
         if not "stl_slug" in req_data:
             return ({"error": "stl slug needed"}, 404)
-        req_data.pop("rep_check")
     else:
         req_data["status"] = "queued"
-        req_data.pop("rep_check")
 
     # Tidying up some null values to make future functions easier
     if "filament_usage" not in req_data:
@@ -76,7 +74,7 @@ def create():
     return custom_response({"message": "success"}, 200)
 
 
-@print_job_api.route("/view/single/<int:job_id>", methods=["GET"])
+@print_job_api.route("/view/<int:job_id>", methods=["GET"])
 @requires_access_level(1)
 def view_job_single(job_id):
     """
@@ -87,7 +85,7 @@ def view_job_single(job_id):
     return get_single_job_details(print_job_model.get_print_job_by_id(job_id))
 
 
-@print_job_api.route("/view/all/<string:status>", methods=["GET"])
+@print_job_api.route("/view/<string:status>", methods=["GET"])
 @requires_access_level(1)
 def view_jobs_by_status(status):
     """
@@ -169,9 +167,9 @@ def start_queued_job(job_id):
     if running_on_printer(printer_id):
         return custom_response({"error": "Associated Printer is in use"}, 400)
 
-    request_dict["status"] = "running"
+    request_dict["status"] = job_status.running.name
     request_dict["date_started"] = datetime.now().isoformat()
-    return update_job_details(job, request_dict)
+    return {'success': update_job_details(job, request_dict)}
 
 
 @print_job_api.route("/complete/<int:job_id>", methods=["PUT"])
@@ -207,7 +205,7 @@ def complete_job(job_id):
 
     # Change job values
     job_change_values = {
-        "status": "completed",
+        "status": job_status.completed.name,
         "date_ended": datetime.now().isoformat(),
     }
 
@@ -231,7 +229,7 @@ def complete_job(job_id):
     job.update(data)
     ser_job = print_job_schema.dump(job)
 
-    return custom_response(ser_job, 200)
+    return custom_response({'success': ser_job}, 200)
 
 
 @print_job_api.route("/fail/<int:job_id>", methods=["PUT"])
@@ -287,13 +285,13 @@ def fail_job(job_id):
             queue_notes.append(f"Requeue #{requeue_n + 1}")
 
         job_change_values = {
-            "status": "queued",
+            "status": job_status.queued.name,
             "queue_notes": '\n'.join(queue_notes)
         }
 
     else:
         job_change_values = {
-            "status": "failed",
+            "status": job_status.failed.name,
             "date_ended": datetime.now().isoformat(),
         }
         # Email user that the print is failed
@@ -316,7 +314,7 @@ def fail_job(job_id):
     job.update(data)
     ser_job = print_job_schema.dump(job)
 
-    return custom_response(ser_job, 200)
+    return custom_response({'success': ser_job}, 200)
 
 
 @print_job_api.route("/reject/<int:job_id>", methods=["PUT"])
@@ -337,7 +335,7 @@ def reject_job(job_id):
         return custom_response({"error": "Job not under-review (or queued)"}, 400)
 
     job_change_values = {
-        "status": "rejected",
+        "status": job_status.rejected.name,
         "date_ended": datetime.now().isoformat(),
     }
 
@@ -361,7 +359,75 @@ def reject_job(job_id):
     job.update(data)
     ser_job = print_job_schema.dump(job)
 
-    return custom_response(ser_job, 200)
+    return custom_response({'success': ser_job}, 200)
+
+
+@print_job_api.route("/queue/<int:job_id>", methods=["PUT"])
+@requires_access_level(2)
+def queue_job(job_id):
+    """
+    Function to mark a print job as queued and email the user
+    :param int job_id: PK of the print_job record
+    :return response: error or serialized updated job record
+    """
+    job = print_job_model.get_print_job_by_id(job_id)
+    # Check job exists
+    if not job:
+        return custom_response({"error": JOBNOTFOUND}, 404)
+
+    # Check the job is queued or under-review
+    if job.status is not job_status.under_review:
+        return custom_response({"error": "Job not under-review"}, 400)
+
+    job_change_values = {
+        "status": job_status.queued.name,
+    }
+
+    try:
+        data = print_job_schema.load(job_change_values, partial=True)
+    except ValidationError as err:
+        # => {"email": ['"foo" is not a valid email address.']}
+        print(err.messages)
+        print(err.valid_data)  # => {"name": "John"}
+        return custom_response(err.messages, 400)
+    job.update(data)
+    ser_job = print_job_schema.dump(job)
+
+    return custom_response({'success': ser_job}, 200)
+
+
+@print_job_api.route("/review/<int:job_id>", methods=["PUT"])
+@requires_access_level(2)
+def review_job(job_id):
+    """
+    Function to mark a print job as under-review and email the user
+    :param int job_id: PK of the print_job record
+    :return response: error or serialized updated job record
+    """
+    job = print_job_model.get_print_job_by_id(job_id)
+    # Check job exists
+    if not job:
+        return custom_response({"error": JOBNOTFOUND}, 404)
+
+    # Check the job is queued or under-review
+    if job.status is not job_status.queued:
+        return custom_response({"error": "Job not queued"}, 400)
+
+    job_change_values = {
+        "status": job_status.under_review.name,
+    }
+
+    try:
+        data = print_job_schema.load(job_change_values, partial=True)
+    except ValidationError as err:
+        # => {"email": ['"foo" is not a valid email address.']}
+        print(err.messages)
+        print(err.valid_data)  # => {"name": "John"}
+        return custom_response(err.messages, 400)
+    job.update(data)
+    ser_job = print_job_schema.dump(job)
+
+    return custom_response({'success': ser_job}, 200)
 
 @print_job_api.route("/delete/<int:job_id>", methods=["DELETE"])
 @requires_access_level(3)
@@ -435,7 +501,7 @@ def check_rep_id(user_id):
     :return bool result: true if successful, false otherwise
     """
     user = user_model.get_user_by_id(user_id)
-    if user is None or user.is_rep == False:
+    if user is None or user.is_rep is False:
         return False
     return True
 
@@ -489,9 +555,9 @@ def score_print(user_id, rep_id, status):
     """
     :param str status: Either "completed", "failed" or "rejected".
     """
-    status_increments = {'completed': 1, 'failed': -1, 'rejected': -1}
+    score_increments = {'completed': 1, 'failed': -1, 'rejected': -1}
 
-    if status not in status_increments.keys():
+    if status not in score_increments.keys():
         return False
 
     user = user_model.get_user_by_id(user_id)
@@ -501,9 +567,9 @@ def score_print(user_id, rep_id, status):
     rep_data = {}
 
     # increment '{status}_count' (eg.'completed_count') depending on print outcome
-    user_data[f"{status}_count"] = getattr(user, f"{status}_count") + status_increments[status]
-    user_data['user_score'] = user.user_score + status_increments[status]
-    rep_data[f"slice_{status}_count"] = getattr(user, f"slice_{status}_count") + status_increments[status]
+    user_data[f"{status}_count"] = getattr(user, f"{status}_count") + 1
+    user_data['user_score'] = user.user_score + score_increments[status]
+    rep_data[f"slice_{status}_count"] = getattr(user, f"slice_{status}_count") + 1
 
     if user_data['user_score'] < 1:
         user_data['user_score'] = 1

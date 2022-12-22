@@ -77,7 +77,7 @@ def view_all_printers():
     return get_multiple_printer_details(printer_model.get_all_printers())
 
 
-@printer_api.route('/view/individual/<int:printer_id>', methods=['GET'])
+@printer_api.route('/view/<int:printer_id>', methods=['GET'])
 @requires_access_level(2)
 def view_by_id(printer_id):
     """
@@ -88,7 +88,7 @@ def view_by_id(printer_id):
     return get_printer_details(printer_model.get_printer_by_id(printer_id))
 
 
-@printer_api.route('/view/individual/<string:printer_name>', methods=['GET'])
+@printer_api.route('/view/<string:printer_name>', methods=['GET'])
 @requires_access_level(2)
 def view_by_name(printer_name):
     """
@@ -191,10 +191,10 @@ def update_printer_details(printer, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response({'error': err.messages}, 400)
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
-    return custom_response(ser_printer, 200)
+    return custom_response({'success': ser_printer}, 200)
 
 
 def increment_printer_details(printer, req_data):
@@ -236,7 +236,7 @@ def increment_printer_details(printer, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response({'error': err.messages}, 400)
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
     return ser_printer

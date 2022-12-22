@@ -14,7 +14,7 @@ advanced_level = int(os.getenv('ADVANCED_LEVEL'))
 expert_level = int(os.getenv('EXPERT_LEVEL'))
 insane_level = int(os.getenv('INSANE_LEVEL'))
 # set boundaries
-user_level_struct = {0: "Beginner", advanced_level: "Advanced", expert_level: "Expert", insane_level: "Insane"}
+user_level_struct = {0: "beginner", advanced_level: "advanced", expert_level: "expert", insane_level: "insane"}
 
 
 @user_api.route("/update/<int:user_id>", methods=["PUT"])
@@ -171,10 +171,10 @@ def update_user_details(user, req_data, search_string):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response({'error': err.messages}, 400)
     user.update(data)
     ser_user = user_schema.dump(user)
-    return custom_response(ser_user, 200)
+    return custom_response({'success': ser_user}, 200)
 
 
 def calculate_level_from_score(score):
