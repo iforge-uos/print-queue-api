@@ -20,7 +20,7 @@ def create_key():
     """
     req_data = request.get_json()
     if int(req_data["permission_value"]) not in [0, 1, 2, 3]:
-        return custom_response({"Error": "Invalid permission value supplied"}, 400)
+        return custom_response(status_code=400, details="Invalid permission value supplied")
 
     # generate new api_key
     api_key = generate_hash_key()
@@ -33,11 +33,11 @@ def create_key():
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response(status_code=400, details=err.messages)
 
     key = auth_model(data)
     key.save()
-    return custom_response({"Key": api_key}, 200)
+    return custom_response(status_code=200, details={"Key": api_key})
 
 
 @auth_api.route("/generate/set/<string:client_version>", methods=["POST"])
@@ -59,7 +59,7 @@ def create_key_set(client_version):
         key = auth_model(data)
         key.save()
         jason.append(auth_schema.dump(key))
-    return custom_response(jason, 200)
+    return custom_response(status_code=200, details=jason)
 
 
 @auth_api.route("/delete/<int:key_id>", methods=["DELETE"])
@@ -72,9 +72,9 @@ def delete_key(key_id):
     """
     key = auth_model.get_key_by_id(key_id)
     if not key:
-        return custom_response({"error": NOTFOUNDKEYS}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDKEYS)
     key.delete()
-    return custom_response({"message": "deleted"}, 200)
+    return custom_response(status_code=200, details="deleted")
 
 
 @auth_api.route("/view/single/<int:key_id>", methods=["GET"])
@@ -87,9 +87,9 @@ def get_key(key_id):
     """
     key = auth_model.get_key_by_id(key_id)
     if not key:
-        return custom_response({"error": NOTFOUNDKEYS}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDKEYS)
     ser_key = auth_schema.dump(key)
-    return custom_response(ser_key, 200)
+    return custom_response(status_code=200, details=ser_key)
 
 
 @auth_api.route("/view/all", methods=["GET"])
@@ -122,8 +122,8 @@ def get_multiple_key_details(keys):
     :return response: error the a list of serialized key objects.
     """
     if not keys:
-        return custom_response({"error": NOTFOUNDKEYS}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDKEYS)
     jason = []
     for key in keys:
         jason.append(auth_schema.dump(key))
-    return custom_response(jason, 200)
+    return custom_response(status_code=200, details=jason)

@@ -34,13 +34,9 @@ def requires_access_level(access_level):
         def decorated_function(*args, **kwargs):
             key = request.headers.get("x-api-key")
             if key is None:
-                return custom_response(
-                    {"error": "please supply api key in the request header"}, 400
-                )
+                return custom_response(status_code=400, details="please supply api key in the request header")
             if not verify_key_and_access_level(key, access_level):
-                return custom_response(
-                    {"error": "you are not allowed to access this resource"}, 401
-                )
+                return custom_response(status_code=401, details="you are not allowed to access this resource")
             return f(*args, **kwargs)
 
         return decorated_function

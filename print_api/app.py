@@ -78,7 +78,7 @@ def register_errorhandlers(app):
         # If a HTTPException, pull the `code` attribute; default to 500
         error_code = getattr(error, "code", 500)
         #! should return different errors not just a description since this is a public api
-        return custom_response({"error": error.description}, error_code)
+        return custom_response(status_code=error_code, details=error.description)
 
     for errcode in [401, 404, 500]:
         app.errorhandler(errcode)(render_error)
