@@ -63,7 +63,7 @@ def register_blueprints(app):
         maintenance_route.maintenance_api, url_prefix=f"{api_prefix}/maintenance"
     )
     app.register_blueprint(
-        print_job_route.print_job_api, url_prefix=f"{api_prefix}/queue"
+        print_job_route.print_job_api, url_prefix=f"{api_prefix}/jobs"
     )
     app.register_blueprint(other_routes.other_api, url_prefix=f"{api_prefix}/misc")
     app.register_blueprint(auth_routes.auth_api, url_prefix=f"{api_prefix}/auth")
@@ -78,7 +78,7 @@ def register_errorhandlers(app):
         # If a HTTPException, pull the `code` attribute; default to 500
         error_code = getattr(error, "code", 500)
         #! should return different errors not just a description since this is a public api
-        return custom_response({"error": error.description}, error_code)
+        return custom_response(status_code=error_code, details=error.description)
 
     for errcode in [401, 404, 500]:
         app.errorhandler(errcode)(render_error)
