@@ -184,9 +184,12 @@ def update_printer_details(printer, req_data):
     if not printer:
         return custom_response(status_code=404, details=NOTFOUNDPRINTER)
 
+    allowed_keys = [column.name for column in printer_model.__tablename__.columns]
+    allowed_data = {k: req_data[k]
+                    for k in allowed_keys if k in req_data}
     # Try and load printer data to the schema
     try:
-        data = printer_schema.load(req_data, partial=True)
+        data = printer_schema.load(allowed_data, partial=True)
     except ValidationError as err:
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
