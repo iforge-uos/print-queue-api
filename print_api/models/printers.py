@@ -13,6 +13,7 @@ class printer_location(enum.Enum):
 class printer_type(enum.Enum):
     ultimaker = "Ultimaker Extended 2+"
     prusa = "Prusa MK3S+"
+    exotic_prusa = "Prusa MK3S+ (Exotic)"
 
 
 class printer_model(db.Model):

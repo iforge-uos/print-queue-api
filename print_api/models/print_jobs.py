@@ -24,6 +24,7 @@ class project_types(enum.Enum):
     co_curricular = "Co-curricular"
     society = "Society"
     other = "Other"
+    test = "Test"
 
 
 class print_job_model(db.Model):
@@ -32,16 +33,18 @@ class print_job_model(db.Model):
     """
 
     __tablename__ = "print_jobs"
-    gcode_slug = db.Column(db.String, nullable=False)
-    id = db.Column(db.Integer, primary_key=True)
     # Filament in grams
     filament_usage = db.Column(db.Integer, nullable=False)
-    print_name = db.Column(db.String(60), nullable=False)
+    gcode_slug = db.Column(db.String, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    print_name = db.Column(db.String(96), nullable=False)
     # Print time in seconds
     print_time = db.Column(db.Integer, nullable=False)
     printer_type = db.Column(db.Enum(printer_type), nullable=False)
     project = db.Column(db.Enum(project_types), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey(user_model.id))
+
+    colour = db.Column(db.String, nullable=True)
     date_added = db.Column(db.DateTime(timezone=True), server_default=func.now())
     date_ended = db.Column(
         db.DateTime(timezone=True), nullable=True, server_onupdate=func.now()
@@ -49,7 +52,6 @@ class print_job_model(db.Model):
     date_started = db.Column(
         db.DateTime(timezone=True), nullable=True, server_onupdate=func.now()
     )
-    colour = db.Column(db.String, nullable=True)
     printer = db.Column(db.Integer, db.ForeignKey(printer_model.id), nullable=True)
     project_string = db.Column(db.String, nullable=True)
     queue_notes = db.Column(db.String, nullable=True, default="")
@@ -63,29 +65,28 @@ class print_job_model(db.Model):
         """
         Class constructor
         """
-        self.gcode_slug = data.get("gcode_slug")
         self.filament_usage = data.get("filament_usage")
+        self.gcode_slug = data.get("gcode_slug")
         self.print_name = data.get("print_name")
         self.print_time = data.get("print_time")
         self.printer_type = data.get("printer_type")
         self.project = data.get("project")
         self.user_id = data.get("user_id")
+        self.project_string = None
         self.colour = None
         self.date_started = None
         self.date_ended = None
         self.printer = None
         self.rep_check = data.get("rep_check")
+        self.status = None
+        self.stl_slug = None
         self.upload_notes = data.get("upload_notes")
-
-        # if data
 
         # Making it so that approval jobs can be part of the print job model
         if data.get("status") == job_status.approval:
             self.status = job_status.approval
             self.stl_slug = data.get("stl_slug")
-        else:
-            self.stl_slug = None
-
+        elif not data.get("status") or data.get("status") == job_status.queued:  # if status not included or 'queued'
             # catch high failure risk and long prints with auto-review
             fail_threshold = float(os.getenv('AUTOREVIEW_FAIL_THRESHOLD'))
             start_threshold = int(os.getenv('AUTOREVIEW_START_THRESHOLD'))
@@ -104,9 +105,10 @@ class print_job_model(db.Model):
                     self.status = job_status.queued
                 else:
                     self.status = job_status.under_review
+        else:
+            self.status = job_status.under_review
 
         # If co-curricular or uni module store group name / code
-        self.project = data.get("project")
         if self.project is not project_types.personal:
             self.project_string = data.get("project_name")
 

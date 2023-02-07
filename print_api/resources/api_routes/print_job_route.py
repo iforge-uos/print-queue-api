@@ -45,15 +45,22 @@ def create():
         req_data["rep_check"] = req_data["user_id"]
 
     if not check_rep_id(req_data["rep_check"]):
-        return ({"error": "rep is incorrect or not permitted to check prints"}, 404)
+        return custom_response(status_code=404, details="rep is incorrect or not permitted to check prints")
 
     if user_level == "advanced":
-        req_data["status"] = "approval"
+        req_data["status"] = job_status.approval
         if not "stl_slug" in req_data:
-            return ({"error": "stl slug needed"}, 404)
+            return custom_response(status_code=404, details="stl slug required")
     else:
-        req_data["status"] = "queued"
+        # TODO: needs testing
+        if "status" in req_data.keys() and req_data["status"].lower() != job_status.queued.value.lower():
+            # tried to set job status AND it's not 'queued'
+            req_data["status"] = job_status.under_review
+        else:
+            # default not needed as this is handled by `print_job_model(data)`
+            pass
 
+    # TODO: should this be testing only?
     # Tidying up some null values to make future functions easier
     if "filament_usage" not in req_data:
         req_data.__setitem__("filament_usage", 0)
@@ -94,8 +101,10 @@ def view_jobs_by_status(status):
     :return response: error or list of serialized jobs matching filter
     """
     # Sanity check url
+    if status == "all":
+        return get_multiple_job_details(print_job_model.get_all_print_jobs())
     if status not in job_status._member_names_:
-        return custom_response({"error": "Status not found"}, 404)
+        return custom_response(status_code=404, details="Status not found")
     # Return a list of jason objects that match status query
     return get_multiple_job_details(print_job_model.get_print_jobs_by_status(status))
 
