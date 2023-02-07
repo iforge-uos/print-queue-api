@@ -12,6 +12,7 @@ class user_model(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(80), nullable=False)
     name = db.Column(db.String, nullable=False)
+    username = db.Column(db.String, nullable=False)
     short_name = db.Column(db.String, nullable=True)
     user_score = db.Column(db.Integer, nullable=False, default=0)
     is_rep = db.Column(db.Boolean, nullable=False, default=False)
@@ -30,6 +31,7 @@ class user_model(db.Model):
         Class constructor
         """
         self.name = data.get("name")
+        self.username = data.get("username")
         self.email = data.get("email")
         self.short_name = data.get("short_name")
 
@@ -78,19 +80,23 @@ class user_model(db.Model):
         return user_model.query.get(id)
 
     @staticmethod
-    def get_user_by_email(value):
+    def get_user_by_string(value):
         """
         Function to get a user by their email
-        :param str value: the email of the user
+        :param str value: the email of the user or the username
         :return query_object: a query object containing the user
         """
-        return user_model.query.filter_by(email=value).first()
+        if "@" in value:
+            user = user_model.query.filter_by(email=value).first()
+        else:
+            user = user_model.query.filter_by(username=value).first()
+        return user
 
     def __repr__(self):
         if self.short_name is None:
-            return "<User: %r>" % self.name
+            return f"User: {self.name}"
         else:
-            return "<User: %r>" % self.short_name
+            return f"User: {self.short_name}"
 
 
 class user_schema(Schema):
@@ -101,6 +107,7 @@ class user_schema(Schema):
     id = fields.Int(dump_only=True)
     email = fields.String(required=True)
     name = fields.String(required=True)
+    username = fields.String(required=True)
     short_name = fields.String(required=False)
     user_score = fields.Int(required=False)
     is_rep = fields.Boolean(required=False)

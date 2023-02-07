@@ -39,7 +39,7 @@ def update_by_email(user_email):
     :return response: error or success message
     """
     req_data = request.get_json()
-    user = user_model.get_user_by_email(user_email)
+    user = user_model.get_user_by_string(user_email)
     return update_user_details(user, req_data, search_string=user_email)
 
 
@@ -62,7 +62,7 @@ def view_by_email(user_email):
     :param str user_email: email of the user record
     :return response: error or serialized user
     """
-    return get_user_details(user_model.get_user_by_email(user_email), search_string=user_email)
+    return get_user_details(user_model.get_user_by_string(user_email), search_string=user_email)
 
 
 @user_api.route("/delete/<int:user_id>", methods=["DELETE"])
@@ -84,7 +84,7 @@ def delete_by_email(user_email):
     :param str user_email: email of the user record
     :return response: error or success message
     """
-    return delete_user(user_model.get_user_by_email(user_email), search_string=user_email)
+    return delete_user(user_model.get_user_by_string(user_email), search_string=user_email)
 
 
 @user_api.route("/view/all", methods=["GET"])
@@ -114,10 +114,16 @@ def create():
         print(err.valid_data)  # => {"name": "John"}
         return custom_response(status_code=400, details=err.messages)
 
-    # check if user already exist in the db
-    user_in_db = user_model.get_user_by_email(data.get("email"))
+    # check if user email already exist in the db
+    user_in_db = user_model.get_user_by_string(data.get("email"))
     if user_in_db:
         message = {"error": "User already exists, please supply another email address"}
+        return custom_response(status_code=400, details=message)
+
+    # check if username already exist in the db
+    user_in_db = user_model.get_user_by_string(data.get("username"))
+    if user_in_db:
+        message = {"error": "User already exists, please supply another username"}
         return custom_response(status_code=400, details=message)
 
     user = user_model(data)
