@@ -1,3 +1,4 @@
+import logging
 import re
 from importlib.metadata import requires
 from flask import request, Blueprint
@@ -48,14 +49,15 @@ def create():
         return custom_response(status_code=404, details="rep is incorrect or not permitted to check prints")
 
     if user_level == "advanced":
-        req_data["status"] = job_status.approval
+        req_data["status"] = job_status.approval.name
         if not "stl_slug" in req_data:
             return custom_response(status_code=404, details="stl slug required")
     else:
         # TODO: needs testing
-        if "status" in req_data.keys() and req_data["status"].lower() != job_status.queued.value.lower():
+        # logging.debug(f" Test point: status = {req_data['status']}")
+        if "status" in req_data.keys() and req_data["status"].lower() != job_status.queued.name:
             # tried to set job status AND it's not 'queued'
-            req_data["status"] = job_status.under_review
+            req_data["status"] = job_status.under_review.name
         else:
             # default not needed as this is handled by `print_job_model(data)`
             pass
