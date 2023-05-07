@@ -12,7 +12,7 @@ auth_api = Blueprint("auth", __name__)
 
 
 @auth_api.route("/login", methods=["POST", "OPTIONS"])
-@cross_origin(supports_credentials=True)
+@cross_origin(origins="*", supports_credentials=True)
 def login():
     """
     API Route to LDAP authenticate with the sheffield LDAP server (mainly to be used for internal development)
@@ -40,7 +40,7 @@ def login():
         revoked_refresh_token = RevokedRefreshToken(jti=jti, uid=uid, expires_at=expires_at)
         revoked_refresh_token.add()
 
-        return custom_response(status_code=200, data={"access_token": access_token, "refresh_token": refresh_token})
+        return custom_response(status_code=200, data={"access_token": access_token, "refresh_token": refresh_token, "user": uid})
     else:
         return custom_response(status_code=401, data={"message": "Invalid credentials"})
 
@@ -65,4 +65,4 @@ def refresh():
 
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
-    return custom_response(status_code=200, details={"access_token": access_token})
+    return custom_response(status_code=200, data={"access_token": access_token})
