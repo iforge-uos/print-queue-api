@@ -11,6 +11,7 @@ class user_model(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(80), nullable=False)
+    uid = db.Column(db.String(10), nullable=False, index=True, unique=True)
     name = db.Column(db.String, nullable=False)
     short_name = db.Column(db.String, nullable=True)
     user_score = db.Column(db.Integer, nullable=False, default=0)
@@ -32,11 +33,11 @@ class user_model(db.Model):
         self.name = data.get("name")
         self.email = data.get("email")
         self.short_name = data.get("short_name")
+        self.uid = data.get("uid")
 
         self.user_score = data.get("user_score")
         self.is_rep = data.get("is_rep")
         self.score_editable = data.get("score_editable")
-
 
     def save(self):
         """
@@ -86,6 +87,15 @@ class user_model(db.Model):
         """
         return user_model.query.filter_by(email=value).first()
 
+    @staticmethod
+    def get_user_by_uid(value):
+        """
+        Function to get a user by their email
+        :param str value: the uid of the user
+        :return query_object: a query object containing the user
+        """
+        return user_model.query.filter_by(uid=value).first()
+
     def __repr__(self):
         if self.short_name is None:
             return "<User: %r>" % self.name
@@ -100,6 +110,7 @@ class user_schema(Schema):
 
     id = fields.Int(dump_only=True)
     email = fields.String(required=True)
+    uid = fields.String(required=True)
     name = fields.String(required=True)
     short_name = fields.String(required=False)
     user_score = fields.Int(required=False)
