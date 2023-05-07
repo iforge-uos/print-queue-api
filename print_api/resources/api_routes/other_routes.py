@@ -1,5 +1,4 @@
 from flask import Blueprint
-from print_api.common.auth import requires_access_level
 from print_api.common.routing import custom_response
 
 other_api = Blueprint("misc", __name__)

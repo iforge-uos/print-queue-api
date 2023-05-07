@@ -1,8 +1,8 @@
 import os
 
 from flask import request, Blueprint
+from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
-from print_api.common.auth import requires_access_level
 from print_api.models.user import user_model, user_schema
 from print_api.common.routing import custom_response
 
@@ -18,7 +18,7 @@ user_level_struct = {0: "beginner", advanced_level: "advanced", expert_level: "e
 
 
 @user_api.route("/update/<int:user_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def update_by_id(user_id):
     """
     Function to update a user via their ID
@@ -31,7 +31,7 @@ def update_by_id(user_id):
 
 
 @user_api.route("/update/<string:user_email>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def update_by_email(user_email):
     """
     Function to update a user via their user email
@@ -44,7 +44,7 @@ def update_by_email(user_email):
 
 
 @user_api.route("/view/<int:user_id>", methods=["GET"])
-@requires_access_level(1)
+@jwt_required()
 def view_by_id(user_id):
     """
     Function to serialize a user via their ID
@@ -55,7 +55,7 @@ def view_by_id(user_id):
 
 
 @user_api.route("/view/<string:user_email>", methods=["GET"])
-@requires_access_level(1)
+@jwt_required()
 def view_by_email(user_email):
     """
     Function to serialize a user via their email
@@ -66,7 +66,7 @@ def view_by_email(user_email):
 
 
 @user_api.route("/delete/<int:user_id>", methods=["DELETE"])
-@requires_access_level(3)
+@jwt_required()
 def delete_by_id(user_id):
     """
     Function to delete a user via their ID
@@ -77,7 +77,7 @@ def delete_by_id(user_id):
 
 
 @user_api.route("/delete/<string:user_email>", methods=["DELETE"])
-@requires_access_level(3)
+@jwt_required()
 def delete_by_email(user_email):
     """
     Function to delete a user via their user email
@@ -88,7 +88,7 @@ def delete_by_email(user_email):
 
 
 @user_api.route("/view/all", methods=["GET"])
-@requires_access_level(1)
+@jwt_required()
 def view_all_users():
     """
     Function to serialize all users
@@ -98,7 +98,7 @@ def view_all_users():
 
 
 @user_api.route("/add", methods=["POST"])
-@requires_access_level(1)
+@jwt_required()
 def create():
     """
     Function to create a new user in the database

@@ -15,7 +15,6 @@ from print_api.resources.api_routes import (
     print_job_route,
     printer_route,
     user_route,
-    new_auth_routes,
 )
 
 load_dotenv("../.env")
@@ -46,7 +45,7 @@ def register_extensions(app):
     mail.init_app(app)
     migrate.init_app(app, db)
     bootstrap.init_app(app)
-    cors.init_app(app)
+    cors.init_app(app, resources={r"*": {"origins": "*"}}, supports_credentials=True)
     jwt.init_app(app)
     return None
 
@@ -68,8 +67,7 @@ def register_blueprints(app):
         print_job_route.print_job_api, url_prefix=f"{api_prefix}/jobs"
     )
     app.register_blueprint(other_routes.other_api, url_prefix=f"{api_prefix}/misc")
-    app.register_blueprint(auth_routes.old_auth_api, url_prefix=f"{api_prefix}/authold")
-    app.register_blueprint(new_auth_routes.auth_api, url_prefix=f"{api_prefix}/auth")
+    app.register_blueprint(auth_routes.auth_api, url_prefix=f"{api_prefix}/auth")
     return None
 
 

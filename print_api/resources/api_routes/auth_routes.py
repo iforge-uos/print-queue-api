@@ -1,129 +1,68 @@
+from datetime import timedelta, datetime
+import os
+
 from flask import Blueprint, request
-from marshmallow.exceptions import ValidationError
+from flask_cors import cross_origin
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, decode_token
 from print_api.common.routing import custom_response
-from print_api.common.auth import generate_hash_key, requires_access_level
-from print_api.models.auth_keys import auth_model, auth_schema
+from print_api.common.auth import ldap_authenticate
+from print_api.models.revoked_refresh_token import RevokedRefreshToken
+
+auth_api = Blueprint("auth", __name__)
 
 
-old_auth_api = Blueprint("oldauth", __name__)
-auth_schema = auth_schema()
-
-NOTFOUNDKEYS = "key(s) not found"
-
-
-@old_auth_api.route("/generate/single", methods=["POST"])
-@requires_access_level(3)
-def create_key():
+@auth_api.route("/login", methods=["POST", "OPTIONS"])
+@cross_origin(supports_credentials=True)
+def login():
     """
-    Route to create a new API key to use with the rest of the system
-    :return response: success or error
+    API Route to LDAP authenticate with the sheffield LDAP server (mainly to be used for internal development)
+    ValidateTicket should be used in production
     """
-    req_data = request.get_json()
-    if int(req_data["permission_value"]) not in [0, 1, 2, 3]:
-        return custom_response(status_code=400, data="Invalid permission value supplied")
+    if not request.is_json:
+        return custom_response(status_code=400, data={"message": "Request must be JSON"})
 
-    # generate new api_key
-    api_key = generate_hash_key()
-    req_data["key"] = api_key
+    uid = request.json.get("uid", None)
+    password = request.json.get("password", None)
 
-    # Try and load the data into the model
-    try:
-        data = auth_schema.load(req_data)
-    except ValidationError as err:
-        # => {"email": ['"foo" is not a valid email address.']}
-        print(err.messages)
-        print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, data=err.messages)
+    if not uid or not password:
+        return custom_response(status_code=400, data={"message": "Must supply uid and password"})
 
-    key = auth_model(data)
-    key.save()
-    return custom_response(status_code=200, data={"Key": api_key})
+    if ldap_authenticate(uid, password):
+        access_token = create_access_token(identity=uid)
+        refresh_token = create_refresh_token(identity=uid)
+
+        # Extract the JTI from the refresh token and save it to the database
+        decoded_refresh_token = decode_token(refresh_token)
+        jti = decoded_refresh_token['jti']
+
+        # Get Expiration Time
+        expires_at = datetime.utcnow() + timedelta(seconds=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES")))
+        revoked_refresh_token = RevokedRefreshToken(jti=jti, uid=uid, expires_at=expires_at)
+        revoked_refresh_token.add()
+
+        return custom_response(status_code=200, data={"access_token": access_token, "refresh_token": refresh_token})
+    else:
+        return custom_response(status_code=401, data={"message": "Invalid credentials"})
 
 
-@old_auth_api.route("/generate/set/<string:client_version>", methods=["POST"])
-@requires_access_level(3)
-def create_key_set(client_version):
+@auth_api.route("/logout", methods=["DELETE"])
+@jwt_required(refresh=True)
+def logout():
     """
-    Route to create a new set of keys for both clients
-    :return response: success or error
+    API Route to log out a user
     """
-    # Create a key for each client type, 1 ~ 2
-    jason = []
-    for i in range(1, 3):
-        api_key = generate_hash_key()
-        data = {
-            "associated_version": client_version,
-            "permission_value": i,
-            "key": api_key,
-        }
-        key = auth_model(data)
-        key.save()
-        jason.append(auth_schema.dump(key))
-    return custom_response(status_code=200, data=jason)
+    jti = get_jwt()['jti']
+    RevokedRefreshToken.revoke(jti)
+    return custom_response(status_code=200, data={"message": "Successfully logged out"})
 
 
-@old_auth_api.route("/delete/<int:key_id>", methods=["DELETE"])
-@requires_access_level(3)
-def delete_key(key_id):
-    """
-    Route to delete keys thereby invalidating clients.
-    :param int key_id: PK of the key to delete
-    :return response: success or error
-    """
-    key = auth_model.get_key_by_id(key_id)
-    if not key:
-        return custom_response(status_code=404, data=NOTFOUNDKEYS)
-    key.delete()
-    return custom_response(status_code=200, data="deleted")
+@auth_api.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    jti = get_jwt()["jti"]
+    if RevokedRefreshToken.is_revoked(jti):
+        return custom_response(status_code=401, data={"message": "Token has been revoked"})
 
-
-@old_auth_api.route("/view/single/<int:key_id>", methods=["GET"])
-@requires_access_level(3)
-def get_key(key_id):
-    """
-    Route to get a single key and serialize it
-    :param int key_id: PK of the key to fetch
-    :return response: error or serialized key
-    """
-    key = auth_model.get_key_by_id(key_id)
-    if not key:
-        return custom_response(status_code=404, data=NOTFOUNDKEYS)
-    ser_key = auth_schema.dump(key)
-    return custom_response(status_code=200, data=ser_key)
-
-
-@old_auth_api.route("/view/all", methods=["GET"])
-@requires_access_level(3)
-def get_all_keys():
-    """
-    Route to get all keys and serialize them
-    :return response: error or serialized keys
-    """
-    return get_multiple_key_details(auth_model.get_all_keys())
-
-
-@old_auth_api.route("/view/multiple/<string:client_version>", methods=["GET"])
-@requires_access_level(3)
-def get_keys_by_version(client_version):
-    """
-    Route to get all keys and serialize them
-    :param str client_version: client Version to fetch keys for
-    :return response: error or serialized keys
-    """
-    return get_multiple_key_details(
-        auth_model.get_keys_by_associated_version(client_version)
-    )
-
-
-def get_multiple_key_details(keys):
-    """
-    Function to take a query object and serialize each key inside it.
-    :param keys: the query object containing all the keys
-    :return response: error the a list of serialized key objects.
-    """
-    if not keys:
-        return custom_response(status_code=404, data=NOTFOUNDKEYS)
-    jason = []
-    for key in keys:
-        jason.append(auth_schema.dump(key))
-    return custom_response(status_code=200, data=jason)
+    current_user = get_jwt_identity()
+    access_token = create_access_token(identity=current_user)
+    return custom_response(status_code=200, details={"access_token": access_token})

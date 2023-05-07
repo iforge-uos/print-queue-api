@@ -1,8 +1,7 @@
 import re
-from importlib.metadata import requires
+from flask_jwt_extended import jwt_required
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
-from print_api.common.auth import requires_access_level
 from print_api.resources.api_routes.printer_route import increment_printer_details
 from print_api.models.print_jobs import (
     print_job_model,
@@ -28,7 +27,7 @@ STATUSERROR = "status not found"
 
 
 @print_job_api.route("/add", methods=["POST"])
-@requires_access_level(1)
+@jwt_required()
 def create():
     """
     Function to create a new job from json sent in the POST request
@@ -75,7 +74,7 @@ def create():
 
 
 @print_job_api.route("/view/<int:job_id>", methods=["GET"])
-@requires_access_level(1)
+@jwt_required()
 def view_job_single(job_id):
     """
     Function return a serialized job by its id
@@ -86,7 +85,7 @@ def view_job_single(job_id):
 
 
 @print_job_api.route("/view/<string:status>", methods=["GET"])
-@requires_access_level(1)
+@jwt_required()
 def view_jobs_by_status(status):
     """
     Function to return a list of serialized jobs filtered by their status
@@ -101,7 +100,7 @@ def view_jobs_by_status(status):
 
 
 @print_job_api.route("/approve/accept/<int:job_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def accept_approval_job(job_id):
     """
     Function to mark an awaited job asapproved and add to the queue
@@ -119,7 +118,7 @@ def accept_approval_job(job_id):
 
 
 @print_job_api.route("/approve/reject/<int:job_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def reject_approval_job(job_id):
     """
     Function to mark an awaited job asapproved and add to the queue
@@ -139,7 +138,7 @@ def reject_approval_job(job_id):
 
 
 @print_job_api.route("/start/<int:job_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def start_queued_job(job_id):
     """
     Function to mark a print job as started if the printer selected is not already in use.
@@ -173,7 +172,7 @@ def start_queued_job(job_id):
 
 
 @print_job_api.route("/complete/<int:job_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def complete_job(job_id):
     """
     Function to mark a print job as completed, email the user and change the printer telemetry
@@ -233,7 +232,7 @@ def complete_job(job_id):
 
 
 @print_job_api.route("/fail/<int:job_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def fail_job(job_id):
     """
     Function to fail a print job (with the option to requeue), email the user, update scores, and change the printer telemetry
@@ -315,7 +314,7 @@ def fail_job(job_id):
 
 
 @print_job_api.route("/reject/<int:job_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def reject_job(job_id):
     """
     Function to mark a print job as rejected and email the user
@@ -360,7 +359,7 @@ def reject_job(job_id):
 
 
 @print_job_api.route("/queue/<int:job_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def queue_job(job_id):
     """
     Function to mark a print job as queued and email the user
@@ -394,7 +393,7 @@ def queue_job(job_id):
 
 
 @print_job_api.route("/review/<int:job_id>", methods=["PUT"])
-@requires_access_level(2)
+@jwt_required()
 def review_job(job_id):
     """
     Function to mark a print job as under-review and email the user
@@ -427,7 +426,7 @@ def review_job(job_id):
     return custom_response(status_code=200, data=ser_job)
 
 @print_job_api.route("/delete/<int:job_id>", methods=["DELETE"])
-@requires_access_level(3)
+@jwt_required()
 def delete_job(job_id):
     """
     Function to take a job ID and delete it from the database

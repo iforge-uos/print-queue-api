@@ -1,6 +1,7 @@
+from flask_jwt_extended import jwt_required
+
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
-from print_api.common.auth import requires_access_level
 from print_api.models.maintenance_logs import maintenance_model, maintenance_schema
 from print_api.models.printers import printer_model
 from print_api.common.routing import custom_response
@@ -12,7 +13,7 @@ NOTFOUNDMAINTENANCE = "maintenance log(s) not found"
 
 
 @maintenance_api.route('/update/<int:log_id>', methods=['PUT'])
-@requires_access_level(2)
+@jwt_required()
 def update_by_id(log_id):
     """
     Function to update a logs details.
@@ -25,7 +26,7 @@ def update_by_id(log_id):
 
 
 @maintenance_api.route('/view/single/<int:log_id>', methods=['GET'])
-@requires_access_level(2)
+@jwt_required()
 def view_single_by_id(log_id):
     """
     Function to get a single log via its ID
@@ -36,7 +37,7 @@ def view_single_by_id(log_id):
 
 
 @maintenance_api.route('/view/all/<string:printer_name>', methods=['GET'])
-@requires_access_level(2)
+@jwt_required()
 def view_all_by_printer_name(printer_name):
     """
     Get all logs via their linked printers name
@@ -54,7 +55,7 @@ def view_all_by_printer_name(printer_name):
 
 
 @maintenance_api.route('/view/all/<int:printer_id>', methods=['GET'])
-@requires_access_level(2)
+@jwt_required()
 def view_all_by_printer_id(printer_id):
     """
     Get all logs via their linked printers name
@@ -66,7 +67,7 @@ def view_all_by_printer_id(printer_id):
 
 
 @maintenance_api.route('/delete/<int:log_id>', methods=['DELETE'])
-@requires_access_level(3)
+@jwt_required()
 def delete_by_id(log_id):
     """
     Delete a single log via its ID
@@ -77,7 +78,7 @@ def delete_by_id(log_id):
 
 
 @maintenance_api.route('/add', methods=['POST'])
-@requires_access_level(2)
+@jwt_required()
 def create():
     """
     Create Log Function
