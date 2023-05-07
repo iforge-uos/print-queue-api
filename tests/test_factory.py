@@ -8,9 +8,13 @@ def test_config():
 
 def test_451(client):
     response = client.get("/api/v1/misc/legal")
-    assert response.data == b'"Pipis Room"'
+    assert (
+        response.data == b'{"data": null, "message": "Pipis Room", "status": "error"}'
+    )
 
 
 def test_418(client):
     response = client.get("/api/v1/misc/toast")
-    assert response.data == b'"sweet cheeks"'
+    assert (
+        response.data == b'{"data": null, "message": "sweet cheeks", "status": "error"}'
+    )

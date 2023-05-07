@@ -5,13 +5,13 @@ from print_api.common.auth import generate_hash_key, requires_access_level
 from print_api.models.auth_keys import auth_model, auth_schema
 
 
-auth_api = Blueprint("auth", __name__)
+old_auth_api = Blueprint("oldauth", __name__)
 auth_schema = auth_schema()
 
 NOTFOUNDKEYS = "key(s) not found"
 
 
-@auth_api.route("/generate/single", methods=["POST"])
+@old_auth_api.route("/generate/single", methods=["POST"])
 @requires_access_level(3)
 def create_key():
     """
@@ -20,7 +20,7 @@ def create_key():
     """
     req_data = request.get_json()
     if int(req_data["permission_value"]) not in [0, 1, 2, 3]:
-        return custom_response(status_code=400, details="Invalid permission value supplied")
+        return custom_response(status_code=400, data="Invalid permission value supplied")
 
     # generate new api_key
     api_key = generate_hash_key()
@@ -33,14 +33,14 @@ def create_key():
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
 
     key = auth_model(data)
     key.save()
-    return custom_response(status_code=200, details={"Key": api_key})
+    return custom_response(status_code=200, data={"Key": api_key})
 
 
-@auth_api.route("/generate/set/<string:client_version>", methods=["POST"])
+@old_auth_api.route("/generate/set/<string:client_version>", methods=["POST"])
 @requires_access_level(3)
 def create_key_set(client_version):
     """
@@ -59,10 +59,10 @@ def create_key_set(client_version):
         key = auth_model(data)
         key.save()
         jason.append(auth_schema.dump(key))
-    return custom_response(status_code=200, details=jason)
+    return custom_response(status_code=200, data=jason)
 
 
-@auth_api.route("/delete/<int:key_id>", methods=["DELETE"])
+@old_auth_api.route("/delete/<int:key_id>", methods=["DELETE"])
 @requires_access_level(3)
 def delete_key(key_id):
     """
@@ -72,12 +72,12 @@ def delete_key(key_id):
     """
     key = auth_model.get_key_by_id(key_id)
     if not key:
-        return custom_response(status_code=404, details=NOTFOUNDKEYS)
+        return custom_response(status_code=404, data=NOTFOUNDKEYS)
     key.delete()
-    return custom_response(status_code=200, details="deleted")
+    return custom_response(status_code=200, data="deleted")
 
 
-@auth_api.route("/view/single/<int:key_id>", methods=["GET"])
+@old_auth_api.route("/view/single/<int:key_id>", methods=["GET"])
 @requires_access_level(3)
 def get_key(key_id):
     """
@@ -87,12 +87,12 @@ def get_key(key_id):
     """
     key = auth_model.get_key_by_id(key_id)
     if not key:
-        return custom_response(status_code=404, details=NOTFOUNDKEYS)
+        return custom_response(status_code=404, data=NOTFOUNDKEYS)
     ser_key = auth_schema.dump(key)
-    return custom_response(status_code=200, details=ser_key)
+    return custom_response(status_code=200, data=ser_key)
 
 
-@auth_api.route("/view/all", methods=["GET"])
+@old_auth_api.route("/view/all", methods=["GET"])
 @requires_access_level(3)
 def get_all_keys():
     """
@@ -102,7 +102,7 @@ def get_all_keys():
     return get_multiple_key_details(auth_model.get_all_keys())
 
 
-@auth_api.route("/view/multiple/<string:client_version>", methods=["GET"])
+@old_auth_api.route("/view/multiple/<string:client_version>", methods=["GET"])
 @requires_access_level(3)
 def get_keys_by_version(client_version):
     """
@@ -122,8 +122,8 @@ def get_multiple_key_details(keys):
     :return response: error the a list of serialized key objects.
     """
     if not keys:
-        return custom_response(status_code=404, details=NOTFOUNDKEYS)
+        return custom_response(status_code=404, data=NOTFOUNDKEYS)
     jason = []
     for key in keys:
         jason.append(auth_schema.dump(key))
-    return custom_response(status_code=200, details=jason)
+    return custom_response(status_code=200, data=jason)

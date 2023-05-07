@@ -39,7 +39,7 @@ def create():
     # Get user level
     user_level = check_user_id(req_data["user_id"])
     if user_level is None:
-        return custom_response(status_code=404, details="user is not found")
+        return custom_response(status_code=404, data="user is not found")
 
     if "rep_check" not in req_data:
         req_data["rep_check"] = req_data["user_id"]
@@ -67,11 +67,11 @@ def create():
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
 
     job = print_job_model(data)
     job.save()
-    return custom_response(status_code=200, details="success")
+    return custom_response(status_code=200, data="success")
 
 
 @print_job_api.route("/view/<int:job_id>", methods=["GET"])
@@ -112,9 +112,9 @@ def accept_approval_job(job_id):
 
     # Check job exists
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
     if job.status != job_status.approval:
-        return custom_response(status_code=400, details="wrong job status")
+        return custom_response(status_code=400, data="wrong job status")
     return update_job_details(job, {"status": "queued"})
 
 
@@ -129,12 +129,12 @@ def reject_approval_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
     if job.status != job_status.approval:
-        return custom_response(status_code=400, details="wrong job status")
+        return custom_response(status_code=400, data="wrong job status")
     result = email(job.user_id, job.print_name, 2)
     if not result:
-        return custom_response(status_code=404, details=USERIDERROR)
+        return custom_response(status_code=404, data=USERIDERROR)
     return update_job_details(job, {"status": "rejected"})
 
 
@@ -155,17 +155,17 @@ def start_queued_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
     # Check job is allowed to run
     if job.status != job_status.queued:
-        return custom_response(status_code=400, details="Job Cannot be run")
+        return custom_response(status_code=400, data="Job Cannot be run")
     printer_id = request_dict["printer"]
     if not check_printer_id(printer_id):
-        return custom_response(status_code=404, details="Printer Not Found")
+        return custom_response(status_code=404, data="Printer Not Found")
     if printer_model.get_printer_by_id(printer_id).printer_type != job.printer_type:
-        return custom_response(status_code=400, details="Printer Type mismatch")
+        return custom_response(status_code=400, data="Printer Type mismatch")
     if running_on_printer(printer_id):
-        return custom_response(status_code=400, details="Associated Printer is in use")
+        return custom_response(status_code=400, data="Associated Printer is in use")
 
     request_dict["status"] = job_status.running.name
     request_dict["date_started"] = datetime.now().isoformat()
@@ -183,11 +183,11 @@ def complete_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
 
     # Check the job is running otherwise error
     if job.status != job_status.running:
-        return custom_response(status_code=400, details="Job not running")
+        return custom_response(status_code=400, data="Job not running")
 
     # Change job details
     printer_increment_values = {
@@ -201,7 +201,7 @@ def complete_job(job_id):
         printer_model.get_printer_by_id(job.printer), printer_increment_values
     )
     if ser_printer is None:
-        return custom_response(status_code=400, details="Printer Increment Error")
+        return custom_response(status_code=400, data="Printer Increment Error")
 
     # Change job values
     job_change_values = {
@@ -212,12 +212,12 @@ def complete_job(job_id):
     # Email user that the print is failed
     result = email(job.user_id, job.print_name, status='completed')
     if not result:
-        return custom_response(status_code=404, details=USERIDERROR)
+        return custom_response(status_code=404, data=USERIDERROR)
 
     # Update score of user and slicing rep
     result = score_print(job.user_id, job.rep_check, status='completed')
     if not result:
-        return custom_response(status_code=404, details=STATUSERROR)
+        return custom_response(status_code=404, data=STATUSERROR)
 
     try:
         data = print_job_schema.load(job_change_values, partial=True)
@@ -225,11 +225,11 @@ def complete_job(job_id):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
     job.update(data)
     ser_job = print_job_schema.dump(job)
 
-    return custom_response(status_code=200, details=ser_job)
+    return custom_response(status_code=200, data=ser_job)
 
 
 @print_job_api.route("/fail/<int:job_id>", methods=["PUT"])
@@ -243,16 +243,16 @@ def fail_job(job_id):
     requeue = request.args.get("requeue", default="no")
 
     if requeue not in ["yes", "no"]:
-        return custom_response(status_code=400, details="Invalid Parameters in Request: Requeue needs to be yes or no")
+        return custom_response(status_code=400, data="Invalid Parameters in Request: Requeue needs to be yes or no")
 
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
 
     # Check the job is running otherwise error
     if job.status != job_status.running:
-        return custom_response(status_code=400, details="Job not running")
+        return custom_response(status_code=400, data="Job not running")
 
     # Change job details
     printer_increment_values = {
@@ -266,7 +266,7 @@ def fail_job(job_id):
         printer_model.get_printer_by_id(job.printer), printer_increment_values
     )
     if ser_printer is None:
-        return custom_response(status_code=400, details="Printer Increment Error")
+        return custom_response(status_code=400, data="Printer Increment Error")
 
     # Change job values depending on requeue
     if requeue == "yes":
@@ -294,12 +294,12 @@ def fail_job(job_id):
         # Email user that the print is failed
         result = email(job.user_id, job.print_name, status='failed')
         if not result:
-            return custom_response(status_code=404, details=USERIDERROR)
+            return custom_response(status_code=404, data=USERIDERROR)
 
         # Update score of user and slicing rep
         result = score_print(job.user_id, job.rep_check, status='failed')
         if not result:
-            return custom_response(status_code=404, details=STATUSERROR)
+            return custom_response(status_code=404, data=STATUSERROR)
 
     try:
         data = print_job_schema.load(job_change_values, partial=True)
@@ -307,11 +307,11 @@ def fail_job(job_id):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
     job.update(data)
     ser_job = print_job_schema.dump(job)
 
-    return custom_response(status_code=200, details=ser_job)
+    return custom_response(status_code=200, data=ser_job)
 
 
 @print_job_api.route("/reject/<int:job_id>", methods=["PUT"])
@@ -325,11 +325,11 @@ def reject_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
 
     # Check the job is queued or under-review
     if job.status not in [job_status.queued, job_status.under_review]:
-        return custom_response(status_code=400, details="Job not under-review (or queued)")
+        return custom_response(status_code=400, data="Job not under-review (or queued)")
 
     job_change_values = {
         "status": job_status.rejected.name,
@@ -339,12 +339,12 @@ def reject_job(job_id):
     # Email user that the print is failed
     result = email(job.user_id, job.print_name, status='rejected')
     if not result:
-        return custom_response(status_code=404, details=USERIDERROR)
+        return custom_response(status_code=404, data=USERIDERROR)
 
     # Update score of user and slicing rep
     result = score_print(job.user_id, job.rep_check, status='rejected')
     if not result:
-        return custom_response(status_code=404, details=STATUSERROR)
+        return custom_response(status_code=404, data=STATUSERROR)
 
     try:
         data = print_job_schema.load(job_change_values, partial=True)
@@ -352,11 +352,11 @@ def reject_job(job_id):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
     job.update(data)
     ser_job = print_job_schema.dump(job)
 
-    return custom_response(status_code=200, details=ser_job)
+    return custom_response(status_code=200, data=ser_job)
 
 
 @print_job_api.route("/queue/<int:job_id>", methods=["PUT"])
@@ -370,11 +370,11 @@ def queue_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
 
     # Check the job is queued or under-review
     if job.status is not job_status.under_review:
-        return custom_response(status_code=400, details="Job not under-review")
+        return custom_response(status_code=400, data="Job not under-review")
 
     job_change_values = {
         "status": job_status.queued.name,
@@ -386,11 +386,11 @@ def queue_job(job_id):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
     job.update(data)
     ser_job = print_job_schema.dump(job)
 
-    return custom_response(status_code=200, details=ser_job)
+    return custom_response(status_code=200, data=ser_job)
 
 
 @print_job_api.route("/review/<int:job_id>", methods=["PUT"])
@@ -404,11 +404,11 @@ def review_job(job_id):
     job = print_job_model.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
 
     # Check the job is queued or under-review
     if job.status is not job_status.queued:
-        return custom_response(status_code=400, details="Job not queued")
+        return custom_response(status_code=400, data="Job not queued")
 
     job_change_values = {
         "status": job_status.under_review.name,
@@ -420,11 +420,11 @@ def review_job(job_id):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
     job.update(data)
     ser_job = print_job_schema.dump(job)
 
-    return custom_response(status_code=200, details=ser_job)
+    return custom_response(status_code=200, data=ser_job)
 
 @print_job_api.route("/delete/<int:job_id>", methods=["DELETE"])
 @requires_access_level(3)
@@ -436,9 +436,9 @@ def delete_job(job_id):
     """
     job = print_job_model.get_print_job_by_id(job_id)
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
     job.delete()
-    return custom_response(status_code=200, details="deleted")
+    return custom_response(status_code=200, data="deleted")
 
 
 # Helper Functions
@@ -510,9 +510,9 @@ def get_single_job_details(job):
     :return response: error or the serialized object
     """
     if not job:
-        return custom_response(status_code=404, details=JOBNOTFOUND)
+        return custom_response(status_code=404, data=JOBNOTFOUND)
     ser_job = print_job_schema.dump(job)
-    return custom_response(status_code=200, details=ser_job)
+    return custom_response(status_code=200, data=ser_job)
 
 
 def get_multiple_job_details(jobs):
@@ -522,11 +522,11 @@ def get_multiple_job_details(jobs):
     :return response: error or a list of serialized print jobs
     """
     if not jobs:
-        return custom_response(status_code=404, details="Jobs not found")
+        return custom_response(status_code=404, data="Jobs not found")
     jason = []
     for job in jobs:
         jason.append(print_job_schema.dump(job))
-    return custom_response(status_code=200, details=jason)
+    return custom_response(status_code=200, data=jason)
 
 
 def update_job_details(job, req_data):
@@ -543,10 +543,10 @@ def update_job_details(job, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
     job.update(data)
     ser_job = print_job_schema.dump(job)
-    return custom_response(status_code=200, details=ser_job)
+    return custom_response(status_code=200, data=ser_job)
 
 def score_print(user_id, rep_id, status):
     """

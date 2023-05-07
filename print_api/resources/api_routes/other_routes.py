@@ -12,7 +12,7 @@ def test():
     """
     Test Endpoint 1
     """
-    return custom_response(status_code=418, details="sweet cheeks")
+    return custom_response(status_code=418, data="sweet cheeks")
 
 
 @other_api.route("/legal", methods=["GET"])
@@ -20,4 +20,4 @@ def test_2():
     """
     Test Endpoint 2
     """
-    return custom_response(status_code=451, details="Pipis Room")
+    return custom_response(status_code=451, data="Pipis Room")

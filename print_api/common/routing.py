@@ -1,10 +1,11 @@
 from flask import Response, json
 
 
-def custom_response(status_code, details=None, extra_info=None):
+def custom_response(status_code, data: dict = None, message: str = None):
     """
     Custom Response Function to encapsulate a json response with a status code.
     :param dict data: response
+    :param str message: message
     :param int status_code: http status code
     :return response: response object
 
@@ -33,12 +34,12 @@ def custom_response(status_code, details=None, extra_info=None):
     else:
         res["status"] = "unknown"
 
-    if res["status"] is "success":
-        res["data"] = details
-        res["message"] = extra_info
+    if res["status"] == "success":
+        res["data"] = data
+        res["message"] = message
     else:
-        res["data"] = extra_info
-        res["message"] = details
+        res["data"] = message
+        res["message"] = data
 
     return Response(
         mimetype="application/json",

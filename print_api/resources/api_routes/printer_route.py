@@ -63,8 +63,8 @@ def increment_by_name(printer_name):
     printer = printer_model.get_printer_by_name(printer_name)
     ser_printer = increment_printer_details(printer, req_data)
     if ser_printer is None:
-        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
-    return custom_response(status_code=200, details=ser_printer)
+        return custom_response(status_code=404, data=NOTFOUNDPRINTER)
+    return custom_response(status_code=200, data=ser_printer)
 
 
 @printer_api.route('/view/all/', methods=['GET'])
@@ -136,18 +136,18 @@ def create():
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
 
     # check if printer already exists in the db
     printer_in_db = printer_model.get_printer_by_name(data.get('printer_name'))
     if printer_in_db:
         message = {
             'error': 'Printer already exists, please supply another printer name'}
-        return custom_response(status_code=400, details=message)
+        return custom_response(status_code=400, data=message)
 
     printer = printer_model(data)
     printer.save()
-    return custom_response(status_code=200, details="success")
+    return custom_response(status_code=200, data="success")
 
 
 def delete_printer(printer):
@@ -157,9 +157,9 @@ def delete_printer(printer):
     :return response: error or success message
     """
     if not printer:
-        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
+        return custom_response(status_code=404, data=NOTFOUNDPRINTER)
     printer.delete()
-    return custom_response(status_code=200, details="deleted")
+    return custom_response(status_code=200, data="deleted")
 
 
 def get_printer_details(printer):
@@ -169,9 +169,9 @@ def get_printer_details(printer):
     :return response: error or serialized printer
     """
     if not printer:
-        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
+        return custom_response(status_code=404, data=NOTFOUNDPRINTER)
     ser_printer = printer_schema.dump(printer)
-    return custom_response(status_code=200, details=ser_printer)
+    return custom_response(status_code=200, data=ser_printer)
 
 
 def update_printer_details(printer, req_data):
@@ -182,7 +182,7 @@ def update_printer_details(printer, req_data):
     :return response: error or serialized updated printer
     """
     if not printer:
-        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
+        return custom_response(status_code=404, data=NOTFOUNDPRINTER)
 
     # Try and load printer data to the schema
     try:
@@ -191,10 +191,10 @@ def update_printer_details(printer, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
-    return custom_response(status_code=200, details=ser_printer)
+    return custom_response(status_code=200, data=ser_printer)
 
 
 def increment_printer_details(printer, req_data):
@@ -236,7 +236,7 @@ def increment_printer_details(printer, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, details=err.messages)
+        return custom_response(status_code=400, data=err.messages)
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
     return ser_printer
@@ -249,8 +249,8 @@ def get_multiple_printer_details(printers):
     :return response: error or a list of serialized printers
     """
     if not printers:
-        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
+        return custom_response(status_code=404, data=NOTFOUNDPRINTER)
     jason = []
     for printer in printers:
         jason.append(printer_schema.dump(printer))
-    return custom_response(status_code=200, details=jason)
+    return custom_response(status_code=200, data=jason)

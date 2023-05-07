@@ -6,7 +6,6 @@ from print_api.app import create_app
 @pytest.fixture()
 def app():
     app = create_app("testing")
-    init_database()
     yield app
 
     # clean up / reset resources here

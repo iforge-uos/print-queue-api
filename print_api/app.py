@@ -5,7 +5,7 @@ from flask import Flask
 from dotenv import load_dotenv
 from print_api.config import config
 from print_api.common.routing import custom_response
-from print_api.extensions import db, migrate, mail, bootstrap, api, cors
+from print_api.extensions import db, migrate, mail, bootstrap, api, cors, jwt
 
 # Resources
 from print_api.resources.api_routes import (
@@ -15,6 +15,7 @@ from print_api.resources.api_routes import (
     print_job_route,
     printer_route,
     user_route,
+    new_auth_routes,
 )
 
 load_dotenv("../.env")
@@ -46,6 +47,7 @@ def register_extensions(app):
     migrate.init_app(app, db)
     bootstrap.init_app(app)
     cors.init_app(app)
+    jwt.init_app(app)
     return None
 
 
@@ -66,7 +68,8 @@ def register_blueprints(app):
         print_job_route.print_job_api, url_prefix=f"{api_prefix}/jobs"
     )
     app.register_blueprint(other_routes.other_api, url_prefix=f"{api_prefix}/misc")
-    app.register_blueprint(auth_routes.auth_api, url_prefix=f"{api_prefix}/auth")
+    app.register_blueprint(auth_routes.old_auth_api, url_prefix=f"{api_prefix}/authold")
+    app.register_blueprint(new_auth_routes.auth_api, url_prefix=f"{api_prefix}/auth")
     return None
 
 
@@ -78,7 +81,7 @@ def register_errorhandlers(app):
         # If a HTTPException, pull the `code` attribute; default to 500
         error_code = getattr(error, "code", 500)
         #! should return different errors not just a description since this is a public api
-        return custom_response(status_code=error_code, details=error.description)
+        return custom_response(status_code=error_code, data=error.description)
 
     for errcode in [401, 404, 500]:
         app.errorhandler(errcode)(render_error)
