@@ -2,13 +2,13 @@ from datetime import datetime
 from print_api.extensions import db
 
 
-class RevokedRefreshToken(db.Model):
+class refresh_token(db.Model):
     """
     Revoked Refresh Token Model
     Used to invalidate refresh tokens upon logout
     """
 
-    __tablename__ = "revoked_refresh_tokens"
+    __tablename__ = "refresh_tokens"
     id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(120), nullable=False)
     user_uid = db.Column(db.String(120), nullable=False)
@@ -31,7 +31,7 @@ class RevokedRefreshToken(db.Model):
 
     @staticmethod
     def revoke(jti):
-        revoked_token = RevokedRefreshToken.query.filter_by(jti=jti).first()
+        revoked_token = refresh_token.query.filter_by(jti=jti).first()
         if revoked_token:
             db.session.delete(revoked_token)
             db.session.commit()
@@ -40,10 +40,10 @@ class RevokedRefreshToken(db.Model):
 
     @staticmethod
     def is_revoked(jti):
-        revoked_token = RevokedRefreshToken.query.filter_by(jti=jti).first()
+        revoked_token = refresh_token.query.filter_by(jti=jti).first()
         if revoked_token:
             if datetime.utcnow() > revoked_token.expires_at:
-                RevokedRefreshToken.revoke(jti)
+                refresh_token.revoke(jti)
                 return True
             return False
         return True
