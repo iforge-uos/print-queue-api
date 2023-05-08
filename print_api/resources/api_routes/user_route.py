@@ -203,4 +203,6 @@ def get_multiple_user_details(users):
         user_dict = user_schema.dump(user)
         user_dict["user_level"] = calculate_level_from_score(user.user_score)
         jason.append(user_dict)
-    return custom_response(status_code=200, data=jason)
+
+    final_res = {"users": jason}
+    return custom_response(status_code=200, data=final_res)

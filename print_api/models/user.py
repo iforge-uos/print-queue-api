@@ -1,6 +1,7 @@
 from sqlalchemy.sql import func
 from marshmallow import fields, Schema
 from print_api.extensions import db
+from print_api.common.ldap import LDAP
 
 
 class user_model(db.Model):
@@ -38,6 +39,26 @@ class user_model(db.Model):
         self.user_score = data.get("user_score")
         self.is_rep = data.get("is_rep")
         self.score_editable = data.get("score_editable")
+
+    @staticmethod
+    def create_from_ldap(uid) -> bool:
+        ldap = LDAP()
+        user_info = ldap.lookup(
+            f"(&(objectclass=person)(uid={uid}))",
+            ["givenName", "sn", "mail"],
+            True,
+        )
+        if user_info is None:
+            return False
+        user = user_model(
+            {
+                "name": str(user_info["givenName"]) + " " + str(user_info["sn"]),
+                "email": str(user_info["mail"]).lower(),
+                "uid": uid,
+            }
+        )
+        user.save()
+        return True
 
     def save(self):
         """

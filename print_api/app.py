@@ -23,7 +23,7 @@ load_dotenv("../.env")
 def create_app(config_name: str = "development"):
     """
     Create application factory
-    :param obj config_object: The configuration object to use.
+    :param obj config_name: The configuration name to use.
     :return app: The newly created application
     """
     app = Flask(__name__.split(".")[0])
