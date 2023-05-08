@@ -78,8 +78,19 @@ def register_errorhandlers(app):
         """Render error template."""
         # If a HTTPException, pull the `code` attribute; default to 500
         error_code = getattr(error, "code", 500)
-        #! should return different errors not just a description since this is a public api
-        return custom_response(status_code=error_code, data=error.description)
+        error_description = error.description
+
+        # Check if the error is access denied error
+        if error_code == 401:
+            error_message = "Access denied. You do not have the required permissions to access this resource."
+        elif error_code == 404:
+            error_message = "Resource not found."
+        elif error_code == 500:
+            error_message = "Internal server error."
+        else:
+            error_message = "An unknown error occurred."
+
+        return custom_response(error_code, error_message, extra_info=error_description)
 
     for errcode in [401, 404, 500]:
         app.errorhandler(errcode)(render_error)

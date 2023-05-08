@@ -1,45 +1,54 @@
+from typing import Any, Dict, Optional
 from flask import Response, json
 
 
-def custom_response(status_code, data: dict = None, message: str = None):
+def custom_response(status_code: int, details: Optional[Any] = None, extra_info: Optional[Any] = None) -> Response:
     """
     Custom Response Function to encapsulate a json response with a status code.
-    :param dict data: response
-    :param str message: message
     :param int status_code: http status code
+    :param details: Success-specific data or Error-specific message
+    :param extra_info: None or optional success message or Error-specific data
     :return response: response object
 
-    iForge standards:
+    iForge Standard Response Format:
     {
-      "status": "success"/"error",
-      "data": { Success-specific data (eg application) / None or optional error payload },
-      "message": { None or optional success message / Error-specific data (eg debug) }
+      "status": "success" / "error",
+      "payload": {
+        "data": { Success-specific data },
+        "error": {
+          "code": { Error-specific code },
+          "message": { Error-specific message }
+        }
+      },
+      "meta": {
+        "message": { Optional success message }
+      }
     }
     """
 
-    res = {
+    res: Dict[str, Any] = {
         "status": None,
-        "data": None,
-        "message": None
+        "payload": {
+            "data": None,
+            "error": None
+        },
+        "meta": {
+            "message": None
+        }
     }
 
     if 200 <= status_code < 300:
         res["status"] = "success"
-    elif 300 <= status_code < 400:
-        res["status"] = "redirect"
-    elif 400 <= status_code < 500:
+        res["payload"]["data"] = details
+        res["meta"]["message"] = extra_info
+    else:
         res["status"] = "error"
-    elif 500 <= status_code < 600:
-        res["status"] = "server_error"
-    else:
-        res["status"] = "unknown"
-
-    if res["status"] == "success":
-        res["data"] = data
-        res["message"] = message
-    else:
-        res["data"] = message
-        res["message"] = data
+        res["payload"]["data"] = None
+        res["payload"]["error"] = {
+            "code": status_code,
+            "message": details
+        }
+        res["meta"]["message"] = extra_info
 
     return Response(
         mimetype="application/json",

@@ -46,8 +46,8 @@ def view_all_by_printer_name(printer_name):
     """
     # First check if the printer_name is valid
     printer = printer_model.get_printer_by_name(printer_name)
-    if (printer is None):
-        return custom_response(status_code=404, data="Printer not found")
+    if printer is None:
+        return custom_response(status_code=404, details="Printer not found")
 
     # Then return the jason payload of any logs for that printer
     return get_multiple_log_details(
@@ -88,8 +88,8 @@ def create():
 
     # Check if printer_id exists
     printer_id = req_data['printer_id']
-    if (printer_model.get_printer_by_id(printer_id) is None):
-        return custom_response(status_code=404, data="Printer is not found")
+    if printer_model.get_printer_by_id(printer_id) is None:
+        return custom_response(status_code=404, details="Printer is not found")
 
     # Try and load the data into the model
     try:
@@ -98,11 +98,11 @@ def create():
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, data=err.messages)
+        return custom_response(status_code=400, details=err.messages)
 
     log = maintenance_model(data)
     log.save()
-    return custom_response(status_code=200, data="success")
+    return custom_response(status_code=200, extra_info="success", details=maintenance_schema.dump(log))
 
 
 def delete_log(log):
@@ -112,9 +112,9 @@ def delete_log(log):
     :return response: error or a success message
     """
     if not log:
-        return custom_response(status_code=404, data=NOTFOUNDMAINTENANCE)
+        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
     log.delete()
-    return custom_response(status_code=200, data='deleted')
+    return custom_response(status_code=200, extra_info='deleted')
 
 
 def get_log_details(log):
@@ -124,9 +124,9 @@ def get_log_details(log):
     :return response: error or the serialized log object
     """
     if not log:
-        return custom_response(status_code=404, data=NOTFOUNDMAINTENANCE)
+        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
     ser_log = maintenance_schema.dump(log)
-    return custom_response(status_code=200, data=ser_log)
+    return custom_response(status_code=200, details=ser_log, extra_info="success")
 
 
 def get_multiple_log_details(logs):
@@ -136,11 +136,12 @@ def get_multiple_log_details(logs):
     :return response: error the a list of serialized log objects.
     """
     if not logs:
-        return custom_response(status_code=404, data=NOTFOUNDMAINTENANCE)
+        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
     jason = []
+    final_res = {"maintenance_logs": jason}
     for log in logs:
         jason.append(maintenance_schema.dump(log))
-    return custom_response(status_code=200, data=jason)
+    return custom_response(status_code=200, details=final_res, extra_info="success")
 
 
 def update_log_details(log, req_data):
@@ -151,11 +152,11 @@ def update_log_details(log, req_data):
     :return response: error or the serialized data of the updated object.
     """
     if not log:
-        return custom_response(status_code=404, data=NOTFOUNDMAINTENANCE)
+        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
 
     # only allow updating log details
     if not ("maintenance_info" in req_data and len(req_data) == 1):
-        return custom_response(status_code=403, data="not allowed")
+        return custom_response(status_code=403, details="You can only update the maintenance_info field")
     # Try and load log data to the schema
     try:
         data = maintenance_schema.load(req_data, partial=True)
@@ -163,7 +164,7 @@ def update_log_details(log, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, data=err.messages)
+        return custom_response(status_code=400, details=err.messages)
     log.update(data)
     ser_log = maintenance_schema.dump(log)
-    return custom_response(status_code=200, data=ser_log)
+    return custom_response(status_code=200, details=ser_log, extra_info="success")

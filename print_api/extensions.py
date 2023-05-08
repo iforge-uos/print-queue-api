@@ -19,5 +19,7 @@ jwt = JWTManager()
 
 
 @jwt.expired_token_loader
-def my_expired_token_callback(jwt_header, jwt_payload):
-    return custom_response(status_code=401, data={"message": "Token has expired"})
+def expired_token_callback(jwt_header, jwt_payload):
+    error_message = "Token has expired"
+    error_details = {"message": error_message}
+    return custom_response(status_code=401, details=error_message, extra_info=error_details)

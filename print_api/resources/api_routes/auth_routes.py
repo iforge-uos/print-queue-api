@@ -23,13 +23,13 @@ def login():
     ValidateTicket should be used in production
     """
     if not request.is_json:
-        return custom_response(status_code=400, data={"message": "Request must be JSON"})
+        return custom_response(status_code=400, details="Request must be JSON")
 
     uid = request.json.get("uid", None)
     password = request.json.get("password", None)
 
     if not uid or not password:
-        return custom_response(status_code=400, data={"message": "Must supply uid and password"})
+        return custom_response(status_code=400, details="Must supply uid and password")
 
     if ldap_authenticate(uid, password):
 
@@ -40,13 +40,14 @@ def login():
         user = return_or_create_user(uid)
         user_details = get_main_user_details(user)
         if user is None:
-            return custom_response(status_code=409, data={"message": "User does not exist. Please contact an admin"})
+            return custom_response(status_code=409, details="User does not exist. Please contact an admin")
 
-        return custom_response(status_code=200, data={"access_token": gen_access_token,
-                                                      "refresh_token": gen_refresh_token,
-                                                      "user": user_details})
+        return custom_response(status_code=200, details={"access_token": gen_access_token,
+                                                         "refresh_token": gen_refresh_token,
+                                                         "user": user_details},
+                               extra_info="Successfully logged in")
     else:
-        return custom_response(status_code=401, data={"message": "Invalid credentials"})
+        return custom_response(status_code=401, details="Invalid credentials")
 
 
 @auth_api.route("/logout", methods=["DELETE"])
@@ -57,7 +58,7 @@ def logout():
     """
     jti = get_jwt()['jti']
     refresh_token.revoke(jti)
-    return custom_response(status_code=200, data={"message": "Successfully logged out"})
+    return custom_response(status_code=200, extra_info="Successfully logged out")
 
 
 @auth_api.route('/refresh', methods=['POST'])
@@ -65,11 +66,11 @@ def logout():
 def refresh():
     jti = get_jwt()["jti"]
     if refresh_token.is_revoked(jti):
-        return custom_response(status_code=401, data={"message": "Token has been revoked"})
+        return custom_response(status_code=401, details="Token has been revoked", extra_info="Reauthentication required")
 
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
-    return custom_response(status_code=200, data={"access_token": access_token})
+    return custom_response(status_code=200, details={"access_token": access_token}, extra_info="Successfully refreshed")
 
 
 def generate_tokens(uid: str) -> (str, str):
@@ -82,11 +83,11 @@ def generate_tokens(uid: str) -> (str, str):
 
     # Get Expiration Time
     expires_at = datetime.utcnow() + timedelta(seconds=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES")))
-    revoked_refresh_token = refresh_token(jti=jti, uid=uid, expires_at=expires_at)
+    stored_refresh_token = refresh_token(jti=jti, uid=uid, expires_at=expires_at)
     try:
-        revoked_refresh_token.add()
+        stored_refresh_token.add()
     except OperationalError:
-        return custom_response(status_code=500, data={"message": "Error storing refresh token, try again soon"})
+        return custom_response(status_code=500, details="Error issuing tokens. Please try again later")
     return gen_access_token, gen_refresh_token
 
 

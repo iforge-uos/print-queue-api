@@ -112,17 +112,17 @@ def create():
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, data=err.messages)
+        return custom_response(status_code=400, extra_info=err.messages)
 
     # check if user already exist in the db
     user_in_db = user_model.get_user_by_email(data.get("email"))
     if user_in_db:
         message = {"error": "User already exists, please supply another email address"}
-        return custom_response(status_code=400, data=message)
+        return custom_response(status_code=400, extra_info=message)
 
     user = user_model(data)
     user.save()
-    return custom_response(status_code=200, data="success")
+    return custom_response(status_code=200, extra_info="success", details=user_schema.dump(user))
 
 
 def delete_user(user, search_string):
@@ -132,10 +132,10 @@ def delete_user(user, search_string):
     :return response: error or success message
     """
     if not user:
-        return custom_response(status_code=404, data=f"user '{search_string}' not found")
+        return custom_response(status_code=404, details=f"user '{search_string}' not found")
     user_name = user.name
     user.delete()
-    return custom_response(status_code=200, data=f"deleted user: {user_name}")
+    return custom_response(status_code=200, extra_info=f"deleted user: {user_name}")
 
 
 def get_user_details(user, search_string):
@@ -145,10 +145,10 @@ def get_user_details(user, search_string):
     :return response: error or serialized user
     """
     if not user:
-        return custom_response(status_code=404, data=f"user '{search_string}' not found")
+        return custom_response(status_code=404, details=f"user '{search_string}' not found")
     ser_user = user_schema.dump(user)
     ser_user["user_level"] = calculate_level_from_score(user.user_score)
-    return custom_response(status_code=200, data=ser_user)
+    return custom_response(status_code=200, details=ser_user, extra_info="success")
 
 
 def update_user_details(user, req_data, search_string):
@@ -159,7 +159,7 @@ def update_user_details(user, req_data, search_string):
     :return response: error or serialized updated user details
     """
     if not user:
-        return custom_response(status_code=404, data=f"user '{search_string}' not found")
+        return custom_response(status_code=404, details=f"user '{search_string}' not found")
 
     # Check if user score is being changed and level needs to be updated
     if (req_data.get("user_score") is not None) and not user.score_editable:
@@ -171,17 +171,16 @@ def update_user_details(user, req_data, search_string):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(status_code=400, data=err.messages)
+        return custom_response(status_code=400, details=err.messages)
     user.update(data)
     ser_user = user_schema.dump(user)
-    return custom_response(status_code=200, data=ser_user)
+    return custom_response(status_code=200, details=ser_user, extra_info="success")
 
 
 def calculate_level_from_score(score):
     """
     Function to calculate what level the user would be with a given score.
     :param int score: score of the user
-    :param str level: level that the score falls into from the user_level_struct
     """
     level = ""
     for key, value in user_level_struct.items():
@@ -193,11 +192,11 @@ def calculate_level_from_score(score):
 def get_multiple_user_details(users):
     """
     Function to take a query object of multiple users and serialize them
-    :param jobs: the query object containing the users
+    :param users: the query object containing the users
     :return response: error or a list of serialized user data
     """
     if not users:
-        return custom_response(status_code=404, data="Users not found")
+        return custom_response(status_code=404, details="Users not found")
     jason = []
     for user in users:
         user_dict = user_schema.dump(user)
@@ -205,4 +204,4 @@ def get_multiple_user_details(users):
         jason.append(user_dict)
 
     final_res = {"users": jason}
-    return custom_response(status_code=200, data=final_res)
+    return custom_response(status_code=200, details=final_res, extra_info="success")
