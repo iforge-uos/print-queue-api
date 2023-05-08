@@ -7,9 +7,8 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
     decode_token
 from print_api.common.routing import custom_response
 from print_api.common.auth import ldap_authenticate
-from print_api.models.refresh_token import refresh_token
+from print_api.models.blacklisted_tokens import BlacklistedToken
 from print_api.models.user import user_model, user_schema
-from psycopg2.errors import OperationalError
 
 auth_api = Blueprint("auth", __name__)
 user_schema = user_schema()
@@ -57,7 +56,7 @@ def logout():
     API Route to log out a user
     """
     jti = get_jwt()['jti']
-    refresh_token.revoke(jti)
+    BlacklistedToken(jti).add()
     return custom_response(status_code=200, extra_info="Successfully logged out")
 
 
@@ -65,7 +64,7 @@ def logout():
 @jwt_required(refresh=True)
 def refresh():
     jti = get_jwt()["jti"]
-    if refresh_token.is_revoked(jti):
+    if BlacklistedToken.is_blacklisted(jti):
         return custom_response(status_code=401, details="Token has been revoked", extra_info="Reauthentication required")
 
     current_user = get_jwt_identity()
@@ -76,18 +75,6 @@ def refresh():
 def generate_tokens(uid: str) -> (str, str):
     gen_access_token = create_access_token(identity=uid)
     gen_refresh_token = create_refresh_token(identity=uid)
-
-    # Extract the JTI from the refresh token and save it to the database
-    decoded_refresh_token = decode_token(gen_refresh_token)
-    jti = decoded_refresh_token['jti']
-
-    # Get Expiration Time
-    expires_at = datetime.utcnow() + timedelta(seconds=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES")))
-    stored_refresh_token = refresh_token(jti=jti, uid=uid, expires_at=expires_at)
-    try:
-        stored_refresh_token.add()
-    except OperationalError:
-        return custom_response(status_code=500, details="Error issuing tokens. Please try again later")
     return gen_access_token, gen_refresh_token
 
 
