@@ -159,4 +159,4 @@ cython_debug/
 *_secret.json
 .pgdata/**
 .idea/
-migrations/**
+**/migrations/**

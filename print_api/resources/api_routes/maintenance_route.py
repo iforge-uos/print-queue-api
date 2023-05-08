@@ -1,6 +1,7 @@
+from flask_jwt_extended import jwt_required
+
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
-from print_api.common.auth import requires_access_level
 from print_api.models.maintenance_logs import maintenance_model, maintenance_schema
 from print_api.models.printers import printer_model
 from print_api.common.routing import custom_response
@@ -12,7 +13,7 @@ NOTFOUNDMAINTENANCE = "maintenance log(s) not found"
 
 
 @maintenance_api.route('/update/<int:log_id>', methods=['PUT'])
-@requires_access_level(2)
+@jwt_required()
 def update_by_id(log_id):
     """
     Function to update a logs details.
@@ -25,7 +26,7 @@ def update_by_id(log_id):
 
 
 @maintenance_api.route('/view/single/<int:log_id>', methods=['GET'])
-@requires_access_level(2)
+@jwt_required()
 def view_single_by_id(log_id):
     """
     Function to get a single log via its ID
@@ -36,7 +37,7 @@ def view_single_by_id(log_id):
 
 
 @maintenance_api.route('/view/all/<string:printer_name>', methods=['GET'])
-@requires_access_level(2)
+@jwt_required()
 def view_all_by_printer_name(printer_name):
     """
     Get all logs via their linked printers name
@@ -45,8 +46,8 @@ def view_all_by_printer_name(printer_name):
     """
     # First check if the printer_name is valid
     printer = printer_model.get_printer_by_name(printer_name)
-    if (printer is None):
-        return custom_response({"error": "Printer not found"}, 404)
+    if printer is None:
+        return custom_response(status_code=404, details="Printer not found")
 
     # Then return the jason payload of any logs for that printer
     return get_multiple_log_details(
@@ -54,7 +55,7 @@ def view_all_by_printer_name(printer_name):
 
 
 @maintenance_api.route('/view/all/<int:printer_id>', methods=['GET'])
-@requires_access_level(2)
+@jwt_required()
 def view_all_by_printer_id(printer_id):
     """
     Get all logs via their linked printers name
@@ -66,7 +67,7 @@ def view_all_by_printer_id(printer_id):
 
 
 @maintenance_api.route('/delete/<int:log_id>', methods=['DELETE'])
-@requires_access_level(3)
+@jwt_required()
 def delete_by_id(log_id):
     """
     Delete a single log via its ID
@@ -77,7 +78,7 @@ def delete_by_id(log_id):
 
 
 @maintenance_api.route('/add', methods=['POST'])
-@requires_access_level(2)
+@jwt_required()
 def create():
     """
     Create Log Function
@@ -87,8 +88,8 @@ def create():
 
     # Check if printer_id exists
     printer_id = req_data['printer_id']
-    if (printer_model.get_printer_by_id(printer_id) is None):
-        return custom_response({"error": "Printer is not found"}, 404)
+    if printer_model.get_printer_by_id(printer_id) is None:
+        return custom_response(status_code=404, details="Printer is not found")
 
     # Try and load the data into the model
     try:
@@ -97,11 +98,11 @@ def create():
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response(status_code=400, details=err.messages)
 
     log = maintenance_model(data)
     log.save()
-    return custom_response({"message": "success"}, 200)
+    return custom_response(status_code=200, extra_info="success", details=maintenance_schema.dump(log))
 
 
 def delete_log(log):
@@ -111,9 +112,9 @@ def delete_log(log):
     :return response: error or a success message
     """
     if not log:
-        return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
     log.delete()
-    return custom_response({'message': 'deleted'}, 200)
+    return custom_response(status_code=200, extra_info='deleted')
 
 
 def get_log_details(log):
@@ -123,9 +124,9 @@ def get_log_details(log):
     :return response: error or the serialized log object
     """
     if not log:
-        return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
     ser_log = maintenance_schema.dump(log)
-    return custom_response(ser_log, 200)
+    return custom_response(status_code=200, details=ser_log, extra_info="success")
 
 
 def get_multiple_log_details(logs):
@@ -135,11 +136,12 @@ def get_multiple_log_details(logs):
     :return response: error the a list of serialized log objects.
     """
     if not logs:
-        return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
     jason = []
+    final_res = {"maintenance_logs": jason}
     for log in logs:
         jason.append(maintenance_schema.dump(log))
-    return custom_response(jason, 200)
+    return custom_response(status_code=200, details=final_res, extra_info="success")
 
 
 def update_log_details(log, req_data):
@@ -150,11 +152,11 @@ def update_log_details(log, req_data):
     :return response: error or the serialized data of the updated object.
     """
     if not log:
-        return custom_response({'error': NOTFOUNDMAINTENANCE}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
 
     # only allow updating log details
     if not ("maintenance_info" in req_data and len(req_data) == 1):
-        return custom_response({'error': "not allowed"}, 403)
+        return custom_response(status_code=403, details="You can only update the maintenance_info field")
     # Try and load log data to the schema
     try:
         data = maintenance_schema.load(req_data, partial=True)
@@ -162,7 +164,7 @@ def update_log_details(log, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response(status_code=400, details=err.messages)
     log.update(data)
     ser_log = maintenance_schema.dump(log)
-    return custom_response(ser_log, 200)
+    return custom_response(status_code=200, details=ser_log, extra_info="success")

@@ -1,6 +1,7 @@
 from sqlalchemy.sql import func
 from marshmallow import fields, Schema
 from print_api.extensions import db
+from print_api.common.ldap import LDAP
 
 
 class user_model(db.Model):
@@ -10,13 +11,20 @@ class user_model(db.Model):
 
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
     email = db.Column(db.String(80), nullable=False)
-    user_score = db.Column(db.Integer, nullable=False)
-    is_rep = db.Column(db.Boolean, nullable=False)
-    score_editable = db.Column(db.Boolean, default=True)
+    uid = db.Column(db.String(10), nullable=False, index=True, unique=True)
+    name = db.Column(db.String, nullable=False)
     short_name = db.Column(db.String, nullable=True)
+    user_score = db.Column(db.Integer, nullable=False, default=0)
+    is_rep = db.Column(db.Boolean, nullable=False, default=False)
+    score_editable = db.Column(db.Boolean, nullable=False, default=True)
     date_added = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    completed_count = db.Column(db.Integer, nullable=False, default=0)
+    failed_count = db.Column(db.Integer, nullable=False, default=0)
+    rejected_count = db.Column(db.Integer, nullable=False, default=0)
+    slice_completed_count = db.Column(db.Integer, nullable=False, default=0)
+    slice_failed_count = db.Column(db.Integer, nullable=False, default=0)
+    slice_rejected_count = db.Column(db.Integer, nullable=False, default=0)
 
     # class constructor
     def __init__(self, data):
@@ -25,10 +33,32 @@ class user_model(db.Model):
         """
         self.name = data.get("name")
         self.email = data.get("email")
+        self.short_name = data.get("short_name")
+        self.uid = data.get("uid")
+
         self.user_score = data.get("user_score")
         self.is_rep = data.get("is_rep")
         self.score_editable = data.get("score_editable")
-        self.short_name = data.get("short_name")
+
+    @staticmethod
+    def create_from_ldap(uid) -> bool:
+        ldap = LDAP()
+        user_info = ldap.lookup(
+            f"(&(objectclass=person)(uid={uid}))",
+            ["givenName", "sn", "mail"],
+            True,
+        )
+        if user_info is None:
+            return False
+        user = user_model(
+            {
+                "name": str(user_info["givenName"]) + " " + str(user_info["sn"]),
+                "email": str(user_info["mail"]).lower(),
+                "uid": uid,
+            }
+        )
+        user.save()
+        return True
 
     def save(self):
         """
@@ -78,6 +108,15 @@ class user_model(db.Model):
         """
         return user_model.query.filter_by(email=value).first()
 
+    @staticmethod
+    def get_user_by_uid(value):
+        """
+        Function to get a user by their email
+        :param str value: the uid of the user
+        :return query_object: a query object containing the user
+        """
+        return user_model.query.filter_by(uid=value).first()
+
     def __repr__(self):
         if self.short_name is None:
             return "<User: %r>" % self.name
@@ -91,10 +130,17 @@ class user_schema(Schema):
     """
 
     id = fields.Int(dump_only=True)
-    name = fields.String(required=True)
     email = fields.String(required=True)
-    user_score = fields.Int(required=True)
-    is_rep = fields.Boolean(required=True)
-    score_editable = fields.Boolean(required=True)
+    uid = fields.String(required=True)
+    name = fields.String(required=True)
     short_name = fields.String(required=False)
+    user_score = fields.Int(required=False)
+    is_rep = fields.Boolean(required=False)
+    score_editable = fields.Boolean(required=False)
     date_added = fields.DateTime(required=False)
+    completed_count = fields.Int(required=False)
+    failed_count = fields.Int(required=False)
+    rejected_count = fields.Int(required=False)
+    slice_completed_count = fields.Int(required=False)
+    slice_failed_count = fields.Int(required=False)
+    slice_rejected_count = fields.Int(required=False)

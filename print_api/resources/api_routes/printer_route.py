@@ -1,6 +1,6 @@
 from flask import request, Blueprint
+from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
-from print_api.common.auth import requires_access_level
 from print_api.models.printers import printer_model, printer_schema
 from print_api.common.routing import custom_response
 
@@ -11,7 +11,7 @@ NOTFOUNDPRINTER = "printer(s) not found"
 
 
 @printer_api.route('/update/<int:printer_id>', methods=['PUT'])
-@requires_access_level(2)
+@jwt_required()
 def update_by_id(printer_id):
     """
     Function to increment a printers details by its name \n
@@ -24,7 +24,7 @@ def update_by_id(printer_id):
 
 
 @printer_api.route('/update/<string:printer_name>', methods=['PUT'])
-@requires_access_level(2)
+@jwt_required()
 def update_by_name(printer_name):
     """
     Function to update a printers details by its name
@@ -37,7 +37,7 @@ def update_by_name(printer_name):
 
 
 @printer_api.route('/increment/<int:printer_id>', methods=['PUT'])
-@requires_access_level(2)
+@jwt_required()
 def increment_by_id(printer_id):
     """
     Function to increment a printers details by its ID \n
@@ -52,7 +52,7 @@ def increment_by_id(printer_id):
 
 
 @printer_api.route('/increment/<string:printer_name>', methods=['PUT'])
-@requires_access_level(2)
+@jwt_required()
 def increment_by_name(printer_name):
     """
     Function to increment a printers details by its name
@@ -63,12 +63,12 @@ def increment_by_name(printer_name):
     printer = printer_model.get_printer_by_name(printer_name)
     ser_printer = increment_printer_details(printer, req_data)
     if ser_printer is None:
-        return custom_response({"error": NOTFOUNDPRINTER}, 404)
-    return custom_response(ser_printer, 200)
+        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
+    return custom_response(status_code=200, details=ser_printer)
 
 
 @printer_api.route('/view/all/', methods=['GET'])
-@requires_access_level(2)
+@jwt_required()
 def view_all_printers():
     """
     Function to view all printer records in the database
@@ -77,8 +77,8 @@ def view_all_printers():
     return get_multiple_printer_details(printer_model.get_all_printers())
 
 
-@printer_api.route('/view/individual/<int:printer_id>', methods=['GET'])
-@requires_access_level(2)
+@printer_api.route('/view/<int:printer_id>', methods=['GET'])
+@jwt_required()
 def view_by_id(printer_id):
     """
     Function to view a printer record in the database
@@ -88,8 +88,8 @@ def view_by_id(printer_id):
     return get_printer_details(printer_model.get_printer_by_id(printer_id))
 
 
-@printer_api.route('/view/individual/<string:printer_name>', methods=['GET'])
-@requires_access_level(2)
+@printer_api.route('/view/<string:printer_name>', methods=['GET'])
+@jwt_required()
 def view_by_name(printer_name):
     """
     Function to view a printer record in the database
@@ -100,7 +100,7 @@ def view_by_name(printer_name):
 
 
 @printer_api.route('/delete/<int:printer_id>', methods=['DELETE'])
-@requires_access_level(3)
+@jwt_required()
 def delete_by_id(printer_id):
     """
     Function to delete a printer record in the database
@@ -111,7 +111,7 @@ def delete_by_id(printer_id):
 
 
 @printer_api.route('/delete/<string:printer_name>', methods=['DELETE'])
-@requires_access_level(3)
+@jwt_required()
 def delete_by_name(printer_name):
     """
     Function to delete a printer record in the database
@@ -122,7 +122,7 @@ def delete_by_name(printer_name):
 
 
 @printer_api.route('/add', methods=['POST'])
-@requires_access_level(2)
+@jwt_required()
 def create():
     """
     Function to create a new printer record in the database
@@ -136,18 +136,18 @@ def create():
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response(status_code=400, details=err.messages)
 
     # check if printer already exists in the db
     printer_in_db = printer_model.get_printer_by_name(data.get('printer_name'))
     if printer_in_db:
         message = {
             'error': 'Printer already exists, please supply another printer name'}
-        return custom_response(message, 400)
+        return custom_response(status_code=400, details=message)
 
     printer = printer_model(data)
     printer.save()
-    return custom_response({"message": "success"}, 200)
+    return custom_response(status_code=200, extra_info="success", details=printer_schema.dump(printer))
 
 
 def delete_printer(printer):
@@ -157,9 +157,9 @@ def delete_printer(printer):
     :return response: error or success message
     """
     if not printer:
-        return custom_response({'error': NOTFOUNDPRINTER}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
     printer.delete()
-    return custom_response({'message': 'deleted'}, 200)
+    return custom_response(status_code=200, extra_info="deleted")
 
 
 def get_printer_details(printer):
@@ -169,9 +169,9 @@ def get_printer_details(printer):
     :return response: error or serialized printer
     """
     if not printer:
-        return custom_response({'error': NOTFOUNDPRINTER}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
     ser_printer = printer_schema.dump(printer)
-    return custom_response(ser_printer, 200)
+    return custom_response(status_code=200, details=ser_printer, extra_info="success")
 
 
 def update_printer_details(printer, req_data):
@@ -182,7 +182,7 @@ def update_printer_details(printer, req_data):
     :return response: error or serialized updated printer
     """
     if not printer:
-        return custom_response({'error': NOTFOUNDPRINTER}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
 
     # Try and load printer data to the schema
     try:
@@ -191,10 +191,10 @@ def update_printer_details(printer, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response(status_code=400, details=err.messages)
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
-    return custom_response(ser_printer, 200)
+    return custom_response(status_code=200, details=ser_printer, extra_info="success")
 
 
 def increment_printer_details(printer, req_data):
@@ -236,7 +236,7 @@ def increment_printer_details(printer, req_data):
         # => {"email": ['"foo" is not a valid email address.']}
         print(err.messages)
         print(err.valid_data)  # => {"name": "John"}
-        return custom_response(err.messages, 400)
+        return custom_response(status_code=400, details=err.messages)
     printer.update(data)
     ser_printer = printer_schema.dump(printer)
     return ser_printer
@@ -249,8 +249,9 @@ def get_multiple_printer_details(printers):
     :return response: error or a list of serialized printers
     """
     if not printers:
-        return custom_response({'error': NOTFOUNDPRINTER}, 404)
+        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
     jason = []
     for printer in printers:
         jason.append(printer_schema.dump(printer))
-    return custom_response(jason, 200)
+    final_res = {"printers": jason}
+    return custom_response(status_code=200, details=final_res, extra_info="success")
