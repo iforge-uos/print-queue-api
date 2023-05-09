@@ -22,4 +22,3 @@ pytest >= 7.2
 coverage >= 7.0
 Flask-CAS >= 1.0.2
 Flask-JWT-Extended >= 4.4.4
-```
