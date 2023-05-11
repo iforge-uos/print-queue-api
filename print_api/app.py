@@ -9,12 +9,14 @@ from print_api.extensions import db, migrate, mail, bootstrap, api, cors, jwt
 
 # Resources
 from print_api.resources.api_routes import (
-    auth_routes,
+    auth_route,
     maintenance_route,
     other_routes,
     print_job_route,
     printer_route,
     user_route,
+    role_permission_management_route,
+    file_upload_route,
 )
 
 load_dotenv("../.env")
@@ -67,7 +69,9 @@ def register_blueprints(app):
         print_job_route.print_job_api, url_prefix=f"{api_prefix}/jobs"
     )
     app.register_blueprint(other_routes.other_api, url_prefix=f"{api_prefix}/misc")
-    app.register_blueprint(auth_routes.auth_api, url_prefix=f"{api_prefix}/auth")
+    app.register_blueprint(auth_route.auth_api, url_prefix=f"{api_prefix}/auth")
+    app.register_blueprint(role_permission_management_route.role_permission_api, url_prefix=f"{api_prefix}/permission_management")
+    app.register_blueprint(file_upload_route.file_upload_api, url_prefix=f"{api_prefix}/file_upload")
     return None
 
 

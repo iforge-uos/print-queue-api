@@ -26,6 +26,8 @@ class user_model(db.Model):
     slice_failed_count = db.Column(db.Integer, nullable=False, default=0)
     slice_rejected_count = db.Column(db.Integer, nullable=False, default=0)
 
+    roles = db.relationship("UserRole", back_populates="user")
+
     # class constructor
     def __init__(self, data):
         """
