@@ -1,7 +1,7 @@
 from importlib.metadata import requires
 from marshmallow import fields, Schema
 from marshmallow_enum import EnumField
-from print_api.extensions import db
+from print_api.models import db
 import enum
 
 
@@ -15,7 +15,7 @@ class printer_type(enum.Enum):
     prusa = "Prusa MK3S+"
 
 
-class printer_model(db.Model):
+class Printer(db.Model):
     """
     Printer Model
     """
@@ -85,7 +85,7 @@ class printer_model(db.Model):
         Function to get all the printers in the database
         :return query_object: a query object containing all the printer
         """
-        return printer_model.query.all()
+        return Printer.query.all()
 
     @staticmethod
     def get_printer_by_id(id):
@@ -94,7 +94,7 @@ class printer_model(db.Model):
         :param int id: the PK of the printer
         :return query_object: a query object containing the printer
         """
-        return printer_model.query.get(id)
+        return Printer.query.get(id)
 
     @staticmethod
     def get_printer_by_name(value):
@@ -103,7 +103,7 @@ class printer_model(db.Model):
         :param str name: the string name of the printer
         :return query_object: a query object containing the printer
         """
-        return printer_model.query.filter_by(printer_name=value).first()
+        return Printer.query.filter_by(printer_name=value).first()
 
     def __repr__(self):
         return "<Printer: %r>" % self.printer_name

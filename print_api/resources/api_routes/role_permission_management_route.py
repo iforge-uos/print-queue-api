@@ -2,10 +2,7 @@ from flask import request, Blueprint
 from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
 from print_api.common.routing import custom_response
-from print_api.models.permission import Permission
-from print_api.models.role import Role
-from print_api.models.role_permission import RolePermission
-from print_api.models.user import user_model, user_schema
+from print_api.models import Permission, Role, RolePermission, User, UserRole, user_schema
 
 role_permission_api = Blueprint("role_permission", __name__)
 

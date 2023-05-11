@@ -5,7 +5,8 @@ from flask import Flask
 from dotenv import load_dotenv
 from print_api.config import config
 from print_api.common.routing import custom_response
-from print_api.extensions import db, migrate, mail, bootstrap, api, cors, jwt
+from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt
+from print_api.models import db
 
 # Resources
 from print_api.resources.api_routes import (

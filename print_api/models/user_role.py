@@ -1,4 +1,4 @@
-from print_api.extensions import db
+from print_api.models import db
 
 
 class UserRole(db.Model):
