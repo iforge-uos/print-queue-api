@@ -53,7 +53,7 @@ class GoogleDriveUploader:
         buffer.seek(0)
 
         # Create a MediaIoBaseUpload object with the buffer
-        media = MediaIoBaseUpload(buffer, mimetype=file.content_type)
+        media = MediaIoBaseUpload(buffer, mimetype=file.content_type, resumable=True, chunksize=1024 * 1024)
 
         request = self.drive_service.files().create(
             body={
@@ -66,10 +66,23 @@ class GoogleDriveUploader:
         )
 
         response = None
-        try:
-            response = request.execute()
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        while response is None:
+            try:
+                status, response = request.next_chunk()
+                if status:
+                    print(f"Uploaded {int(status.progress() * 100)}%.", end='\r', flush=True)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                # If an error occurred, retry the upload from the last successful chunk
+                request = self.drive_service.files().create(
+                    body={
+                        'name': file.filename,
+                        'parents': [subfolder_id]
+                    },
+                    media_body=media,
+                    fields='id',
+                    supportsAllDrives=True
+                )
 
         file_id = response['id'] if response else None
 
