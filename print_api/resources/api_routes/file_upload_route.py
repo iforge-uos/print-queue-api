@@ -33,7 +33,7 @@ def upload_stl():
             logger.error(f"File type {file_type} not allowed")
             return custom_response(status_code=400, details="File type not allowed")
 
-        return upload_file_with_catches(file)
+        return upload_file_with_catches(file, "stls")
     else:
         logger.error("No file in the request")
         return custom_response(status_code=400, details="No file in the request")
@@ -62,20 +62,24 @@ def upload_gcode():
         if file_type != "gcode":
             logger.error(f"File type {file_type} not allowed")
             return custom_response(status_code=400, details="File type not allowed")
-        return upload_file_with_catches(file)
+        return upload_file_with_catches(file, "gcode")
     else:
         logger.error("No file in the request")
         return custom_response(status_code=400, details="No file in the request")
 
 
-def upload_file_with_catches(file):
+def upload_file_with_catches(file, directory_name):
     logger = current_app.logger
     try:
         uploader = GoogleDriveUploader()
-        slug = uploader.upload_file(file)
+        file_slug, folder_slug = uploader.upload_file(file, directory_name)
     except Exception as e:
         logger.error(f"An error occurred while uploading the file: {e}")
         return custom_response(status_code=500, details="An error occurred while uploading the file.")
 
-    logger.info(f"File uploaded successfully - slug: {slug}")
-    return custom_response(status_code=200, extra_info=f"File uploaded successfully - slug: {slug}")
+    logger.info(f"File uploaded successfully - File Slug: {file_slug}, Folder Slug: {folder_slug}")
+    data = {
+        "file_slug": file_slug,
+        "folder_slug": folder_slug
+    }
+    return custom_response(status_code=200, details=data)
