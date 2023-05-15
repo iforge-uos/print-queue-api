@@ -6,9 +6,6 @@ from print_api.common.gdrive import GoogleDriveUploader
 
 file_upload_api = Blueprint("file_upload", __name__)
 
-file_upload_path = os.getenv("UPLOAD_FOLDER")
-
-
 @file_upload_api.route("/upload_stl", methods=["POST"])
 def upload_stl():
     """

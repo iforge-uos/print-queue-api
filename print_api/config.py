@@ -20,6 +20,7 @@ class Config:
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 200)) * 1024 * 1024
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     DEBUG = True
