@@ -90,6 +90,8 @@ def register_errorhandlers(app):
             error_message = "Access denied. You do not have the required permissions to access this resource."
         elif error_code == 404:
             error_message = "Resource not found."
+        elif error_code == 413:
+            error_message = "The request entity is too large."
         elif error_code == 500:
             error_message = "Internal server error."
         else:
@@ -97,7 +99,7 @@ def register_errorhandlers(app):
 
         return custom_response(error_code, error_message, extra_info=error_description)
 
-    for errcode in [401, 404, 500]:
+    for errcode in [401, 404, 413, 500]:
         app.errorhandler(errcode)(render_error)
     return None
 
