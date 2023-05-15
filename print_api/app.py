@@ -1,4 +1,3 @@
-import os
 import logging
 import sys
 from flask import Flask
@@ -34,7 +33,7 @@ def create_app(config_name: str = "development"):
     register_extensions(app)
     register_blueprints(app)
     configure_logger(app)
-    register_errorhandlers(app)
+    register_errorhandler(app)
     return app
 
 
@@ -71,12 +70,13 @@ def register_blueprints(app):
     )
     app.register_blueprint(other_routes.other_api, url_prefix=f"{api_prefix}/misc")
     app.register_blueprint(auth_route.auth_api, url_prefix=f"{api_prefix}/auth")
-    app.register_blueprint(role_permission_management_route.role_permission_api, url_prefix=f"{api_prefix}/permission_management")
+    app.register_blueprint(role_permission_management_route.role_permission_api,
+                           url_prefix=f"{api_prefix}/permission_management")
     app.register_blueprint(file_upload_route.file_upload_api, url_prefix=f"{api_prefix}/file_upload")
     return None
 
 
-def register_errorhandlers(app):
+def register_errorhandler(app):
     """Register error handlers."""
 
     def render_error(error):
