@@ -1,6 +1,7 @@
 import click
 import urllib.parse
 import subprocess
+import os
 from datetime import datetime, timedelta
 
 from print_api.models import db, Role, Permission, RolePermission, BlacklistedToken, Printer, printer_type, \
@@ -58,16 +59,14 @@ def register_commands(app):
         init_db()
 
     @app.cli.command("restore-db")
-    @click.argument("backup_file", type=click.Path(exists=True, dir_okay=False))
-    def meta_restore_db(backup_file):
+    def meta_restore_db():
         """Restore the database from a backup file."""
-        restore_db(backup_file)
+        restore_db()
 
     @app.cli.command("backup-db")
-    @click.argument("backup_file", type=click.Path(exists=False, dir_okay=False))
-    def meta_backup_db(backup_file):
+    def meta_backup_db():
         """Backup the database to a file."""
-        backup_db(backup_file)
+        backup_db()
 
     @app.cli.command("app-status")
     def app_status():
@@ -84,7 +83,7 @@ def register_commands(app):
         click.echo(click.style("\nDatabase status:", fg="yellow"))
         try:
             engine = db.engine
-            with engine.connect() as con:
+            with engine.connect() as _:
                 click.echo(f"Connection: {click.style('OK', fg='green')}")
         except Exception as e:
             click.echo(f"Connection: {click.style(f'FAILED - {e}', fg='green')}")
@@ -226,7 +225,7 @@ def seed_default_auth():
     ]
 
     permissions = permissions_user + permissions_printer + permissions_print_job + permissions_files \
-                  + permissions_roles_and_auth
+        + permissions_roles_and_auth
 
     # Add the permissions to the session
     db.session.add_all(permissions)
@@ -284,52 +283,66 @@ def seed_all():
     click.echo(click.style("Seeding Complete!", fg="green", bold=True))
 
 
-def backup_db(backup_file):
+def backup_db():
     """Creates a backup of the database to a specified file."""
     click.echo("Backing up the database...")
-
-    database_url = Config.SQLALCHEMY_DATABASE_URI
-
-    # Extract the database name from the DATABASE_URL
-    db_name = database_url.split("/")[-1]
 
     try:
         subprocess.run(
             [
                 "pg_dump",
-                "--dbname=" + db_name,
-                "--file=" + backup_file,
-                "--no-password",
+                "-F",
+                'c',
+                '-b',
+                '-f',
+                'backup.dump',
+                Config.SQLALCHEMY_DATABASE_URI,
             ],
             check=True,
         )
-        click.echo(f"Database backup saved to {backup_file}")
+        click.echo(click.style(f"Database backup saved to backup.dump", fg="green"))
     except subprocess.CalledProcessError as e:
-        click.echo(f"Error: {e}", err=True)
+        click.echo(click.style(f"Error: {e}", fg="red"))
 
 
-def restore_db(backup_file):
+def restore_db():
     """Restores the database from a specified backup file."""
-    click.echo("Restoring the database...")
+    click.echo(click.style("Restoring the database...", fg="green"))
 
-    database_url = Config.SQLALCHEMY_DATABASE_URI
+    parsed_url = urllib.parse.urlparse(Config.SQLALCHEMY_DATABASE_URI)
 
-    # Extract the database name from the DATABASE_URL
-    db_name = database_url.split("/")[-1]
+    hostname = str(parsed_url.hostname)
+    db_password = str(parsed_url.password)
+    username = str(parsed_url.username)
+    port = str(parsed_url.port)
+    database = str(parsed_url.path[1:])
+
+    backup_file = "backup.dump"
 
     try:
-        subprocess.run(
-            [
-                "psql",
-                "--dbname=" + db_name,
-                "--file=" + backup_file,
-                "--no-password",
-            ],
-            check=True,
-        )
-        click.echo(f"Database restored from {backup_file}")
+        cmd = [
+            "pg_restore",
+            "--host=" + hostname,
+            "--port=" + port,
+            "--username=" + username,
+            "--dbname=" + database,
+            "--no-owner",
+            "--no-acl",
+            "--clean",
+            backup_file,
+        ]
+
+        env = os.environ.copy()
+        env["PGPASSWORD"] = db_password
+
+        process = subprocess.run(cmd, env=env, capture_output=True, text=True)
+
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode, cmd, output=process.stdout, stderr=process.stderr)
+
+        click.echo(click.style(f"Database restored from {backup_file}", fg="green"))
     except subprocess.CalledProcessError as e:
-        click.echo(f"Error: {e}", err=True)
+        click.echo(click.style(f"Error: {e}", fg="red"))
 
 
 SEED_FUNCTIONS = {

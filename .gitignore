@@ -160,3 +160,4 @@ cython_debug/
 .pgdata/**
 .idea/
 **/migrations/**
+*.dump
