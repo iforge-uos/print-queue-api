@@ -43,7 +43,7 @@ class Printer(db.Model):
         self.printer_type = data.get("printer_type")
         self.ip = data.get("ip") or None
         self.api_key = data.get("api_key") or None
-        self.total_time_printed = data.get("total_timed_printed")
+        self.total_time_printed = data.get("total_time_printed")
         self.completed_prints = data.get("completed_prints")
         self.failed_prints = data.get("failed_prints")
         self.total_filament_used = data.get("total_filament_used")

@@ -6,6 +6,7 @@ from print_api.config import config
 from print_api.common.routing import custom_response
 from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt
 from print_api.models import db
+from print_api.cli import register_commands
 
 # Resources
 from print_api.resources.api_routes import (
@@ -34,6 +35,8 @@ def create_app(config_name: str = "development"):
     register_blueprints(app)
     configure_logger(app)
     register_errorhandler(app)
+
+    register_commands(app)
     return app
 
 
