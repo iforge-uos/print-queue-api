@@ -22,6 +22,7 @@ def register_commands(app):
 
     @app.cli.command("seed-db")
     def meta_seed_all():
+        """Seed the database with all default seeds"""
         seed_all()
 
     @app.cli.command("nuke-db")
@@ -52,20 +53,22 @@ def register_commands(app):
 
     @app.cli.command("drop-db")
     def meta_drop_db():
+        """Drop the database."""
         drop_db()
 
     @app.cli.command("init-db")
     def meta_init_db():
+        """Initialise the database."""
         init_db()
 
     @app.cli.command("restore-db")
     def meta_restore_db():
-        """Restore the database from a backup file."""
+        """Restore the database from backup.dump file."""
         restore_db()
 
     @app.cli.command("backup-db")
     def meta_backup_db():
-        """Backup the database to a file."""
+        """Backup the database to backup.dump file."""
         backup_db()
 
     @app.cli.command("app-status")
