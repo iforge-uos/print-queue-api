@@ -1,5 +1,7 @@
 import logging
-import sys
+from logging.handlers import RotatingFileHandler
+import os
+import traceback
 from flask import Flask
 from dotenv import load_dotenv
 from print_api.config import config
@@ -23,17 +25,17 @@ from print_api.resources.api_routes import (
 load_dotenv("../.env")
 
 
-def create_app(config_name: str = "development"):
+def create_app(config_env: str = "development"):
     """
     Create application factory
-    :param obj config_name: The configuration name to use.
+    :param obj config_env: The configuration name to use.
     :return app: The newly created application
     """
     app = Flask(__name__.split(".")[0])
-    app.config.from_object(config[config_name])
+    app.config.from_object(config[config_env])
+    configure_logger(app, config_env)
     register_extensions(app)
     register_blueprints(app)
-    configure_logger(app)
     register_errorhandler(app)
 
     register_commands(app)
@@ -107,12 +109,27 @@ def register_errorhandler(app):
     return None
 
 
-def configure_logger(app):
+def configure_logger(app, env: str = "development"):
     """
     Configure the logger
     """
-    handler = logging.StreamHandler(sys.stdout)
-    logging.getLogger("flask_cors").level = logging.DEBUG
-    if not app.logger.handlers:
-        app.logger.addHandler(handler)
+    log_location = app.config["LOG_LOCATION"]
+    max_log_size = app.config["LOG_MAX_SIZE"]
+
+    if app.config['LOG_TO_STDOUT'] == "True":
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        app.logger.addHandler(stream_handler)
+    else:
+        if not os.path.exists(log_location):
+            os.mkdir(log_location)
+        file_handler = RotatingFileHandler(f'{log_location}/{env}.log',
+                                           maxBytes=max_log_size, backupCount=10)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('Print-API Startup')
     return None
