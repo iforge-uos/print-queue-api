@@ -1,7 +1,7 @@
 import logging
-from logging.handlers import RotatingFileHandler
 import os
-import traceback
+from logging.handlers import RotatingFileHandler
+from celery import Celery
 from flask import Flask
 from dotenv import load_dotenv
 from print_api.config import config
@@ -24,6 +24,10 @@ from print_api.resources.api_routes import (
 
 load_dotenv("../.env")
 
+celery = Celery(__name__, broker=os.getenv('broker_url'), backend=os.getenv('result_backend'))
+
+from print_api.common.tasks import *
+
 
 def create_app(config_env: str = "development"):
     """
@@ -34,11 +38,14 @@ def create_app(config_env: str = "development"):
     app = Flask(__name__.split(".")[0])
     app.config.from_object(config[config_env])
     configure_logger(app, config_env)
+
     register_extensions(app)
     register_blueprints(app)
     register_errorhandler(app)
-
     register_commands(app)
+
+    celery.conf.update(app.config)
+
     return app
 
 

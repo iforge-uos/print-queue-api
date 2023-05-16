@@ -30,6 +30,9 @@ class Config:
     DEBUG = True
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    broker_url = os.getenv("CELERY_BROKER_URL")
+    result_backend = os.getenv("CELERY_RESULT_BACKEND")
+    RATELIMIT_STORAGE_URL = os.getenv("RATELIMIT_STORAGE_URL")
 
 
 class DevelopmentConfig(Config):
