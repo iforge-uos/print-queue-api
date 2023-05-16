@@ -1,10 +1,11 @@
 import click
 import urllib.parse
-from tabulate import tabulate
+import subprocess
 from datetime import datetime, timedelta
+
 from print_api.models import db, Role, Permission, RolePermission, BlacklistedToken, Printer, printer_type, \
     printer_location
-from print_api.config import Config
+from print_api.config import DevelopmentConfig as Config
 
 
 def register_commands(app):
@@ -55,6 +56,44 @@ def register_commands(app):
     @app.cli.command("init-db")
     def meta_init_db():
         init_db()
+
+    @app.cli.command("restore-db")
+    @click.argument("backup_file", type=click.Path(exists=True, dir_okay=False))
+    def meta_restore_db(backup_file):
+        """Restore the database from a backup file."""
+        restore_db(backup_file)
+
+    @app.cli.command("backup-db")
+    @click.argument("backup_file", type=click.Path(exists=False, dir_okay=False))
+    def meta_backup_db(backup_file):
+        """Backup the database to a file."""
+        backup_db(backup_file)
+
+    @app.cli.command("app-status")
+    def app_status():
+        """Prints out some diagnostic information about the application."""
+
+        click.echo(click.style("Application status:", fg="green", bold=True))
+
+        # Flask application configuration
+        click.echo(click.style("\nFlask application configuration:", fg="yellow"))
+        for key in sorted(app.config.keys()):
+            click.echo(f"{click.style(key, fg='magenta')}: {app.config[key]}")
+
+        # Database status
+        click.echo(click.style("\nDatabase status:", fg="yellow"))
+        try:
+            engine = db.engine
+            with engine.connect() as con:
+                click.echo(f"Connection: {click.style('OK', fg='green')}")
+        except Exception as e:
+            click.echo(f"Connection: {click.style(f'FAILED - {e}', fg='green')}")
+
+        # Registered routes
+        click.echo(click.style("\nRegistered routes:", fg="yellow", bold=True))
+        for rule in sorted(app.url_map.iter_rules(), key=lambda rule_end: rule_end.endpoint):
+            methods = ','.join(sorted(rule.methods))
+            click.echo(f"{click.style(rule.endpoint, fg='cyan')}: {methods} {click.style(rule, fg='yellow')}")
 
     @app.cli.command("clear-expired-blacklist")
     def clear_expired_blacklist():
@@ -243,6 +282,54 @@ def seed_all():
             click.echo(click.style(f"{seed_name} already seeded", fg="yellow", italic=True))
 
     click.echo(click.style("Seeding Complete!", fg="green", bold=True))
+
+
+def backup_db(backup_file):
+    """Creates a backup of the database to a specified file."""
+    click.echo("Backing up the database...")
+
+    database_url = Config.SQLALCHEMY_DATABASE_URI
+
+    # Extract the database name from the DATABASE_URL
+    db_name = database_url.split("/")[-1]
+
+    try:
+        subprocess.run(
+            [
+                "pg_dump",
+                "--dbname=" + db_name,
+                "--file=" + backup_file,
+                "--no-password",
+            ],
+            check=True,
+        )
+        click.echo(f"Database backup saved to {backup_file}")
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Error: {e}", err=True)
+
+
+def restore_db(backup_file):
+    """Restores the database from a specified backup file."""
+    click.echo("Restoring the database...")
+
+    database_url = Config.SQLALCHEMY_DATABASE_URI
+
+    # Extract the database name from the DATABASE_URL
+    db_name = database_url.split("/")[-1]
+
+    try:
+        subprocess.run(
+            [
+                "psql",
+                "--dbname=" + db_name,
+                "--file=" + backup_file,
+                "--no-password",
+            ],
+            check=True,
+        )
+        click.echo(f"Database restored from {backup_file}")
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Error: {e}", err=True)
 
 
 SEED_FUNCTIONS = {
