@@ -30,15 +30,15 @@ def login():
         return custom_response(status_code=400, details="Must supply uid and password")
 
     if ldap_authenticate(uid, password):
-
-        # Create tokens
-        gen_access_token, gen_refresh_token = generate_tokens(uid)
-
         # Check if user exists in database and if not populate via LDAP
         user = return_or_create_user(uid)
         user_details = get_main_user_details(user)
+
+        # Create tokens
         if user is None:
             return custom_response(status_code=409, details="User does not exist. Please contact an admin")
+
+        gen_access_token, gen_refresh_token = generate_tokens(uid)
 
         return custom_response(status_code=200, details={"access_token": gen_access_token,
                                                          "refresh_token": gen_refresh_token,
@@ -69,8 +69,6 @@ def refresh():
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
     return custom_response(status_code=200, details={"access_token": access_token}, extra_info="Successfully refreshed")
-
-
 
 
 def return_or_create_user(uid):

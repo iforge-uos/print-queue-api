@@ -3,10 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 # initialize our db
 db = SQLAlchemy()
 
+from .user_role import UserRole
 from .user import User, user_schema
 from .role import Role
 from .permission import Permission
-from .user_role import UserRole
 from .role_permission import RolePermission
 from .printers import Printer, printer_schema, printer_type, printer_location
 from .maintenance_logs import MaintenanceLog, maintenance_schema
