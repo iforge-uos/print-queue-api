@@ -1,1 +1,1 @@
-"""Main application package."""
+from .core import *

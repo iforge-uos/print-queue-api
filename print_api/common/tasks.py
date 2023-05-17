@@ -1,10 +1,14 @@
-from print_api.app import celery
+import datetime
+import time
+import logging
+from celery import Celery
+
+logger = logging.getLogger()
+celery = Celery(__name__, autofinalize=False)
 
 
-@celery.task(name="test_celery_task")
-def test_celery_task():
-    """
-    Test Celery Task
-    """
-    print("Celery task has been executed")
-    return True
+@celery.task(bind=True)
+def wait_task(self, sleep_time):
+    """sample task that sleeps x seconds then returns the current datetime"""
+    time.sleep(sleep_time)
+    return datetime.datetime.now().isoformat()

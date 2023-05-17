@@ -20,10 +20,10 @@ flask run
 
 ## Run Celery (Windows)
 pip install eventlet
-celery -A celery_worker.celery  worker -l info -P eventlet
+celery -A entrypoint_celery worker -l info -P eventlet
 
 ## Run Celery (Linux)
-celery -A celery_worker.celery  worker -l info
+celery -A entrypoint_celery  worker -l info
 
 # Database Commands
 flask init-db # Initialize the database

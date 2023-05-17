@@ -1,7 +1,6 @@
 import logging
 import os
 from logging.handlers import RotatingFileHandler
-from celery import Celery
 from flask import Flask
 from dotenv import load_dotenv
 from print_api.config import config
@@ -9,6 +8,8 @@ from print_api.common.routing import custom_response
 from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt
 from print_api.models import db
 from print_api.cli import register_commands
+from print_api.common import tasks
+from print_api.common.tasks import celery
 
 # Resources
 from print_api.resources.api_routes import (
@@ -22,46 +23,70 @@ from print_api.resources.api_routes import (
     file_upload_route,
 )
 
-load_dotenv("../.env")
-
-celery = Celery(__name__, broker=os.getenv('broker_url'), backend=os.getenv('result_backend'))
-
-from print_api.common.tasks import *
+logger = logging.getLogger()
 
 
 def create_app(config_env: str = "development"):
-    """
-    Create application factory
-    :param obj config_env: The configuration name to use.
-    :return app: The newly created application
-    """
-    app = Flask(__name__.split(".")[0])
-    app.config.from_object(config[config_env])
-    configure_logger(app, config_env)
+    return entrypoint(config_env=config_env, mode='app')
 
-    register_extensions(app)
+
+def create_celery(config_env: str = "development"):
+    return entrypoint(config_env=config_env, mode='celery')
+
+
+def entrypoint(config_env: str = "development", mode='app'):
+    assert isinstance(mode, str), 'bad mode type "{}"'.format(type(mode))
+    assert mode in ('app', 'celery'), 'bad mode "{}"'.format(mode)
+
+    app = Flask(__name__)
+
+    configure_app(app, config_env)
+    configure_logging(app, config_env)
+    configure_celery(app, tasks.celery)
+
+    # register blueprints
     register_blueprints(app)
-    register_errorhandler(app)
+
+    # register commands
     register_commands(app)
 
-    celery.conf.update(app.config)
+    # register extensions
+    register_extensions(app)
+    # register error handler
+    register_errorhandler(app)
+    if mode == 'app':
+        return app
+    elif mode == 'celery':
+        return celery
 
-    return app
+
+def configure_app(app, config_env: str = "development"):
+    # load .env file
+    load_dotenv("../.env")
+    app.config.from_object(config[config_env])
 
 
-def register_extensions(app):
-    """
-    Register Flask extensions.
-    :param app: the flask application
-    """
-    api.init_app(app)
-    db.init_app(app)
-    mail.init_app(app)
-    migrate.init_app(app, db)
-    bootstrap.init_app(app)
-    cors.init_app(app, resources={r"*": {"origins": "*"}}, supports_credentials=True)
-    jwt.init_app(app)
-    return None
+def configure_celery(app, celery):
+    app.logger.info(app.config)
+    # set broker url and result backend from app config
+    celery.conf.broker_url = app.config['CELERY_BROKER_URL']
+    celery.conf.result_backend = app.config['CELERY_RESULT_BACKEND']
+
+    # subclass task base for app context
+    # http://flask.pocoo.org/docs/0.12/patterns/celery/
+    TaskBase = celery.Task
+
+    class AppContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    celery.Task = AppContextTask
+
+    # run finalize to process decorated tasks
+    celery.finalize()
 
 
 def register_blueprints(app):
@@ -116,7 +141,22 @@ def register_errorhandler(app):
     return None
 
 
-def configure_logger(app, env: str = "development"):
+def register_extensions(app):
+    """
+    Register Flask extensions.
+    :param app: the flask application
+    """
+    api.init_app(app)
+    db.init_app(app)
+    mail.init_app(app)
+    migrate.init_app(app, db)
+    bootstrap.init_app(app)
+    cors.init_app(app, resources={r"*": {"origins": "*"}}, supports_credentials=True)
+    jwt.init_app(app)
+    return None
+
+
+def configure_logging(app, env: str = "development"):
     """
     Configure the logger
     """

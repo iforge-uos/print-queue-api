@@ -1,6 +1,6 @@
 from flask import Blueprint
 from print_api.common.routing import custom_response
-
+import print_api.common.tasks as tasks
 other_api = Blueprint("misc", __name__)
 
 
@@ -28,6 +28,5 @@ def test_celery():
     """
     Test Endpoint 3
     """
-    from print_api.common.tasks import test_celery_task
-    test_celery_task.delay()
+    tasks.wait_task.apply_async(kwargs={"sleep_time": 10})
     return custom_response(status_code=200, extra_info="Celery task has been sent")
