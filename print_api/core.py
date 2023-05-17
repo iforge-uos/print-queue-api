@@ -10,6 +10,9 @@ from print_api.models import db
 from print_api.cli import register_commands
 from print_api.common import tasks
 from print_api.common.tasks import celery
+from typing import Union
+from celery import Celery as CeleryType
+
 
 # Resources
 from print_api.resources.api_routes import (
@@ -26,15 +29,19 @@ from print_api.resources.api_routes import (
 logger = logging.getLogger()
 
 
-def create_app(config_env: str = "development"):
-    return entrypoint(config_env=config_env, mode='app')
+def create_app(config_env: str = "development") -> Flask:
+    result =  entrypoint(config_env=config_env, mode='app')
+    assert isinstance(result,Flask), f'Expected a Flask instance, got {type(result)}'
+    return result
 
 
-def create_celery(config_env: str = "development"):
-    return entrypoint(config_env=config_env, mode='celery')
+def create_celery(config_env: str = "development") -> CeleryType:
+    result = entrypoint(config_env=config_env, mode='celery')
+    assert isinstance(result, CeleryType), f'Expected a Celery instance, got {type(result)}'
+    return result
 
 
-def entrypoint(config_env: str = "development", mode='app'):
+def entrypoint(config_env: str = "development", mode: str = 'app') -> Union[Flask, CeleryType]:
     assert isinstance(mode, str), 'bad mode type "{}"'.format(type(mode))
     assert mode in ('app', 'celery'), 'bad mode "{}"'.format(mode)
 
