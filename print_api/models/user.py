@@ -1,6 +1,6 @@
 from sqlalchemy.sql import func
 from marshmallow import fields, Schema
-from print_api.models import db
+from print_api.models import db, UserRole
 from print_api.common.ldap import LDAP
 
 
@@ -60,6 +60,8 @@ class User(db.Model):
             }
         )
         user.save()
+        user_role = UserRole(user.id, 1)
+        user_role.save()
         return True
 
     def save(self):
