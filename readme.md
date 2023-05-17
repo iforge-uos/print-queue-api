@@ -5,6 +5,8 @@ This is a "simple" application that will provide an endpoint for the print queue
 
 **MORE DOCUMENTATION COMING SOON**
 
+**DOCKER COMING SOON**
+
 ## Requirements
 - Python >= 3.9
 - Postgresql Database
