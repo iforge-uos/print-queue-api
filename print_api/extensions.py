@@ -1,4 +1,4 @@
-"""Extensions module. Each extension is initialized in the app factory located in entrypoint_api.py."""
+"""Extensions module. Each extension is initialized in the app factory located in app.py."""
 import os
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
