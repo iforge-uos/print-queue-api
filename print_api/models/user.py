@@ -1,10 +1,10 @@
 from sqlalchemy.sql import func
 from marshmallow import fields, Schema
-from print_api.extensions import db
+from print_api.models import db
 from print_api.common.ldap import LDAP
 
 
-class user_model(db.Model):
+class User(db.Model):
     """
     User Model
     """
@@ -25,6 +25,8 @@ class user_model(db.Model):
     slice_completed_count = db.Column(db.Integer, nullable=False, default=0)
     slice_failed_count = db.Column(db.Integer, nullable=False, default=0)
     slice_rejected_count = db.Column(db.Integer, nullable=False, default=0)
+
+    roles = db.relationship("UserRole", back_populates="user")
 
     # class constructor
     def __init__(self, data):
@@ -50,7 +52,7 @@ class user_model(db.Model):
         )
         if user_info is None:
             return False
-        user = user_model(
+        user = User(
             {
                 "name": str(user_info["givenName"]) + " " + str(user_info["sn"]),
                 "email": str(user_info["mail"]).lower(),
@@ -88,7 +90,7 @@ class user_model(db.Model):
         Function to get all the users in the database
         :return query_object: a query object containing all the users
         """
-        return user_model.query.all()
+        return User.query.all()
 
     @staticmethod
     def get_user_by_id(id):
@@ -97,7 +99,7 @@ class user_model(db.Model):
         :param int id: the PK of the user
         :return query_object: a query object containing the user
         """
-        return user_model.query.get(id)
+        return User.query.get(id)
 
     @staticmethod
     def get_user_by_email(value):
@@ -106,7 +108,7 @@ class user_model(db.Model):
         :param str value: the email of the user
         :return query_object: a query object containing the user
         """
-        return user_model.query.filter_by(email=value).first()
+        return User.query.filter_by(email=value).first()
 
     @staticmethod
     def get_user_by_uid(value):
@@ -115,7 +117,7 @@ class user_model(db.Model):
         :param str value: the uid of the user
         :return query_object: a query object containing the user
         """
-        return user_model.query.filter_by(uid=value).first()
+        return User.query.filter_by(uid=value).first()
 
     def __repr__(self):
         if self.short_name is None:

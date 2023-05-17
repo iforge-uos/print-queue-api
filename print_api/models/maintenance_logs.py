@@ -1,17 +1,17 @@
 from marshmallow import fields, Schema
-from print_api.extensions import db
-from print_api.models.printers import printer_model
+from print_api.models import db
+from print_api.models.printers import Printer
 from sqlalchemy.sql import func
 
 
-class maintenance_model (db.Model):
+class MaintenanceLog (db.Model):
     """
     Maintenance Logs Model
     """
     __tablename__ = 'maintenance_logs'
     id = db.Column(db.Integer, primary_key=True)
     printer_id = db.Column(db.Integer, db.ForeignKey(
-        printer_model.id, ondelete="cascade"), nullable=False)
+        Printer.id, ondelete="cascade"), nullable=False)
     maintenance_date = db.Column(db.DateTime(
         timezone=True), server_default=func.now(), onupdate=func.now())
     maintenance_info = db.Column(db.String, nullable=False)
@@ -54,7 +54,7 @@ class maintenance_model (db.Model):
         Function to get all the maintenance logs in the database
         :return query_object: a query object containing all the maintenance logs
         """
-        return maintenance_model.query.all()
+        return MaintenanceLog.query.all()
 
     @staticmethod
     def get_maintenance_log_by_id(id):
@@ -63,7 +63,7 @@ class maintenance_model (db.Model):
         :param int id: the PK of the log
         :return query_object: a query object containing the maintenance log
         """
-        return maintenance_model.query.get(id)
+        return MaintenanceLog.query.get(id)
 
     @staticmethod
     def get_maintenance_logs_by_printer_id(value):
@@ -72,7 +72,7 @@ class maintenance_model (db.Model):
         :param int value: the PK of the printer in the database
         :return query_object: a query object containing the maintenance logs associated with that printer
         """
-        return maintenance_model.query.filter_by(printer_id=value).all()
+        return MaintenanceLog.query.filter_by(printer_id=value).all()
 
     def __repr__(self):
         return "<maintenance ID: %r>" % self.id

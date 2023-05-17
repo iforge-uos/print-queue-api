@@ -3,14 +3,11 @@ from flask_jwt_extended import jwt_required
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
 from print_api.resources.api_routes.printer_route import increment_printer_details
+from print_api.models import PrintJob, print_job_schema, Printer, User
 from print_api.models.print_jobs import (
-    print_job_model,
-    print_job_schema,
     project_types,
     job_status,
 )
-from print_api.models.printers import printer_model
-from print_api.models.user import user_model
 from print_api.resources.api_routes.user_route import calculate_level_from_score
 from print_api.common.routing import custom_response
 from print_api.common.emails import email
@@ -69,7 +66,7 @@ def create():
         print(err.valid_data)  # => {"name": "John"}
         return custom_response(status_code=400, details=err.messages)
 
-    job = print_job_model(data)
+    job = PrintJob(data)
     job.save()
     return custom_response(status_code=200, extra_info="success", details=print_job_schema.dump(job))
 
@@ -82,7 +79,7 @@ def view_job_single(job_id):
     :param int job_id: PK of the job record to retrieve
     :return response: error or serialized job
     """
-    return get_single_job_details(print_job_model.get_print_job_by_id(job_id))
+    return get_single_job_details(PrintJob.get_print_job_by_id(job_id))
 
 
 @print_job_api.route("/view/<string:status>", methods=["GET"])
@@ -97,7 +94,7 @@ def view_jobs_by_status(status):
     if status not in job_status._member_names_:
         return custom_response(status_code=400, details=STATUSERROR)
     # Return a list of jason objects that match status query
-    return get_multiple_job_details(print_job_model.get_print_jobs_by_status(status))
+    return get_multiple_job_details(PrintJob.get_print_jobs_by_status(status))
 
 
 @print_job_api.route("/approve/accept/<int:job_id>", methods=["PUT"])
@@ -108,7 +105,7 @@ def accept_approval_job(job_id):
     :param int job_id: PK of the print_job record
     :return response: error or serialized updated job record
     """
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
 
     # Check job exists
     if not job:
@@ -126,7 +123,7 @@ def reject_approval_job(job_id):
     :param int job_id: PK of the print_job record
     :return response: error or serialized updated job record
     """
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response(status_code=404, details=JOBNOTFOUND)
@@ -152,7 +149,7 @@ def start_queued_job(job_id):
     # Calculating what data to fetch from printer model
     request_dict = filter_request_to_keys(req_data, required_keys)
 
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response(status_code=404, details=JOBNOTFOUND)
@@ -162,7 +159,7 @@ def start_queued_job(job_id):
     printer_id = request_dict["printer"]
     if not check_printer_id(printer_id):
         return custom_response(status_code=404, details="Printer Not Found")
-    if printer_model.get_printer_by_id(printer_id).printer_type != job.printer_type:
+    if Printer.get_printer_by_id(printer_id).printer_type != job.printer_type:
         return custom_response(status_code=400, details="Printer Type mismatch")
     if running_on_printer(printer_id):
         return custom_response(status_code=400, details="Associated Printer is in use")
@@ -180,7 +177,7 @@ def complete_job(job_id):
     :param int job_id: PK of the print_job record
     :return response: error or serialized updated job record
     """
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response(status_code=404, details=JOBNOTFOUND)
@@ -198,7 +195,7 @@ def complete_job(job_id):
 
     # Increment Printer Values
     ser_printer = increment_printer_details(
-        printer_model.get_printer_by_id(job.printer), printer_increment_values
+        Printer.get_printer_by_id(job.printer), printer_increment_values
     )
     if ser_printer is None:
         return custom_response(status_code=400, details="Printer Increment Error")
@@ -246,7 +243,7 @@ def fail_job(job_id):
     if requeue not in ["yes", "no"]:
         return custom_response(status_code=400, details="Invalid Parameters in Request", extra_info="Requeue needs to be yes or no")
 
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response(status_code=404, details=JOBNOTFOUND)
@@ -264,7 +261,7 @@ def fail_job(job_id):
 
     # Increment Printer Values
     ser_printer = increment_printer_details(
-        printer_model.get_printer_by_id(job.printer), printer_increment_values
+        Printer.get_printer_by_id(job.printer), printer_increment_values
     )
     if ser_printer is None:
         return custom_response(status_code=400, details="Printer Increment Error")
@@ -323,7 +320,7 @@ def reject_job(job_id):
     :param int job_id: PK of the print_job record
     :return response: error or serialized updated job record
     """
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response(status_code=404, details=JOBNOTFOUND)
@@ -368,7 +365,7 @@ def queue_job(job_id):
     :param int job_id: PK of the print_job record
     :return response: error or serialized updated job record
     """
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response(status_code=404, details=JOBNOTFOUND)
@@ -402,7 +399,7 @@ def review_job(job_id):
     :param int job_id: PK of the print_job record
     :return response: error or serialized updated job record
     """
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
     # Check job exists
     if not job:
         return custom_response(status_code=404, details=JOBNOTFOUND)
@@ -436,7 +433,7 @@ def delete_job(job_id):
     :param int job_id: PK of the record in the database.
     :return response: error or confirmation message
     """
-    job = print_job_model.get_print_job_by_id(job_id)
+    job = PrintJob.get_print_job_by_id(job_id)
     if not job:
         return custom_response(status_code=404, details=JOBNOTFOUND)
     job.delete()
@@ -460,7 +457,7 @@ def check_printer_id(printer_id):
     :param int printer_id: PK of the printer to search for
     :return bool result: true if it exists, false otherwise
     """
-    if printer_model.get_printer_by_id(printer_id) is None:
+    if Printer.get_printer_by_id(printer_id) is None:
         return False
     return True
 
@@ -472,7 +469,7 @@ def running_on_printer(printer_id):
     :return bool result: true if it is running on another printer (therefore do not run the job) or False if it is not
     """
     used_printer_ids = []
-    running_jobs = print_job_model.get_print_jobs_by_status("running")
+    running_jobs = PrintJob.get_print_jobs_by_status("running")
     for job in running_jobs:
         used_printer_ids.append(print_job_schema.dump(job)["printer"])
     if printer_id not in used_printer_ids:
@@ -486,7 +483,7 @@ def check_user_id(user_id):
     :param int user_id: user PK to lookup in the user_database
     :return str user_level: the level of the user or None if it does not exist
     """
-    user = user_model.get_user_by_id(user_id)
+    user = User.get_user_by_id(user_id)
     if user is None:
         return None
     user_level = calculate_level_from_score(user.user_score)
@@ -499,7 +496,7 @@ def check_rep_id(user_id):
     :param int user_id: PK of the user to be checked
     :return bool result: true if successful, false otherwise
     """
-    user = user_model.get_user_by_id(user_id)
+    user = User.get_user_by_id(user_id)
     if user is None or user.is_rep is False:
         return False
     return True
@@ -561,8 +558,8 @@ def score_print(user_id, rep_id, status):
     if status not in score_increments.keys():
         return False
 
-    user = user_model.get_user_by_id(user_id)
-    rep = user_model.get_user_by_id(rep_id)
+    user = User.get_user_by_id(user_id)
+    rep = User.get_user_by_id(rep_id)
 
     user_data = {}
     rep_data = {}

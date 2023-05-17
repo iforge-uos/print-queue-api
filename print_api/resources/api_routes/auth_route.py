@@ -3,12 +3,11 @@ import os
 
 from flask import Blueprint, request
 from flask_cors import cross_origin
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt, \
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, \
     decode_token
 from print_api.common.routing import custom_response
-from print_api.common.auth import ldap_authenticate
-from print_api.models.blacklisted_tokens import BlacklistedToken
-from print_api.models.user import user_model, user_schema
+from print_api.common.auth import ldap_authenticate, generate_tokens
+from print_api.models import BlacklistedToken, User, user_schema
 
 auth_api = Blueprint("auth", __name__)
 user_schema = user_schema()
@@ -72,17 +71,13 @@ def refresh():
     return custom_response(status_code=200, details={"access_token": access_token}, extra_info="Successfully refreshed")
 
 
-def generate_tokens(uid: str) -> (str, str):
-    gen_access_token = create_access_token(identity=uid)
-    gen_refresh_token = create_refresh_token(identity=uid)
-    return gen_access_token, gen_refresh_token
 
 
 def return_or_create_user(uid):
-    user = user_model.query.filter_by(uid=uid).first()
+    user = User.query.filter_by(uid=uid).first()
     if not user:
-        if user_model.create_from_ldap(uid):
-            user = user_model.query.filter_by(uid=uid).first()
+        if User.create_from_ldap(uid):
+            user = User.query.filter_by(uid=uid).first()
             return user
         else:
             return None

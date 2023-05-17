@@ -2,8 +2,7 @@ from flask_jwt_extended import jwt_required
 
 from flask import request, Blueprint
 from marshmallow.exceptions import ValidationError
-from print_api.models.maintenance_logs import maintenance_model, maintenance_schema
-from print_api.models.printers import printer_model
+from print_api.models import Printer, MaintenanceLog, maintenance_schema
 from print_api.common.routing import custom_response
 
 maintenance_api = Blueprint('maintenance logs', __name__)
@@ -21,7 +20,7 @@ def update_by_id(log_id):
     :return response: error or serialized updated log
     """
     req_data = request.get_json()
-    log = maintenance_model.get_maintenance_log_by_id(log_id)
+    log = MaintenanceLog.get_maintenance_log_by_id(log_id)
     return update_log_details(log, req_data)
 
 
@@ -33,7 +32,7 @@ def view_single_by_id(log_id):
     :param int log_id: PK of the log record to retrieve
     :return response: error or serialized log
     """
-    return get_log_details(maintenance_model.get_maintenance_log_by_id(log_id))
+    return get_log_details(MaintenanceLog.get_maintenance_log_by_id(log_id))
 
 
 @maintenance_api.route('/view/all/<string:printer_name>', methods=['GET'])
@@ -45,13 +44,13 @@ def view_all_by_printer_name(printer_name):
     :return response: an error or the serialized printers
     """
     # First check if the printer_name is valid
-    printer = printer_model.get_printer_by_name(printer_name)
+    printer = Printer.get_printer_by_name(printer_name)
     if printer is None:
         return custom_response(status_code=404, details="Printer not found")
 
     # Then return the jason payload of any logs for that printer
     return get_multiple_log_details(
-        maintenance_model.get_maintenance_logs_by_printer_id(printer.id))
+        MaintenanceLog.get_maintenance_logs_by_printer_id(printer.id))
 
 
 @maintenance_api.route('/view/all/<int:printer_id>', methods=['GET'])
@@ -63,7 +62,7 @@ def view_all_by_printer_id(printer_id):
     :return response: an error or the serialized printers
     """
     return get_multiple_log_details(
-        maintenance_model.get_maintenance_logs_by_printer_id(printer_id))
+        MaintenanceLog.get_maintenance_logs_by_printer_id(printer_id))
 
 
 @maintenance_api.route('/delete/<int:log_id>', methods=['DELETE'])
@@ -74,7 +73,7 @@ def delete_by_id(log_id):
     :param int log_id: the PK of the log
     :return response: error or a success message
     """
-    return delete_log(maintenance_model.get_maintenance_log_by_id(log_id))
+    return delete_log(MaintenanceLog.get_maintenance_log_by_id(log_id))
 
 
 @maintenance_api.route('/add', methods=['POST'])
@@ -88,7 +87,7 @@ def create():
 
     # Check if printer_id exists
     printer_id = req_data['printer_id']
-    if printer_model.get_printer_by_id(printer_id) is None:
+    if Printer.get_printer_by_id(printer_id) is None:
         return custom_response(status_code=404, details="Printer is not found")
 
     # Try and load the data into the model
@@ -100,7 +99,7 @@ def create():
         print(err.valid_data)  # => {"name": "John"}
         return custom_response(status_code=400, details=err.messages)
 
-    log = maintenance_model(data)
+    log = MaintenanceLog(data)
     log.save()
     return custom_response(status_code=200, extra_info="success", details=maintenance_schema.dump(log))
 

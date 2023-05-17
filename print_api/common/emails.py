@@ -1,6 +1,6 @@
 from flask import current_app
 from flask_mail import Message
-from print_api.models.user import user_model
+from print_api.models import User
 from print_api.common.errors import InternalServerError
 from print_api.extensions import mail
 from threading import Thread
@@ -60,7 +60,7 @@ def email(user_id, job_name, status):
     :param str status: Either "completed", "failed" or "rejectd".
     :return bool success: True if successful else false.
     """
-    user = user_model.get_user_by_id(user_id)
+    user = User.get_user_by_id(user_id)
     if user is None:
         return False
     user_email = user.email

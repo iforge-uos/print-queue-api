@@ -13,18 +13,26 @@ class Config:
     ALLOWED_APP_VERSION = os.getenv("ALLOWED_APP_VERSION")
     API_PREFIX = os.getenv("API_PREFIX")
     PORT = os.getenv("PORT")
-    LOG_LEVEL = os.getenv("LOG_LEVEL")
+    LOG_LOCATION = os.getenv("LOG_LOCATION", "logs")
+    LOG_MAX_SIZE = int(os.getenv("LOG_MAX_SIZE", 10240))
+    LOG_TO_STDOUT = os.getenv("LOG_TO_STDOUT", True)
     MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = os.getenv("MAIL_PORT")
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    JWT_REFRESH_TOKEN_EXPIRES = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES"))
+    JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES"))
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 200)) * 1024 * 1024
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     DEBUG = True
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+    RATELIMIT_STORAGE_URL = os.getenv("RATELIMIT_STORAGE_URL")
 
 
 class DevelopmentConfig(Config):

@@ -1,7 +1,8 @@
 from flask import Blueprint
 from print_api.common.routing import custom_response
-
+import print_api.common.tasks as tasks
 other_api = Blueprint("misc", __name__)
+
 
 # This whole file is more or less of a joke
 
@@ -20,3 +21,12 @@ def test_2():
     Test Endpoint 2
     """
     return custom_response(status_code=451, extra_info="Pipis Room")
+
+
+@other_api.route("/test_celery", methods=["GET"])
+def test_celery():
+    """
+    Test Endpoint 3
+    """
+    tasks.wait_task.apply_async(kwargs={"sleep_time": 10})
+    return custom_response(status_code=200, extra_info="Celery task has been sent")
