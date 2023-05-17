@@ -5,7 +5,7 @@ from flask import Flask
 from dotenv import load_dotenv
 from print_api.config import config
 from print_api.common.routing import custom_response
-from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt
+from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt, limiter
 from print_api.models import db
 from print_api.cli import register_commands
 from print_api.common import tasks
@@ -67,21 +67,20 @@ def configure_app(app, config_env: str = "development"):
 
 
 def configure_celery(app, celery):
-    app.logger.info(app.config)
     # set broker url and result backend from app config
     celery.conf.broker_url = app.config['CELERY_BROKER_URL']
     celery.conf.result_backend = app.config['CELERY_RESULT_BACKEND']
 
     # subclass task base for app context
     # http://flask.pocoo.org/docs/0.12/patterns/celery/
-    TaskBase = celery.Task
+    task_base = celery.Task
 
-    class AppContextTask(TaskBase):
+    class AppContextTask(task_base):
         abstract = True
 
         def __call__(self, *args, **kwargs):
             with app.app_context():
-                return TaskBase.__call__(self, *args, **kwargs)
+                return task_base.__call__(self, *args, **kwargs)
 
     celery.Task = AppContextTask
 
@@ -129,6 +128,8 @@ def register_errorhandler(app):
             error_message = "Resource not found."
         elif error_code == 413:
             error_message = "The request entity is too large."
+        elif error_code == 429:
+            error_message = "Too many requests."
         elif error_code == 500:
             error_message = "Internal server error."
         else:
@@ -136,7 +137,7 @@ def register_errorhandler(app):
 
         return custom_response(error_code, error_message, extra_info=error_description)
 
-    for errcode in [401, 404, 413, 500]:
+    for errcode in [401, 404, 413, 429, 500]:
         app.errorhandler(errcode)(render_error)
     return None
 
@@ -153,6 +154,7 @@ def register_extensions(app):
     bootstrap.init_app(app)
     cors.init_app(app, resources={r"*": {"origins": "*"}}, supports_credentials=True)
     jwt.init_app(app)
+    limiter.init_app(app)
     return None
 
 
