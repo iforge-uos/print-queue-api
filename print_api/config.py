@@ -36,6 +36,9 @@ class Config:
     RATELIMIT_DEFAULT: str
     RATELIMIT_STRATEGY: str
     SQLALCHEMY_DATABASE_URI: str
+    ADVANCED_LEVEL: int
+    EXPERT_LEVEL: int
+    INSANE_LEVEL: int
 
 
 def load_env_vars(env_file):
@@ -72,7 +75,10 @@ def load_env_vars(env_file):
         RATELIMIT_DEFAULT=os.getenv("RATELIMIT_DEFAULT"),
         RATELIMIT_STRATEGY=os.getenv("RATELIMIT_STRATEGY"),
         SQLALCHEMY_DATABASE_URI=f"postgresql://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}@"
-                                f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+                                f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
+        ADVANCED_LEVEL=int(os.getenv("ADVANCED_LEVEL", 5)),
+        EXPERT_LEVEL=int(os.getenv("EXPERT_LEVEL", 10)),
+        INSANE_LEVEL=int(os.getenv("INSANE_LEVEL", 15))
     )
 
 
