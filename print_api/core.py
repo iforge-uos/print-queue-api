@@ -2,7 +2,7 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 from flask import Flask
-from print_api.config import config
+from print_api.config import load_config
 from print_api.common.routing import custom_response
 from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt, limiter
 from print_api.models import db
@@ -66,7 +66,8 @@ def entrypoint(config_env: str = "development", mode: str = 'app') -> Union[Flas
 
 
 def configure_app(app, config_env: str = "development"):
-    app.config.from_object(config[config_env])
+    conf = load_config(config_env)
+    app.config.from_object(conf)
 
 
 def configure_celery(app, celery):
@@ -96,7 +97,7 @@ def register_blueprints(app):
     Register Flask blueprints.
     :param app: the flask application
     """
-    api_prefix = app.config["API_PREFIX"]
+    api_prefix = os.getenv("API_PREFIX")
     app.register_blueprint(user_route.user_api, url_prefix=f"{api_prefix}/users")
     app.register_blueprint(
         printer_route.printer_api, url_prefix=f"{api_prefix}/printers"
@@ -184,4 +185,6 @@ def configure_logging(app, env: str = "development"):
 
     app.logger.setLevel(logging.INFO)
     app.logger.info('Print-API Startup')
+    app.logger.info(f'Environment: {env}')
+    app.logger.info(f'Connected to database: {app.config["SQLALCHEMY_DATABASE_URI"]})')
     return None

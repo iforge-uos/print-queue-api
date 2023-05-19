@@ -14,7 +14,6 @@ from print_api.models import db
 @pytest.fixture(scope="session", autouse=True)
 def app():
     app = create_app(config_env="testing")
-
     with app.app_context():
         db.create_all()
         yield app

@@ -10,9 +10,9 @@ user_api = Blueprint("users", __name__)
 user_schema = user_schema()
 
 # get params from .env
-advanced_level = int(os.getenv('ADVANCED_LEVEL'))
-expert_level = int(os.getenv('EXPERT_LEVEL'))
-insane_level = int(os.getenv('INSANE_LEVEL'))
+advanced_level = int(os.getenv('ADVANCED_LEVEL', 5))
+expert_level = int(os.getenv('EXPERT_LEVEL', 10))
+insane_level = int(os.getenv('INSANE_LEVEL', 15))
 # set boundaries
 user_level_struct = {0: "beginner", advanced_level: "advanced", expert_level: "expert", insane_level: "insane"}
 
