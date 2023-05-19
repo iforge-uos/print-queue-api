@@ -32,8 +32,11 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS: bool
     CELERY_BROKER_URL: str
     CELERY_RESULT_BACKEND: str
-    RATELIMIT_STORAGE_URL: str
+    RATELIMIT_STORAGE_URI: str
+    RATELIMIT_DEFAULT: str
+    RATELIMIT_STRATEGY: str
     SQLALCHEMY_DATABASE_URI: str
+
 
 def load_env_vars(env_file):
     load_dotenv(find_dotenv(env_file), override=True)
@@ -65,7 +68,9 @@ def load_env_vars(env_file):
         SQLALCHEMY_TRACK_MODIFICATIONS=bool(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", False)),
         CELERY_BROKER_URL=os.getenv("CELERY_BROKER_URL"),
         CELERY_RESULT_BACKEND=os.getenv("CELERY_RESULT_BACKEND"),
-        RATELIMIT_STORAGE_URL=os.getenv("RATELIMIT_STORAGE_URL"),
+        RATELIMIT_STORAGE_URI=os.getenv("RATELIMIT_STORAGE_URI"),
+        RATELIMIT_DEFAULT=os.getenv("RATELIMIT_DEFAULT"),
+        RATELIMIT_STRATEGY=os.getenv("RATELIMIT_STRATEGY"),
         SQLALCHEMY_DATABASE_URI=f"postgresql://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}@"
                                 f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
     )

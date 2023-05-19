@@ -2,6 +2,8 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 from flask import Flask
+from flask_limiter.util import get_remote_address
+
 from print_api.config import load_config
 from print_api.common.routing import custom_response
 from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt, limiter
