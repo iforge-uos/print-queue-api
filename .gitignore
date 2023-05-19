@@ -154,11 +154,11 @@ cython_debug/
 #.idea/
 
 # Other Env
-.env.test
+.env.*
 **/node_modules/**
 *_secret.json
 .pgdata/**
 .idea/
 **/migrations/**
 *.dump
-logs/**
+**/logs/**
