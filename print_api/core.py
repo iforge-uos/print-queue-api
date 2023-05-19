@@ -168,10 +168,12 @@ def configure_logging(app, env: str = "development"):
     """
     Configure the logger
     """
+    if env == "testing":
+        return None
     log_location = app.config["LOG_LOCATION"]
     max_log_size = app.config["LOG_MAX_SIZE"]
 
-    if app.config['LOG_TO_STDOUT'] == "True":
+    if app.config['LOG_TO_STDOUT']:
         stream_handler = logging.StreamHandler()
         stream_handler.setLevel(logging.INFO)
         app.logger.addHandler(stream_handler)

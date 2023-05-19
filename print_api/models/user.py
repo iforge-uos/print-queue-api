@@ -2,6 +2,7 @@ from sqlalchemy.sql import func
 from marshmallow import fields, Schema
 from print_api.models import db, UserRole
 from print_api.common.ldap import LDAP
+from flask import current_app
 
 
 class User(db.Model):
@@ -92,6 +93,11 @@ class User(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def to_dict(self):
+        data = {column.name: getattr(self, column.name) for column in self.__table__.columns}
+        data["user_level"] = User.calculate_level_from_score(data["user_score"])
+        return data
+
     @staticmethod
     def get_all_users():
         """
@@ -126,6 +132,26 @@ class User(db.Model):
         :return query_object: a query object containing the user
         """
         return User.query.filter_by(uid=value).first()
+
+    @staticmethod
+    def calculate_level_from_score(score):
+        """
+        Function to calculate what level the user would be with a given score.
+        :param int score: score of the user
+        """
+
+        advanced_level = current_app.config["ADVANCED_LEVEL"]
+        expert_level = current_app.config["EXPERT_LEVEL"]
+        insane_level = current_app.config["INSANE_LEVEL"]
+
+        # set boundaries
+        user_level_struct = {0: "beginner", advanced_level: "advanced", expert_level: "expert", insane_level: "insane"}
+
+        level = ""
+        for key, value in user_level_struct.items():
+            if score >= key:
+                level = value
+        return level
 
     def __repr__(self):
         if self.short_name is None:

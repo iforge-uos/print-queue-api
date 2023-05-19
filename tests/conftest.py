@@ -15,6 +15,7 @@ from print_api.models import db
 def app():
     app = create_app(config_env="testing")
     with app.app_context():
+        db.drop_all()
         db.create_all()
         yield app
         db.session.close()
@@ -70,13 +71,16 @@ def remove_datetime_fields(data):
 
 
 def is_datetime_str(value):
-    if not isinstance(value, str):
+    if isinstance(value, datetime.datetime):
+        return True
+    elif not isinstance(value, str):
         return False
     try:
         dateutil.parser.parse(value)
         return True
     except (ValueError, TypeError):
         return False
+
 
 def check_response(res, exp_status_code, exp_details, exp_extra_info):
     assert res.status_code == exp_status_code
