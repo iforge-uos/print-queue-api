@@ -8,7 +8,6 @@ DB_PASSWORD=
 # APP Config
 PORT=
 API_PREFIX=
-FLASK_ENV=
 
 # Mail Config
 MAIL_SERVER=

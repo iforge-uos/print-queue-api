@@ -1,5 +1,5 @@
 from print_api import create_app
-from conftest import check_response
+from tests.conftest import check_response
 
 
 def test_config():
@@ -8,10 +8,10 @@ def test_config():
 
 
 def test_451(app, client):
-    response = client.make_request('get', "/api/v1/misc/legal")
+    response = client.make_request('get', "misc/legal")
     check_response(res=response, exp_status_code=451, exp_details=None, exp_extra_info="Pipis Room")
 
 
 def test_418(app, client):
-    response = client.make_request('get', "/api/v1/misc/toast")
+    response = client.make_request('get', "misc/toast")
     check_response(res=response, exp_status_code=418, exp_details=None, exp_extra_info="sweet cheeks")

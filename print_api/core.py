@@ -2,7 +2,6 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 from flask import Flask
-from dotenv import load_dotenv
 from print_api.config import config
 from print_api.common.routing import custom_response
 from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt, limiter
@@ -12,7 +11,6 @@ from print_api.common import tasks
 from print_api.common.tasks import celery
 from typing import Union
 from celery import Celery as CeleryType
-
 
 # Resources
 from print_api.resources.api_routes import (
@@ -30,8 +28,8 @@ logger = logging.getLogger()
 
 
 def create_app(config_env: str = "development") -> Flask:
-    result =  entrypoint(config_env=config_env, mode='app')
-    assert isinstance(result,Flask), f'Expected a Flask instance, got {type(result)}'
+    result = entrypoint(config_env=config_env, mode='app')
+    assert isinstance(result, Flask), f'Expected a Flask instance, got {type(result)}'
     return result
 
 
@@ -68,8 +66,6 @@ def entrypoint(config_env: str = "development", mode: str = 'app') -> Union[Flas
 
 
 def configure_app(app, config_env: str = "development"):
-    # load .env file
-    load_dotenv("../.env")
     app.config.from_object(config[config_env])
 
 
