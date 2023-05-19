@@ -2,8 +2,9 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 from flask import Flask
-from dotenv import load_dotenv
-from print_api.config import config
+from flask_limiter.util import get_remote_address
+
+from print_api.config import load_config
 from print_api.common.routing import custom_response
 from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt, limiter
 from print_api.models import db
@@ -12,7 +13,6 @@ from print_api.common import tasks
 from print_api.common.tasks import celery
 from typing import Union
 from celery import Celery as CeleryType
-
 
 # Resources
 from print_api.resources.api_routes import (
@@ -30,8 +30,8 @@ logger = logging.getLogger()
 
 
 def create_app(config_env: str = "development") -> Flask:
-    result =  entrypoint(config_env=config_env, mode='app')
-    assert isinstance(result,Flask), f'Expected a Flask instance, got {type(result)}'
+    result = entrypoint(config_env=config_env, mode='app')
+    assert isinstance(result, Flask), f'Expected a Flask instance, got {type(result)}'
     return result
 
 
@@ -68,9 +68,8 @@ def entrypoint(config_env: str = "development", mode: str = 'app') -> Union[Flas
 
 
 def configure_app(app, config_env: str = "development"):
-    # load .env file
-    load_dotenv("../.env")
-    app.config.from_object(config[config_env])
+    conf = load_config(config_env)
+    app.config.from_object(conf)
 
 
 def configure_celery(app, celery):
@@ -100,7 +99,7 @@ def register_blueprints(app):
     Register Flask blueprints.
     :param app: the flask application
     """
-    api_prefix = app.config["API_PREFIX"]
+    api_prefix = os.getenv("API_PREFIX")
     app.register_blueprint(user_route.user_api, url_prefix=f"{api_prefix}/users")
     app.register_blueprint(
         printer_route.printer_api, url_prefix=f"{api_prefix}/printers"
@@ -188,4 +187,6 @@ def configure_logging(app, env: str = "development"):
 
     app.logger.setLevel(logging.INFO)
     app.logger.info('Print-API Startup')
+    app.logger.info(f'Environment: {env}')
+    app.logger.info(f'Connected to database: {app.config["SQLALCHEMY_DATABASE_URI"]})')
     return None

@@ -15,6 +15,10 @@ This is a "simple" application that will provide an endpoint for the print queue
 - Docker Compose (optional)
 - This repository
 
+## Configuration
+
+Configuration is handled via a singular `.env` file that contains the `FLASK_ENV` variable. This is then used to load its respective configuration .env file. So for `FLASK_ENV=development` it will load .env.development. Therefore, you will need at a minimum a `.env.development` and a `.env` file
+
 ## Useful Commands
 ```bash
 # Run Application and Celery

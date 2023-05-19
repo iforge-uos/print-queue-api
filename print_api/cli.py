@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 
 from print_api.models import db, Role, Permission, RolePermission, BlacklistedToken, Printer, printer_type, \
     printer_location
-from print_api.config import DevelopmentConfig as Config
 
 
 def register_commands(app):
@@ -64,12 +63,12 @@ def register_commands(app):
     @app.cli.command("restore-db")
     def meta_restore_db():
         """Restore the database from backup.dump file."""
-        restore_db()
+        restore_db(app)
 
     @app.cli.command("backup-db")
     def meta_backup_db():
         """Backup the database to backup.dump file."""
-        backup_db()
+        backup_db(app)
 
     @app.cli.command("app-status")
     def app_status():
@@ -100,7 +99,7 @@ def register_commands(app):
     @app.cli.command("clear-expired-blacklist")
     def clear_expired_blacklist():
         """Clear blacklisted tokens that have been expired for longer than the refresh token expiry time."""
-        expiry_date = datetime.utcnow() - timedelta(seconds=Config.JWT_REFRESH_TOKEN_EXPIRES)
+        expiry_date = datetime.utcnow() - timedelta(seconds=app.config['JWT_REFRESH_TOKEN_EXPIRES'])
 
         if click.confirm(click.style('Are you sure you want to clear all blacklisted tokens older than the refresh '
                                      'token expiry time?', fg="red"), abort=True):
@@ -286,7 +285,7 @@ def seed_all():
     click.echo(click.style("Seeding Complete!", fg="green", bold=True))
 
 
-def backup_db():
+def backup_db(app):
     """Creates a backup of the database to a specified file."""
     click.echo("Backing up the database...")
 
@@ -299,7 +298,7 @@ def backup_db():
                 '-b',
                 '-f',
                 'backup.dump',
-                Config.SQLALCHEMY_DATABASE_URI,
+                app.config["SQLALCHEMY_DATABASE_URI"],
             ],
             check=True,
         )
@@ -308,11 +307,11 @@ def backup_db():
         click.echo(click.style(f"Error: {e}", fg="red"))
 
 
-def restore_db():
+def restore_db(app):
     """Restores the database from a specified backup file."""
     click.echo(click.style("Restoring the database...", fg="green"))
 
-    parsed_url = urllib.parse.urlparse(Config.SQLALCHEMY_DATABASE_URI)
+    parsed_url = urllib.parse.urlparse(app.config["SQLALCHEMY_DATABASE_URI"])
 
     hostname = str(parsed_url.hostname)
     db_password = str(parsed_url.password)

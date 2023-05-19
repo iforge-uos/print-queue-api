@@ -41,6 +41,12 @@ class User(db.Model):
         self.user_score = data.get("user_score")
         self.is_rep = data.get("is_rep")
         self.score_editable = data.get("score_editable")
+        self.completed_count = data.get("completed_count")
+        self.failed_count = data.get("failed_count")
+        self.rejected_count = data.get("rejected_count")
+        self.slice_completed_count = data.get("slice_completed_count")
+        self.slice_failed_count = data.get("slice_failed_count")
+        self.slice_rejected_count = data.get("slice_rejected_count")
 
     @staticmethod
     def create_from_ldap(uid) -> bool:

@@ -1,6 +1,6 @@
 import os
 
-from flask import request, Blueprint
+from flask import request, Blueprint, current_app
 from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
 from print_api.models import User, user_schema
@@ -8,13 +8,6 @@ from print_api.common.routing import custom_response
 
 user_api = Blueprint("users", __name__)
 user_schema = user_schema()
-
-# get params from .env
-advanced_level = int(os.getenv('ADVANCED_LEVEL'))
-expert_level = int(os.getenv('EXPERT_LEVEL'))
-insane_level = int(os.getenv('INSANE_LEVEL'))
-# set boundaries
-user_level_struct = {0: "beginner", advanced_level: "advanced", expert_level: "expert", insane_level: "insane"}
 
 
 @user_api.route("/update/<int:user_id>", methods=["PUT"])
@@ -182,6 +175,13 @@ def calculate_level_from_score(score):
     Function to calculate what level the user would be with a given score.
     :param int score: score of the user
     """
+    advanced_level = current_app.config["ADVANCED_LEVEL"]
+    expert_level = current_app.config["EXPERT_LEVEL"]
+    insane_level = current_app.config["INSANE_LEVEL"]
+
+    # set boundaries
+    user_level_struct = {0: "beginner", advanced_level: "advanced", expert_level: "expert", insane_level: "insane"}
+
     level = ""
     for key, value in user_level_struct.items():
         if score >= key:
