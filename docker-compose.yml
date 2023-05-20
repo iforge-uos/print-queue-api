@@ -1,25 +1,41 @@
-version: "3"
+version: '3.8'
+
 services:
-  db:
-    image: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./.pgdata:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-  app:
+  api:
     build: .
-    command: flask run --host=0.0.0.0
     ports:
       - "5000:5000"
-    environment:
-      FLASK_ENV: development
+    env_file:
+      - .env.docker
     depends_on:
       - db
-    logging:
-      driver: "json-file"
-      options:
-        max-file: "5"
-        max-size: "10m"
+      - redis
+  celery:
+    user: celery
+    build: .
+    command: celery -A entrypoint_celery worker --loglevel=info
+    env_file:
+      - .env.docker
+    depends_on:
+      - api
+      - db
+      - redis
+  db:
+    image: postgres:13
+    env_file:
+      - .env.docker
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_PORT=${DB_PORT}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  redis:
+    image: redis:6.2
+    volumes:
+      - redis_data:/data
+volumes:
+  db_data:
+  redis_data:
