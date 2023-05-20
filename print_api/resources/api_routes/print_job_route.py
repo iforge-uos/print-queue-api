@@ -8,7 +8,6 @@ from print_api.models.print_jobs import (
     project_types,
     job_status,
 )
-from print_api.resources.api_routes.user_route import calculate_level_from_score
 from print_api.common.routing import custom_response
 from print_api.common.emails import email
 from datetime import datetime
@@ -486,7 +485,7 @@ def check_user_id(user_id):
     user = User.get_user_by_id(user_id)
     if user is None:
         return None
-    user_level = calculate_level_from_score(user.user_score)
+    user_level = User.calculate_level_from_score(user.user_score)
     return user_level
 
 
@@ -571,7 +570,7 @@ def score_print(user_id, rep_id, status):
 
     if user_data['user_score'] < 1:
         user_data['user_score'] = 1
-    user_data['new_level'] = calculate_level_from_score(user_data['user_score'])
+    user_data['new_level'] = User.calculate_level_from_score(user_data['user_score'])
 
     user.update(user_data)
     rep.update(rep_data)

@@ -5,7 +5,6 @@ This is a "simple" application that will provide an endpoint for the print queue
 
 **MORE DOCUMENTATION COMING SOON**
 
-**DOCKER COMING SOON**
 
 ## Requirements
 - Python >= 3.9
@@ -14,10 +13,24 @@ This is a "simple" application that will provide an endpoint for the print queue
 - Docker (optional)
 - Docker Compose (optional)
 - This repository
+- Google API Credentials (For Google File Uploads)
 
 ## Configuration
 
 Configuration is handled via a singular `.env` file that contains the `FLASK_ENV` variable. This is then used to load its respective configuration .env file. So for `FLASK_ENV=development` it will load .env.development. Therefore, you will need at a minimum a `.env.development` and a `.env` file
+
+## Docker
+There is an included Docker setup that will build the application and run it as a container with the asynchronous tasks, redis and postgres servers also being spun up as well. To configure the environment for docker copy the `.envexample` file into a `.env.docker` file and change the variable to suit your needs except for the following variables which are required:
+- `DB_HOST` = `db`
+- `DB_PORT` = `5432`
+- `CELERY_BROKER_URL` = `redis://redis:6379/0`
+- `CELERY_RESULT_BACKEND` = `redis://redis:6379/0`
+- `RATELIMIT_STORAGE_URI` = `redis://redis:6379/1`
+
+To run this docker setup you will need to run the following command:
+```bash
+docker-compose --env-file .env.docker up --build
+```
 
 ## Useful Commands
 ```bash
@@ -30,6 +43,9 @@ celery -A entrypoint_celery worker -l info -P eventlet
 
 ## Run Celery (Linux)
 celery -A entrypoint_celery  worker -l info
+
+## Build Docker
+docker-compose --env-file .env.docker up --build
 
 # Database Commands
 flask init-db # Initialize the database

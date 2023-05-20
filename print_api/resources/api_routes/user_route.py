@@ -139,9 +139,8 @@ def get_user_details(user, search_string):
     """
     if not user:
         return custom_response(status_code=404, details=f"user '{search_string}' not found")
-    ser_user = user_schema.dump(user)
-    ser_user["user_level"] = calculate_level_from_score(user.user_score)
-    return custom_response(status_code=200, details=ser_user, extra_info="success")
+
+    return custom_response(status_code=200, details={"user":user.to_dict()}, extra_info="success")
 
 
 def update_user_details(user, req_data, search_string):
@@ -166,27 +165,9 @@ def update_user_details(user, req_data, search_string):
         print(err.valid_data)  # => {"name": "John"}
         return custom_response(status_code=400, details=err.messages)
     user.update(data)
-    ser_user = user_schema.dump(user)
+    ser_user = {"user": user_schema.dump(user)}
+
     return custom_response(status_code=200, details=ser_user, extra_info="success")
-
-
-def calculate_level_from_score(score):
-    """
-    Function to calculate what level the user would be with a given score.
-    :param int score: score of the user
-    """
-    advanced_level = current_app.config["ADVANCED_LEVEL"]
-    expert_level = current_app.config["EXPERT_LEVEL"]
-    insane_level = current_app.config["INSANE_LEVEL"]
-
-    # set boundaries
-    user_level_struct = {0: "beginner", advanced_level: "advanced", expert_level: "expert", insane_level: "insane"}
-
-    level = ""
-    for key, value in user_level_struct.items():
-        if score >= key:
-            level = value
-    return level
 
 
 def get_multiple_user_details(users):
@@ -199,8 +180,7 @@ def get_multiple_user_details(users):
         return custom_response(status_code=404, details="Users not found")
     jason = []
     for user in users:
-        user_dict = user_schema.dump(user)
-        user_dict["user_level"] = calculate_level_from_score(user.user_score)
+        user_dict = user.to_dict()
         jason.append(user_dict)
 
     final_res = {"users": jason}
