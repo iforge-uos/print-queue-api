@@ -3,7 +3,7 @@ import urllib.parse
 import subprocess
 import os
 from datetime import datetime, timedelta
-
+from sqlalchemy import inspect
 from print_api.models import db, Role, Permission, RolePermission, BlacklistedToken, Printer, printer_type, \
     printer_location
 
@@ -31,6 +31,27 @@ def register_commands(app):
         drop_db()
         init_db()
         seed_all()
+
+    @app.cli.command("one-time-db")
+    def one_time_db():
+        """Create the database and seed it with default data."""
+        click.echo(click.style("Checking for existing database!", fg="green", bold=True))
+        engine = db.engine
+        inspector = inspect(engine)
+        not_all_tables_exist = False
+        for table_name in db.metadata.tables.keys():
+            if not inspector.has_table(table_name):
+                not_all_tables_exist = True
+                break
+        if not_all_tables_exist:
+            # TODO eventually find a way to set it so it does not do this in case of production environment
+            click.echo(click.style("Not all tables exist! initialising the Database!", fg="red", bold=True))
+            init_db()
+            seed_all()
+        else:
+            click.echo(click.style("Tables exist, skipping!", fg="green", bold=True))
+        # Close engine
+        engine.dispose()
 
     @app.cli.command("list-routes")
     def list_routes():
