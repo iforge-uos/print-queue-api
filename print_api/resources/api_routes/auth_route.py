@@ -3,8 +3,7 @@ import os
 
 from flask import Blueprint, request
 from flask_cors import cross_origin
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, \
-    decode_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from print_api.common.routing import custom_response
 from print_api.common.auth import ldap_authenticate, generate_tokens
 from print_api.models import BlacklistedToken, User, user_schema
@@ -86,5 +85,7 @@ def return_or_create_user(uid):
 def get_main_user_details(user):
     ser_user = user_schema.dump(user)
     # Only return name, email, uid and user_level
-    ser_user = {key: ser_user[key] for key in ser_user.keys() & {"name", "email", "uid", "user_level"}}
+    user_level = User.calculate_level_from_score(ser_user["user_score"])
+    ser_user = {key: ser_user[key] for key in ser_user.keys() & {"name", "email", "uid", "id"}}
+    ser_user["user_level"] = user_level
     return ser_user

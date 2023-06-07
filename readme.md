@@ -51,6 +51,7 @@ docker-compose --env-file .env.docker up --build
 flask init-db # Initialize the database
 flask drop-db # Drop the database
 flask nuke-db # Drop the database and reinitialize it
+flask one-time-db # One time database setup (safe to run multiple times)
 flask seed-db # Seed the database with test data
 flask seed-default-printers # Seed the database with the default printers
 flask seed-default-authorisation # Seed the database with the default authorisation permissions and roles
@@ -59,8 +60,8 @@ flask backup-db # Backup the database to backup.dump
 
 # Application Specific Commands
 flask clear-all-blacklist # Clear all blacklisted tokens from the database (useful for testing)
-flask clear-expired-blacklist # Clear all expired blacklisted tokens from the database (useful for general maintennance)
-flask app-status # Check the status of the application
+flask clear-expired-blacklist # Clear all expired blacklisted tokens from the database (useful for general maintenance)
+flask app-status # Check the status of the applications
 flask list-routes # List all the routes in the application
 ```
 
