@@ -10,8 +10,8 @@ services:
     depends_on:
       - db
       - redis
-  celery:
-    user: celery
+  api-worker:
+    user: iforger-worker
     build: .
     command: celery -A entrypoint_celery worker --loglevel=info
     env_file:
@@ -30,10 +30,6 @@ services:
       - POSTGRES_PORT=${DB_PORT}
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
   redis:
     image: redis:6.2
     volumes:
