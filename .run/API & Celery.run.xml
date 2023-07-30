@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="API &amp; Celery" type="CompoundRunConfigurationType">
-    <toRun name="Flask (app.py)" type="Python.FlaskServer" />
-    <toRun name="Celery Worker Windows" type="PythonConfigurationType" />
-    <method v="2" />
-  </configuration>
-</component>

@@ -1,35 +1,50 @@
 version: '3.8'
 
 services:
-  api:
-    build: .
+  dev-api:
+    build: 
+      context: ../
+      dockerfile: .devcontainer/Dockerfile
     ports:
       - "5000:5000"
+    volumes:
+      - ..:/app
     env_file:
-      - .env.docker
+      - ../.env.docker
     depends_on:
       - db
       - redis
-  api-worker:
-    user: iforger-worker
-    build: .
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+  celery:
+    user: celery
+    build: 
+      context: ../
+      dockerfile: .devcontainer/Dockerfile
     command: celery -A entrypoint_celery worker --loglevel=info
+    volumes:
+      - ..:/app
     env_file:
-      - .env.docker
+      - ../.env.docker
     depends_on:
-      - api
+      - dev-api
       - db
       - redis
   db:
     image: postgres:13
     env_file:
-      - .env.docker
+      - ../.env.docker
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_HOST=${DB_HOST}
       - POSTGRES_PORT=${DB_PORT}
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
   redis:
     image: redis:6.2
     volumes:

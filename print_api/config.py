@@ -39,6 +39,8 @@ class Config:
     ADVANCED_LEVEL: int
     EXPERT_LEVEL: int
     INSANE_LEVEL: int
+    SENTRY_SAMPLES_RATE: float
+    SENTRY_DSN: str
 
 
 def load_env_vars(env_file):
@@ -78,7 +80,9 @@ def load_env_vars(env_file):
                                 f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
         ADVANCED_LEVEL=int(os.getenv("ADVANCED_LEVEL", 5)),
         EXPERT_LEVEL=int(os.getenv("EXPERT_LEVEL", 10)),
-        INSANE_LEVEL=int(os.getenv("INSANE_LEVEL", 15))
+        INSANE_LEVEL=int(os.getenv("INSANE_LEVEL", 15)),
+        SENTRY_SAMPLES_RATE=float(os.getenv("SENTRY_SAMPLES_RATE", 0.0)),
+        SENTRY_DSN=os.getenv("SENTRY_DSN"),
     )
 
 

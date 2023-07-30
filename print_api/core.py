@@ -1,4 +1,5 @@
 import logging
+import sentry_sdk
 import os
 from logging.handlers import RotatingFileHandler
 from flask import Flask
@@ -64,11 +65,19 @@ def entrypoint(config_env: str = "development", mode: str = 'app') -> Union[Flas
     if mode == 'app':
         return app
     elif mode == 'celery':
+        
         return celery
-
+    
 
 def configure_app(app, config_env: str = "development"):
     conf = load_config(config_env)
+    
+    print(conf.SENTRY_DSN, conf.SENTRY_SAMPLES_RATE)
+    sentry_sdk.init(
+        dsn=conf.SENTRY_DSN,
+        traces_sample_rate=conf.SENTRY_SAMPLES_RATE,
+    )
+
     app.config.from_object(conf)
 
 
@@ -91,6 +100,7 @@ def configure_celery(app, celery):
     celery.Task = AppContextTask
 
     # run finalize to process decorated tasks
+    celery.conf.broker_connection_retry_on_startup = True
     celery.finalize()
 
 

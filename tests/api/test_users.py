@@ -41,22 +41,27 @@ def seed_users(n):
 
 
 def test_get_all_users(app, client):
-    data = {"users": seed_users(10)}
+    resp = {"users": seed_users(10)}
     response = client.make_request('get', "users/view/all")
-    check_response(res=response, exp_status_code=200, exp_details=data, exp_extra_info='success')
+    check_response(res=response, exp_status_code=200, exp_details=resp, exp_extra_info='success')
 
 
 def test_get_user_by_id(app, client):
     user_dict = seed_users(1)
-    data = {"user": user_dict[0]}
+    resp = {"user": user_dict[0]}
     url = f"users/view/{user_dict[0]['id']}"
     response = client.make_request('get', url)
-    check_response(res=response, exp_status_code=200, exp_details=data, exp_extra_info='success')
+    check_response(res=response, exp_status_code=200, exp_details=resp, exp_extra_info='success')
 
 
 def test_get_user_by_email(app, client):
     user_dict = seed_users(1)
-    data = {"user": user_dict[0]}
+    resp = {"user": user_dict[0]}
     url = f"users/view/{user_dict[0]['email']}"
     response = client.make_request('get', url)
-    check_response(res=response, exp_status_code=200, exp_details=data, exp_extra_info='success')
+    check_response(res=response, exp_status_code=200, exp_details=resp, exp_extra_info='success')
+
+
+def test_get_user_no_users(app, client):
+    response = client.make_request('get', "users/view/all")
+    check_response(res=response, exp_status_code=404, exp_details={"users": []}, exp_extra_info='success')

@@ -1,0 +1,6 @@
+{
+  "name": "iForge Print API",
+  "dockerComposeFile": "./docker-compose.yml",
+  "service": "dev-api", 
+  "workspaceFolder": "/app"
+}
