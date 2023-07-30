@@ -14,7 +14,14 @@ ENV PATH=/home/iforger/.local/bin:$PATH \
     PYTHONUSERBASE=/home/iforger/.local \
     PYTHONPATH=/home/iforger/.local/lib/python3.11/site-packages
 ENV PATH=/home/iforger/.local/bin:$PATH
-COPY . .
+
+COPY .env.docker /app/.env.docker
+COPY entrypoint_celery.py /app/entrypoint_celery.py
+COPY entrypoint_docker.sh /app/entrypoint_docker.sh
+COPY *_secret.json /app/
+COPY app.py /app/app.py
+COPY ./print_api/ /app/print_api/
+
 RUN chmod +x /app/entrypoint_docker.sh
 USER iforger
 EXPOSE 5000
