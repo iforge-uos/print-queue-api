@@ -1,13 +1,23 @@
-FROM python:3.11
+# Base Image
+FROM python:3.11 as builder
+WORKDIR /app
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install --user --no-cache-dir -r requirements.txt
 
+# Final Image
+FROM python:3.11
 WORKDIR /app
 
-COPY requirements.txt /app/requirements.txt
+RUN useradd -m iforger
+RUN useradd -m iforger-worker
+#
+COPY --from=builder /root/.local /home/iforger/.local
+ENV PATH=/home/iforger/.local/bin:$PATH \
+    PYTHONUSERBASE=/home/iforger/.local \
+    PYTHONPATH=/home/iforger/.local/lib/python3.11/site-packages
+ENV PATH=/home/iforger/.local/bin:$PATH
 
-RUN pip install --no-cache-dir -r requirements.txt
-
-RUN useradd celery
-
+USER iforger
 EXPOSE 5000
 
 CMD flask run --host=0.0.0.0 --port=5000 --reload

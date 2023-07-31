@@ -21,15 +21,15 @@ Configuration is handled via a singular `.env` file that contains the `FLASK_ENV
 
 ## Docker
 There is an included Docker setup that will build the application and run it as a container with the asynchronous tasks, redis and postgres servers also being spun up as well. To configure the environment for docker copy the `.envexample` file into a `.env.docker` file and change the variable to suit your needs except for the following variables which are required:
-- `DB_HOST` = `db`
-- `DB_PORT` = `5432`
-- `CELERY_BROKER_URL` = `redis://redis:6379/0`
-- `CELERY_RESULT_BACKEND` = `redis://redis:6379/0`
-- `RATELIMIT_STORAGE_URI` = `redis://redis:6379/1`
+- `POSTGRES_HOST` = `db`
+- `POSTGRES_PORT` = `5432`
+- `CELERY_BROKER_URL` = `redis://cache:6379/0`
+- `CELERY_RESULT_BACKEND` = `redis://cache:6379/0`
+- `RATELIMIT_STORAGE_URI` = `redis://cache:6379/1`
 
 To run this docker setup you will need to run the following command:
 ```bash
-docker-compose --env-file .env.docker up --build
+docker-compose up
 ```
 
 ## Useful Commands
@@ -45,7 +45,7 @@ celery -A entrypoint_celery worker -l info -P eventlet
 celery -A entrypoint_celery  worker -l info
 
 ## Build Docker
-docker-compose --env-file .env.docker up --build
+docker-compose up --build
 
 # Database Commands
 flask init-db # Initialize the database

@@ -1,36 +1,32 @@
 version: '3.8'
 
 services:
-  api:
+  server:
+    env_file:
+      - .env.docker
     build: .
     ports:
       - "5000:5000"
-    env_file:
-      - .env.docker
     depends_on:
       - db
-      - redis
-  api-worker:
+      - cache
+  worker:
     user: iforger-worker
     build: .
     command: celery -A entrypoint_celery worker --loglevel=info
     env_file:
       - .env.docker
     depends_on:
-      - api
+      - server
       - db
-      - redis
+      - cache
   db:
     image: postgres:13
     env_file:
       - .env.docker
-    environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_HOST=${DB_HOST}
-      - POSTGRES_PORT=${DB_PORT}
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-  redis:
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  cache:
     image: redis:6.2
     volumes:
       - redis_data:/data
