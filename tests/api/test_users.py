@@ -63,7 +63,6 @@ def test_get_user_by_email(app, client):
 
 
 def test_get_user_no_users(app, client):
-    
     empty_database()
     response = client.make_request('get', "users/view/all")
     check_response(res=response, exp_status_code=404, exp_details='Users not found', exp_extra_info=None)
