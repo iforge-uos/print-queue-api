@@ -1,4 +1,5 @@
 import click
+import time
 import urllib.parse
 import subprocess
 import os
@@ -35,6 +36,11 @@ def register_commands(app):
     @app.cli.command("one-time-db")
     def one_time_db():
         """Create the database and seed it with default data."""
+        click.echo(click.style("Checking if Database Ready", fg="yellow", bold=True))
+        if not check_database_connection():
+            click.echo(click.style("ERROR: Database not ready after waiting.", fg="red", bold=True))
+            return
+    
         click.echo(click.style("Checking for existing database!", fg="green", bold=True))
         engine = db.engine
         inspector = inspect(engine)
@@ -372,3 +378,16 @@ SEED_FUNCTIONS = {
     'Auth': seed_default_auth,
     'Printers': seed_default_printers,
 }
+
+def check_database_connection(max_retries=10, retry_interval=2):
+    """Check if the database is ready for connections."""
+    for _ in range(max_retries):
+        try:
+            engine = db.engine
+            with engine.connect() as _:
+                click.echo(f"Connection: {click.style('OK', fg='green')}")
+                return True
+        except Exception as e:
+            click.echo(f"Connection: {click.style(f'FAILED - Waiting', fg='red')}")
+            time.sleep(retry_interval)
+    return False
