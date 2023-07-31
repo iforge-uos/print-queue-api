@@ -41,7 +41,7 @@ def register_commands(app):
             click.echo(click.style("ERROR: Database not ready after waiting.", fg="red", bold=True))
             return
     
-        click.echo(click.style("Checking for existing database!", fg="green", bold=True))
+        click.echo(click.style("Checking for existing database!", fg="yellow", bold=True))
         engine = db.engine
         inspector = inspect(engine)
         not_all_tables_exist = False
@@ -387,7 +387,7 @@ def check_database_connection(max_retries=10, retry_interval=2):
             with engine.connect() as _:
                 click.echo(f"Connection: {click.style('OK', fg='green')}")
                 return True
-        except Exception as e:
+        except Exception:
             click.echo(f"Connection: {click.style(f'FAILED - Waiting', fg='red')}")
             time.sleep(retry_interval)
     return False
