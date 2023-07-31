@@ -1,6 +1,39 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vscode/main/extensions/configuration-editing/schemas/devContainer.vscode.schema.json",
   "name": "iForge Print API",
   "dockerComposeFile": "./docker-compose.yml",
-  "service": "dev-api", 
-  "workspaceFolder": "/app"
+  "service": "server",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "aykutsarac.jsoncrack-vscode",
+        "catppuccin.catppuccin-vsc",
+        "christian-kohler.path-intellisense",
+        "donjayamanne.python-environment-manager",
+        "donjayamanne.python-extension-pack",
+        "editorconfig.editorconfig",
+        "esbenp.prettier-vscode",
+        "github.copilot",
+        "github.copilot-chat",
+        "kevinrose.vsc-python-indent",
+        "mechatroner.rainbow-csv",
+        "monosans.djlint",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode-remote.remote-containers",
+        "njpwerner.autodocstring",
+        "redhat.fabric8-analytics",
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker",
+        "visualstudioexptteam.intellicode-api-usage-examples",
+        "visualstudioexptteam.vscodeintellicode",
+        "wayou.vscode-todo-highlight",
+        "wholroyd.jinja",
+        "yzhang.markdown-all-in-one"
+      ]
+    }
+  }
 }

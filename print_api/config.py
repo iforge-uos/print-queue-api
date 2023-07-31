@@ -46,11 +46,11 @@ class Config:
 def load_env_vars(env_file):
     load_dotenv(find_dotenv(env_file), override=True)
     return Config(
-        username=os.getenv("DB_USERNAME"),
-        password=os.getenv("DB_PASSWORD"),
-        db_server_name=os.getenv("DB_HOST"),
-        db_server_port=int(os.getenv("DB_PORT")),
-        db_name=os.getenv("DB_NAME"),
+        username=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        db_server_name=os.getenv("POSTGRES_HOST"),
+        db_server_port=int(os.getenv("POSTGRES_PORT")),
+        db_name=os.getenv("POSTGRES_DB"),
         ALLOWED_APP_VERSION=os.getenv("ALLOWED_APP_VERSION"),
         API_PREFIX=os.getenv("API_PREFIX"),
         PORT=int(os.getenv("PORT")),
@@ -70,14 +70,16 @@ def load_env_vars(env_file):
         MAIL_USE_SSL=bool(os.getenv("MAIL_USE_SSL", False)),
         DEBUG=bool(os.getenv("DEBUG", False)),
         TESTING=bool(os.getenv("TESTING", False)),
-        SQLALCHEMY_TRACK_MODIFICATIONS=bool(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", False)),
+        SQLALCHEMY_TRACK_MODIFICATIONS=bool(
+            os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", False)
+        ),
         CELERY_BROKER_URL=os.getenv("CELERY_BROKER_URL"),
         CELERY_RESULT_BACKEND=os.getenv("CELERY_RESULT_BACKEND"),
         RATELIMIT_STORAGE_URI=os.getenv("RATELIMIT_STORAGE_URI"),
         RATELIMIT_DEFAULT=os.getenv("RATELIMIT_DEFAULT"),
         RATELIMIT_STRATEGY=os.getenv("RATELIMIT_STRATEGY"),
-        SQLALCHEMY_DATABASE_URI=f"postgresql://{os.getenv('DB_USERNAME')}:{os.getenv('DB_PASSWORD')}@"
-                                f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
+        SQLALCHEMY_DATABASE_URI=f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@"
+        f"{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}",
         ADVANCED_LEVEL=int(os.getenv("ADVANCED_LEVEL", 5)),
         EXPERT_LEVEL=int(os.getenv("EXPERT_LEVEL", 10)),
         INSANE_LEVEL=int(os.getenv("INSANE_LEVEL", 15)),
@@ -88,22 +90,29 @@ def load_env_vars(env_file):
 
 def load_config(env):
     env_files = {
-        'development': '.env.development',
-        'production': '.env.production',
-        'testing': '.env.testing',
+        "development": ".env.development",
+        "production": ".env.production",
+        "testing": ".env.testing",
     }
     if env not in env_files:
-        raise ValueError('Invalid environment name')
+        raise ValueError("Invalid environment name")
+
+    # Test if running inside Docker (e.g. env vars are already set)
+    if os.getenv("POSTGRES_USER") is not None:
+        print("Inside Docker we good :)")
+        config = load_env_vars(".env.docker")
+        return config
+    print("Not inside Docker, loading env vars from file...")
 
     config = load_env_vars(env_files[env])
 
-    if env == 'development':
+    if env == "development":
         config.DEBUG = True
         config.TESTING = False
-    elif env == 'production':
+    elif env == "production":
         config.DEBUG = False
         config.TESTING = False
-    elif env == 'testing':
+    elif env == "testing":
         config.DEBUG = False
         config.TESTING = True
 
