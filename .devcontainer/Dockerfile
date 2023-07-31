@@ -10,7 +10,7 @@ WORKDIR /app
 
 RUN useradd -m iforger
 RUN useradd -m iforger-worker
-#
+
 COPY --from=builder /root/.local /home/iforger/.local
 ENV PATH=/home/iforger/.local/bin:$PATH \
     PYTHONUSERBASE=/home/iforger/.local \
