@@ -1,14 +1,15 @@
 from flask import request, Blueprint
 from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
-from print_api.common.routing import custom_response
 from print_api.models import Permission, Role, RolePermission, User, UserRole, user_schema
+from print_api.common.routing import custom_response
 
 role_permission_api = Blueprint("role_permission", __name__)
+user_schema = user_schema()
 
 
 @role_permission_api.route("/assign_role_to_user", methods=["POST"])
-@jwt_required
+@jwt_required()
 def assign_role_to_user():
     try:
         data = request.get_json()
@@ -30,7 +31,7 @@ def assign_role_to_user():
 
 
 @role_permission_api.route("/remove_role_from_user", methods=["POST"])
-@jwt_required
+@jwt_required()
 def remove_role_from_user():
     try:
         data = request.get_json()
@@ -50,7 +51,7 @@ def remove_role_from_user():
 
 
 @role_permission_api.route("/view_user_roles", methods=["GET"])
-@jwt_required
+@jwt_required()
 def view_user_roles():
     try:
         user_id = request.args.get("user_id")
@@ -68,7 +69,7 @@ def view_user_roles():
 
 
 @role_permission_api.route("/view_role_users", methods=["GET"])
-@jwt_required
+@jwt_required()
 def view_role_users():
     try:
         role_id = request.args.get("role_id")
@@ -86,7 +87,7 @@ def view_role_users():
 
 
 @role_permission_api.route("/create_role", methods=["POST"])
-@jwt_required
+@jwt_required()
 def create_role():
     try:
         data = request.get_json()
@@ -102,7 +103,7 @@ def create_role():
 
 
 @role_permission_api.route("/update_role", methods=["PUT"])
-@jwt_required
+@jwt_required()
 def update_role():
     try:
         data = request.get_json()
@@ -125,7 +126,7 @@ def update_role():
 
 
 @role_permission_api.route("/delete_role", methods=["DELETE"])
-@jwt_required
+@jwt_required()
 def delete_role():
     try:
         role_id = request.args.get("role_id")
@@ -143,7 +144,7 @@ def delete_role():
 
 
 @role_permission_api.route("/view_role", methods=["GET"])
-@jwt_required
+@jwt_required()
 def view_role():
     try:
         role_id = request.args.get("role_id")
@@ -159,7 +160,7 @@ def view_role():
 
 
 @role_permission_api.route("/view_all_roles", methods=["GET"])
-@jwt_required
+@jwt_required()
 def view_all_roles():
     try:
         roles = [role.to_dict() for role in Role.query.all()]
@@ -170,7 +171,7 @@ def view_all_roles():
 
 
 @role_permission_api.route("/assign_permission_to_role", methods=["POST"])
-@jwt_required
+@jwt_required()
 def assign_permission_to_role():
     try:
         data = request.get_json()
@@ -192,7 +193,7 @@ def assign_permission_to_role():
 
 
 @role_permission_api.route("/create_permission", methods=["POST"])
-@jwt_required
+@jwt_required()
 def create_permission():
     try:
         data = request.get_json()
@@ -208,7 +209,7 @@ def create_permission():
 
 
 @role_permission_api.route("/update_permission", methods=["PUT"])
-@jwt_required
+@jwt_required()
 def update_permission():
     try:
         data = request.get_json()
@@ -231,7 +232,7 @@ def update_permission():
 
 
 @role_permission_api.route("/delete_permission", methods=["DELETE"])
-@jwt_required
+@jwt_required()
 def delete_permission():
     try:
         permission_id = request.args.get("permission_id")
@@ -249,7 +250,7 @@ def delete_permission():
 
 
 @role_permission_api.route("/view_permission", methods=["GET"])
-@jwt_required
+@jwt_required()
 def view_permission():
     try:
         permission_id = request.args.get("permission_id")
@@ -265,7 +266,7 @@ def view_permission():
 
 
 @role_permission_api.route("/view_all_permissions", methods=["GET"])
-@jwt_required
+@jwt_required()
 def view_all_permissions():
     try:
         permissions = [permission.to_dict() for permission in Permission.query.all()]
