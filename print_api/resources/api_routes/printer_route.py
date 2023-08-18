@@ -183,7 +183,6 @@ def update_printer_details(printer, req_data):
     """
     if not printer:
         return custom_response(status_code=404, details=NOTFOUNDPRINTER)
-
     # Try and load printer data to the schema
     try:
         data = printer_schema.load(req_data, partial=True)
