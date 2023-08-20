@@ -1,20 +1,20 @@
 import logging
-import sentry_sdk
 import os
 from logging.handlers import RotatingFileHandler
-from flask import Flask
-from flask_limiter.util import get_remote_address
+from typing import Union
 
-from print_api.config import load_config
-from print_api.common.routing import custom_response
-from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt, limiter
-from print_api.models import db
+import sentry_sdk
+from celery import Celery as CeleryType
+from flask import Flask
+from werkzeug.exceptions import HTTPException
+
 from print_api.cli import register_commands
 from print_api.common import tasks
+from print_api.common.routing import custom_response
 from print_api.common.tasks import celery
-from typing import Union
-from celery import Celery as CeleryType
-
+from print_api.config import load_config
+from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt, limiter
+from print_api.models import db
 # Resources
 from print_api.resources.api_routes import (
     auth_route,
@@ -131,30 +131,31 @@ def register_blueprints(app):
 def register_errorhandler(app):
     """Register error handlers."""
 
+    # Map of error codes to messages
+    ERROR_MESSAGES = {
+        401: "Access denied. You do not have the required permissions to access this resource.",
+        404: "Resource not found.",
+        405: "Method not allowed.",
+        413: "The request entity is too large.",
+        415: "Unsupported media type.",
+        422: "The request was well-formed but was unable to be followed due to semantic errors.",
+        429: "Too many requests.",
+        500: "Internal server error."
+    }
+
     def render_error(error):
         """Render error template."""
-        # If a HTTPException, pull the `code` attribute; default to 500
         error_code = getattr(error, "code", 500)
         error_description = error.description
 
-        # Check if the error is access denied error
-        if error_code == 401:
-            error_message = "Access denied. You do not have the required permissions to access this resource."
-        elif error_code == 404:
-            error_message = "Resource not found."
-        elif error_code == 413:
-            error_message = "The request entity is too large."
-        elif error_code == 429:
-            error_message = "Too many requests."
-        elif error_code == 500:
-            error_message = "Internal server error."
-        else:
-            error_message = "An unknown error occurred."
+        # Fetch the error message from the dictionary, or default to an unknown error message
+        error_message = ERROR_MESSAGES.get(error_code, "An unknown error occurred.")
 
         return custom_response(error_code, error_message, extra_info=error_description)
 
-    for errcode in [401, 404, 413, 429, 500]:
-        app.errorhandler(errcode)(render_error)
+    # Register the general HTTPException to catch all
+    app.errorhandler(HTTPException)(render_error)
+
     return None
 
 
