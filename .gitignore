@@ -162,5 +162,4 @@ cython_debug/
 **/migrations/**
 *.dump
 **/logs/**
-.run/**
 .aider*
