@@ -28,10 +28,10 @@ class LDAP:
         Perform a lookup on the LDAP server.
 
         Args:
-            search_filter(str): An LDAP search filter too restrict obtained results
+            search_filter(str): An LDAP search filter to restrict obtained results
             attributes(List[str]): The attributes to collect from the lookup result
             return_as_str(bool): Determines whether result values will be strings.
-                                 By default result values in Dict will be Lists
+                                 By default, result values in Dict will be Lists
         Raises:
             LDAPSocketOpenError: If connection could not be established with the LDAP server
         Returns:
