@@ -39,6 +39,9 @@ class Config:
     ADVANCED_LEVEL: int
     EXPERT_LEVEL: int
     INSANE_LEVEL: int
+    AUTOREVIEW_FAIL_THRESHOLD: float
+    AUTOREVIEW_START_THRESHOLD: int
+    AUTOREVIEW_TIME_THRESHOLD: int
     SENTRY_SAMPLES_RATE: float
     SENTRY_DSN: str
 
@@ -83,8 +86,11 @@ def load_env_vars(env_file):
         ADVANCED_LEVEL=int(os.getenv("ADVANCED_LEVEL", 5)),
         EXPERT_LEVEL=int(os.getenv("EXPERT_LEVEL", 10)),
         INSANE_LEVEL=int(os.getenv("INSANE_LEVEL", 15)),
+        AUTOREVIEW_FAIL_THRESHOLD=float(os.getenv("AUTOREVIEW_FAIL_THRESHOLD", 0.1)),
+        AUTOREVIEW_START_THRESHOLD=int(os.getenv("AUTOREVIEW_START_THRESHOLD", 5)),
+        AUTOREVIEW_TIME_THRESHOLD=int(os.getenv("AUTOREVIEW_TIME_THRESHOLD", 36000)),
         SENTRY_SAMPLES_RATE=float(os.getenv("SENTRY_SAMPLES_RATE", 0.0)),
-        SENTRY_DSN=os.getenv("SENTRY_DSN"),
+        SENTRY_DSN=os.getenv("SENTRY_DSN", ""),
     )
 
 
