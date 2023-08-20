@@ -61,55 +61,67 @@ class PrintJob(db.Model):
 
     # class constructor
     def __init__(self, data):
-        """
-        Class constructor
-        """
-        self.gcode_slug = data.get("gcode_slug")
-        self.filament_usage = data.get("filament_usage")
-        self.print_name = data.get("print_name")
-        self.print_time = data.get("print_time")
-        self.printer_type = data.get("printer_type")
-        self.project = data.get("project")
-        self.user_id = data.get("user_id")
+        self._set_attributes(data)
+        self._set_job_status(data)
+
+    def _set_attributes(self, data):
+        attributes = [
+            "gcode_slug", "filament_usage", "print_name", "print_time",
+            "printer_type", "project", "user_id", "rep_check", "upload_notes"
+        ]
+        for attr in attributes:
+            setattr(self, attr, data.get(attr))
+
         self.colour = None
         self.date_started = None
         self.date_ended = None
         self.printer = None
-        self.rep_check = data.get("rep_check")
-        self.upload_notes = data.get("upload_notes")
 
-        # if data
+        if self.project is not project_types.personal:
+            self.project_string = data.get("project_name")
 
-        # Making it so that approval jobs can be part of the print job model
+    def _set_job_status(self, data):
         if data.get("status") == job_status.approval:
             self.status = job_status.approval
             self.stl_slug = data.get("stl_slug")
         else:
             self.stl_slug = None
+            self.status = self._calculate_status_based_on_rep_and_time()
 
-            # catch high failure risk and long prints with auto-review
-            fail_threshold = float(os.getenv('AUTOREVIEW_FAIL_THRESHOLD'))
-            start_threshold = int(os.getenv('AUTOREVIEW_START_THRESHOLD'))
-            time_threshold = int(os.getenv('AUTOREVIEW_TIME_THRESHOLD'))
+    def _calculate_status_based_on_rep_and_time(self):
+        """Determine job status based on representative's record and print time."""
+        if self._is_rep_new():
+            return job_status.under_review
+        if self._is_failure_rate_acceptable() and self._is_print_time_short():
+            return job_status.queued
+        return job_status.under_review
 
-            check_rep = User.get_user_by_id(self.rep_check)
+    def _is_rep_new(self):
+        """Check if the representative is new based on completed jobs."""
+        check_rep = User.get_user_by_id(self.rep_check)
+        total_jobs = (
+                check_rep.slice_completed_count +
+                check_rep.slice_failed_count +
+                check_rep.slice_rejected_count
+        )
+        start_threshold = int(os.getenv('AUTOREVIEW_START_THRESHOLD'))
+        return total_jobs < start_threshold
 
-            if (check_rep.slice_completed_count + check_rep.slice_failed_count + check_rep.slice_rejected_count) < start_threshold:
-                # catch when reps are only just starting slicing
-                self.status = job_status.under_review
-            else:
-                # catch based on failure(/reject) rate
-                fail_rate = (check_rep.slice_failed_count + check_rep.slice_rejected_count) / (check_rep.slice_completed_count + check_rep.slice_failed_count + check_rep.slice_rejected_count)
-                if fail_rate < fail_threshold and self.print_time < time_threshold:
-                    # failure rate low enough AND print short enough
-                    self.status = job_status.queued
-                else:
-                    self.status = job_status.under_review
+    def _is_failure_rate_acceptable(self):
+        """Determine if the failure rate is below the acceptable threshold."""
+        check_rep = User.get_user_by_id(self.rep_check)
+        fail_rate = (check_rep.slice_failed_count + check_rep.slice_rejected_count) / (
+                check_rep.slice_completed_count +
+                check_rep.slice_failed_count +
+                check_rep.slice_rejected_count
+        )
+        fail_threshold = float(os.getenv('AUTOREVIEW_FAIL_THRESHOLD'))
+        return fail_rate < fail_threshold
 
-        # If co-curricular or uni module store group name / code
-        self.project = data.get("project")
-        if self.project is not project_types.personal:
-            self.project_string = data.get("project_name")
+    def _is_print_time_short(self):
+        """Check if the print time is below the threshold."""
+        time_threshold = int(os.getenv('AUTOREVIEW_TIME_THRESHOLD'))
+        return self.print_time < time_threshold
 
     def save(self):
         """

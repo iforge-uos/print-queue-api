@@ -35,13 +35,14 @@ def create():
     # Get user level
     user_level = check_user_id(req_data["user_id"])
     if user_level is None:
-        return custom_response(status_code=404, details="user is not found")
+        return custom_response(status_code=400, details="user is not found")
 
     if "rep_check" not in req_data:
         req_data["rep_check"] = req_data["user_id"]
 
-    if not check_rep_id(req_data["rep_check"]):
-        return custom_response(status_code=404, details="rep is incorrect or not permitted to check prints")
+    # Check rep is valid only on basic prints
+    if not check_rep_id(req_data["rep_check"]) and user_level == "basic":
+        return custom_response(status_code=400, details="rep is incorrect or not permitted to check prints")
 
     if user_level == "advanced":
         req_data["status"] = "approval"
