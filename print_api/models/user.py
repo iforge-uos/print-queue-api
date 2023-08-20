@@ -4,7 +4,6 @@ from print_api.models import db, UserRole
 from print_api.common.ldap import LDAP
 from flask import current_app
 
-
 class User(db.Model):
     """
     User Model
@@ -169,7 +168,7 @@ class user_schema(Schema):
     email = fields.String(required=True)
     uid = fields.String(required=True)
     name = fields.String(required=True)
-    short_name = fields.String(required=False)
+    short_name = fields.String(required=False, allow_none=True, missing="")
     user_score = fields.Int(required=False)
     is_rep = fields.Boolean(required=False)
     score_editable = fields.Boolean(required=False)
