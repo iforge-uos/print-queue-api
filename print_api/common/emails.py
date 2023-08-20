@@ -1,11 +1,11 @@
 from flask import current_app
 from flask_mail import Message
+
+from print_api.common import tasks
 from print_api.models import User
 from print_api.common.errors import InternalServerError
 from print_api.extensions import mail
-from threading import Thread
 import time
-
 
 COMPLETED_EMAIL_HEADER = "Your Print Has Finished"
 COMPLETED_EMAIL_BODY = """
@@ -49,7 +49,7 @@ email_content = {
             'header': REJECTED_EMAIL_HEADER,
             'body': REJECTED_EMAIL_BODY
         }
-    }
+}
 
 
 def email(user_id, job_name, status):
@@ -73,13 +73,15 @@ def email(user_id, job_name, status):
     t = time.localtime()
     cur_time = time.strftime("%H:%M:%S", t)
 
-    msg = Message(email_content[status]['header'], recipients=[user_email])
-    msg.body = email_content[status]['body'] % (
-        user_name, job_name, cur_time)
+    msg_data = {
+        "subject": email_content[status]['header'],
+        "recipients": [user_email],
+        "body": email_content[status]['body'] % (
+            user_name, job_name, cur_time)
+    }
 
-    app = current_app._get_current_object()
-    # Send email in separate thread to make api run faster
-    Thread(target=send_async_email, args=(app, msg)).start()
+    # Dispatch to Celery
+    tasks.send_email.apply_async(kwargs={"msg_data": msg_data})
 
     return True
 
