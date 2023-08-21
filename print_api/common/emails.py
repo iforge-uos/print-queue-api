@@ -1,54 +1,18 @@
-from flask import current_app
-from flask_mail import Message
+import time
+
+from flask import render_template
 
 from print_api.common import tasks
 from print_api.models import User
-from print_api.common.errors import InternalServerError
-from print_api.extensions import mail
-import time
 
 COMPLETED_EMAIL_HEADER = "Your Print Has Finished"
-COMPLETED_EMAIL_BODY = """
-        Hi %s,
-
-        Your 3D print job "%s" was finished at %s and is ready to collect from the iForge!
-
-        iForge Team"""
-
 FAILED_EMAIL_HEADER = "Sorry Your Print Has Failed"
-FAILED_EMAIL_BODY = """
-        Hi %s,
-
-        Sadly your 3D print job "%s" was marked as failed at %s.
-        If you pop in and talk to a rep we can help you make it work!
-
-        iForge Team"""
-
 REJECTED_EMAIL_HEADER = "Sorry Your Print Was Rejected"
-REJECTED_EMAIL_BODY = """
-        Hi %s,
 
-        Sadly your 3D print job "%s" was rejected at %s.
-        If you pop in and talk to a rep we can help you make it work!
-
-        iForge Team"""
-
-email_content = {
-    'completed':
-        {
-            'header': COMPLETED_EMAIL_HEADER,
-            'body': COMPLETED_EMAIL_BODY
-        },
-    'failed':
-        {
-            'header': FAILED_EMAIL_HEADER,
-            'body': FAILED_EMAIL_BODY
-        },
-    'rejected':
-        {
-            'header': REJECTED_EMAIL_HEADER,
-            'body': REJECTED_EMAIL_BODY
-        }
+EMAIL_HEADERS = {
+    "completed": COMPLETED_EMAIL_HEADER,
+    "failed": FAILED_EMAIL_HEADER,
+    "rejected": REJECTED_EMAIL_HEADER,
 }
 
 
@@ -73,28 +37,22 @@ def email(user_id, job_name, status):
     t = time.localtime()
     cur_time = time.strftime("%H:%M:%S", t)
 
+    template_name = f"/emails/print_{status}.html"
+    email_body = render_template(
+        template_name,
+        header_title=EMAIL_HEADERS[status],
+        recipient_name=user_name,
+        print_job_name=job_name,
+        timestamp=cur_time,
+    )
+
     msg_data = {
-        "subject": email_content[status]['header'],
+        "subject": EMAIL_HEADERS[status],
         "recipients": [user_email],
-        "body": email_content[status]['body'] % (
-            user_name, job_name, cur_time)
+        "body": email_body,
     }
 
     # Dispatch to Celery
     tasks.send_email.apply_async(kwargs={"msg_data": msg_data})
 
     return True
-
-
-def send_async_email(app, msg):
-    """
-    Creates a new app on a thread to send the email to free up the main thread.
-    :param app: a new app object created from the current_app context
-    :param msg: the message object being sent
-    :return: None
-    """
-    with app.app_context():
-        try:
-            mail.send(msg)
-        except ConnectionRefusedError:
-            raise InternalServerError("[MAIL SERVER] not working")

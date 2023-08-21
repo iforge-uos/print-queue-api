@@ -31,20 +31,24 @@ logger = logging.getLogger()
 
 
 def create_app(config_env: str = "development") -> Flask:
-    result = entrypoint(config_env=config_env, mode='app')
-    assert isinstance(result, Flask), f'Expected a Flask instance, got {type(result)}'
+    result = entrypoint(config_env=config_env, mode="app")
+    assert isinstance(result, Flask), f"Expected a Flask instance, got {type(result)}"
     return result
 
 
 def create_celery(config_env: str = "development") -> CeleryType:
-    result = entrypoint(config_env=config_env, mode='celery')
-    assert isinstance(result, CeleryType), f'Expected a Celery instance, got {type(result)}'
+    result = entrypoint(config_env=config_env, mode="celery")
+    assert isinstance(
+        result, CeleryType
+    ), f"Expected a Celery instance, got {type(result)}"
     return result
 
 
-def entrypoint(config_env: str = "development", mode: str = 'app') -> Union[Flask, CeleryType]:
+def entrypoint(
+    config_env: str = "development", mode: str = "app"
+) -> Union[Flask, CeleryType]:
     assert isinstance(mode, str), 'bad mode type "{}"'.format(type(mode))
-    assert mode in ('app', 'celery'), 'bad mode "{}"'.format(mode)
+    assert mode in ("app", "celery"), 'bad mode "{}"'.format(mode)
 
     app = Flask(__name__)
 
@@ -62,16 +66,15 @@ def entrypoint(config_env: str = "development", mode: str = 'app') -> Union[Flas
     register_extensions(app)
     # register error handler
     register_errorhandler(app)
-    if mode == 'app':
+    if mode == "app":
         return app
-    elif mode == 'celery':
-        
+    elif mode == "celery":
         return celery
-    
+
 
 def configure_app(app, config_env: str = "development"):
     conf = load_config(config_env)
-    
+
     print(conf.SENTRY_DSN, conf.SENTRY_SAMPLES_RATE)
     sentry_sdk.init(
         dsn=conf.SENTRY_DSN,
@@ -83,8 +86,8 @@ def configure_app(app, config_env: str = "development"):
 
 def configure_celery(app, celery):
     # set broker url and result backend from app config
-    celery.conf.broker_url = app.config['CELERY_BROKER_URL']
-    celery.conf.result_backend = app.config['CELERY_RESULT_BACKEND']
+    celery.conf.broker_url = app.config["CELERY_BROKER_URL"]
+    celery.conf.result_backend = app.config["CELERY_RESULT_BACKEND"]
 
     # subclass task base for app context
     # http://flask.pocoo.org/docs/0.12/patterns/celery/
@@ -122,9 +125,13 @@ def register_blueprints(app):
     )
     app.register_blueprint(other_routes.other_api, url_prefix=f"{api_prefix}/misc")
     app.register_blueprint(auth_route.auth_api, url_prefix=f"{api_prefix}/auth")
-    app.register_blueprint(role_permission_management_route.role_permission_api,
-                           url_prefix=f"{api_prefix}/permission_management")
-    app.register_blueprint(file_upload_route.file_upload_api, url_prefix=f"{api_prefix}/file_upload")
+    app.register_blueprint(
+        role_permission_management_route.role_permission_api,
+        url_prefix=f"{api_prefix}/permission_management",
+    )
+    app.register_blueprint(
+        file_upload_route.file_upload_api, url_prefix=f"{api_prefix}/file_upload"
+    )
     return None
 
 
@@ -140,7 +147,7 @@ def register_errorhandler(app):
         415: "Unsupported media type.",
         422: "The request was well-formed but was unable to be followed due to semantic errors.",
         429: "Too many requests.",
-        500: "Internal server error."
+        500: "Internal server error.",
     }
 
     def render_error(error):
@@ -184,22 +191,26 @@ def configure_logging(app, env: str = "development"):
     log_location = app.config["LOG_LOCATION"]
     max_log_size = app.config["LOG_MAX_SIZE"]
 
-    if app.config['LOG_TO_STDOUT']:
+    if app.config["LOG_TO_STDOUT"]:
         stream_handler = logging.StreamHandler()
         stream_handler.setLevel(logging.INFO)
         app.logger.addHandler(stream_handler)
     else:
         if not os.path.exists(log_location):
             os.mkdir(log_location)
-        file_handler = RotatingFileHandler(f'{log_location}/{env}.log',
-                                           maxBytes=max_log_size, backupCount=10)
-        file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+        file_handler = RotatingFileHandler(
+            f"{log_location}/{env}.log", maxBytes=max_log_size, backupCount=10
+        )
+        file_handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+            )
+        )
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
 
     app.logger.setLevel(logging.INFO)
-    app.logger.info('Print-API Startup')
-    app.logger.info(f'Environment: {env}')
+    app.logger.info("Print-API Startup")
+    app.logger.info(f"Environment: {env}")
     app.logger.info(f'Connected to database: {app.config["SQLALCHEMY_DATABASE_URI"]})')
     return None

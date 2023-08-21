@@ -1,0 +1,19 @@
+{% extends "emails/base.html" %}
+
+{% block title %}
+    {{ header_title }}
+{% endblock title %}
+
+{% block content %}
+    <div>
+        <h2>{{ header_title }}</h2>
+        <p>
+            Hi {{ recipient_name }},
+            <br><br>
+            Sadly your 3D print job "{{ print_job_name }}" was marked as failed at {{ timestamp }}.
+            If you pop in and talk to a rep we can help you make it work!
+            <br><br>
+            iForge Team
+        </p>
+    </div>
+{% endblock content %}

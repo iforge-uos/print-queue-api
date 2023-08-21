@@ -1,11 +1,12 @@
 import datetime
-import time
 import logging
+import time
+
 from celery import Celery
 from flask import current_app
 from flask_mail import Message
-from print_api.extensions import mail
 
+from print_api.extensions import mail
 
 logger = logging.getLogger()
 celery = Celery(__name__, autofinalize=False)
@@ -17,6 +18,7 @@ def wait_task(self, sleep_time):
     time.sleep(sleep_time)
     return datetime.datetime.now().isoformat()
 
+
 @celery.task(bind=True)
 def send_email(self, msg_data):
     """
@@ -26,7 +28,7 @@ def send_email(self, msg_data):
     msg = Message(
         subject=msg_data["subject"],
         recipients=msg_data["recipients"],
-        body=msg_data["body"]
+        html=msg_data["body"],
     )
 
     with app.app_context():

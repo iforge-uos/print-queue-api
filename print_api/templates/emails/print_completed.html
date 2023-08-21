@@ -1,0 +1,19 @@
+{% extends "emails/base.html" %}
+
+{% block title %}
+    {{ header_title }}
+{% endblock title %}
+
+{% block content %}
+    <div>
+        <h2>{{ header_title }}</h2>
+        <p>
+            Hi {{ recipient_name }},
+            <br><br>
+            Your 3D print job "{{ print_job_name }}" was finished at {{ timestamp }} and is ready to collect from the
+            iForge!
+            <br><br>
+            iForge Team
+        </p>
+    </div>
+{% endblock content %}
