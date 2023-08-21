@@ -15,7 +15,6 @@ from print_api.common.tasks import celery
 from print_api.config import load_config
 from print_api.extensions import migrate, mail, bootstrap, api, cors, jwt, limiter
 from print_api.models import db
-# Resources
 from print_api.resources.api_routes import (
     auth_route,
     maintenance_route,
