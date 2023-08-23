@@ -1,8 +1,10 @@
-from sqlalchemy.sql import func
-from marshmallow import fields, Schema
-from print_api.models import db, UserRole
-from print_api.common.ldap import LDAP
 from flask import current_app
+from marshmallow import fields, Schema
+from sqlalchemy.sql import func
+
+from print_api.common.ldap import LDAP
+from print_api.models import db, UserRole
+
 
 class User(db.Model):
     """
@@ -93,9 +95,20 @@ class User(db.Model):
         db.session.commit()
 
     def to_dict(self):
-        data = {column.name: getattr(self, column.name) for column in self.__table__.columns}
+        data = {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
         data["user_level"] = User.calculate_level_from_score(data["user_score"])
         return data
+
+    def has_role(self, role_id) -> bool:
+        return UserRole.get(self.id, role_id) is not None
+
+    def give_role(self, role_id) -> bool:
+        return UserRole.add(self.id, role_id)
+
+    def remove_role(self, role_id) -> bool:
+        return UserRole.remove(self.id, role_id)
 
     @staticmethod
     def get_all_users():
@@ -144,7 +157,12 @@ class User(db.Model):
         insane_level = current_app.config["INSANE_LEVEL"]
 
         # set boundaries
-        user_level_struct = {0: "beginner", advanced_level: "advanced", expert_level: "expert", insane_level: "insane"}
+        user_level_struct = {
+            0: "beginner",
+            advanced_level: "advanced",
+            expert_level: "expert",
+            insane_level: "insane",
+        }
 
         level = ""
         for key, value in user_level_struct.items():
