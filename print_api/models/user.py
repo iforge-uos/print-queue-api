@@ -68,8 +68,7 @@ class User(db.Model):
             }
         )
         user.save()
-        user_role = UserRole(user.id, 1)
-        user_role.save()
+        UserRole.add(user.id, 1)
         return True
 
     def save(self):
