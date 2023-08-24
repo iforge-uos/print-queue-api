@@ -74,7 +74,7 @@ def refresh():
     jti = get_jwt()["jti"]
     if BlacklistedToken.is_blacklisted(jti):
         return custom_response(
-            status_code=401,
+            status_code=403,
             details="Token has been revoked",
             extra_info="Reauthentication required",
         )

@@ -7,19 +7,9 @@ from print_api.models import User, Role, Permission, RolePermission
 role_permission_api = Blueprint("role_permission", __name__)
 
 
-@role_permission_api.route("/assign_role_to_user", methods=["POST"])
+@role_permission_api.route("/users/<int:user_id>/roles/<int:role_id>", methods=["POST"])
 @jwt_required()
-def assign_role_to_user():
-    """
-    Function to assign a role to a user
-    {
-    "user_id": 1,
-    "role_id": 1
-    }
-    """
-    data = request.get_json()
-    user_id = data.get("user_id")
-    role_id = data.get("role_id")
+def assign_role_to_user(user_id, role_id):
     if user_id is None or role_id is None:
         return custom_response(400, None, "Missing user_id or role_id")
 
@@ -37,19 +27,9 @@ def assign_role_to_user():
     return custom_response(500, None, "Failed to assign role to user")
 
 
-@role_permission_api.route("/remove_role_from_user", methods=["POST"])
+@role_permission_api.route("/users/<int:user_id>/roles/<int:role_id>", methods=["DELETE"])
 @jwt_required()
-def remove_role_from_user():
-    """
-    Function to remove a role from a user
-    {
-    "user_id": 1,
-    "role_id": 1
-    }
-    """
-    data = request.get_json()
-    user_id = data.get("user_id")
-    role_id = data.get("role_id")
+def remove_role_from_user(user_id, role_id):
     if user_id is None or role_id is None:
         return custom_response(400, None, "Missing user_id or role_id")
 
@@ -67,7 +47,7 @@ def remove_role_from_user():
     return custom_response(500, None, "Failed to remove role from user")
 
 
-@role_permission_api.route("/view_user_roles/<int:user_id>", methods=["GET"])
+@role_permission_api.route("/users/<int:user_id>/roles", methods=["GET"])
 @jwt_required()
 def view_user_roles(user_id):
     """
@@ -79,7 +59,7 @@ def view_user_roles(user_id):
     return custom_response(200, user.get_roles(), None)
 
 
-@role_permission_api.route("/view_role_users/<int:role_id>", methods=["GET"])
+@role_permission_api.route("/roles/<int:role_id>/users", methods=["GET"])
 @jwt_required()
 def view_role_users(role_id):
     """
@@ -93,7 +73,7 @@ def view_role_users(role_id):
     return custom_response(200, [user.id for user in role.users], None)
 
 
-@role_permission_api.route("/create_role", methods=["POST"])
+@role_permission_api.route("/roles", methods=["POST"])
 @jwt_required()
 def create_role():
     """
@@ -113,7 +93,7 @@ def create_role():
     return custom_response(500, None, "Failed to create role")
 
 
-@role_permission_api.route("/update_role/<int:role_id>", methods=["PUT"])
+@role_permission_api.route("/roles/<int:role_id>", methods=["PUT"])
 @jwt_required()
 def update_role(role_id):
     data = request.get_json()
@@ -132,7 +112,7 @@ def update_role(role_id):
     return custom_response(500, None, "Failed to update role")
 
 
-@role_permission_api.route("/delete_role/<int:role_id>", methods=["DELETE"])
+@role_permission_api.route("/roles/<int:role_id>", methods=["DELETE"])
 @jwt_required()
 def delete_role(role_id):
     if role_id is None:
@@ -148,7 +128,7 @@ def delete_role(role_id):
     return custom_response(500, None, "Failed to delete role")
 
 
-@role_permission_api.route("/view_role/<int:role_id>", methods=["GET"])
+@role_permission_api.route("/roles/<int:role_id>", methods=["GET"])
 @jwt_required()
 def view_role(role_id):
     """ """
@@ -158,31 +138,17 @@ def view_role(role_id):
     return custom_response(200, role.to_dict(), None)
 
 
-@role_permission_api.route("/view_all_roles", methods=["GET"])
+@role_permission_api.route("/roles", methods=["GET"])
 @jwt_required()
 def view_all_roles():
     """ """
     roles = Role.get_all()
-    if roles is None:
-        return custom_response(404, None, "No roles found")
-    return custom_response(200, [role.to_dict() for role in roles], None)
+    return custom_response(200, [role.to_dict() for role in roles or []], None)
 
 
-@role_permission_api.route("/assign_permission_to_role", methods=["POST"])
+@role_permission_api.route("/roles/<int:role_id>/permissions/<int:permission_id>", methods=["POST"])
 @jwt_required()
-def assign_permission_to_role():
-    """
-    Function to assign a permission to a role
-    {
-    "role_id": 1,
-    "permission_id": 1
-    }
-    """
-
-    data = request.get_json()
-    role_id = data.get("role_id")
-    permission_id = data.get("permission_id")
-
+def assign_permission_to_role(role_id, permission_id):
     if role_id is None or permission_id is None:
         return custom_response(400, None, "Missing role_id or permission_id")
 
@@ -200,7 +166,7 @@ def assign_permission_to_role():
     return custom_response(500, None, "Failed to assign permission to role")
 
 
-@role_permission_api.route("/create_permission", methods=["POST"])
+@role_permission_api.route("/permissions", methods=["POST"])
 @jwt_required()
 def create_permission():
     """
@@ -222,7 +188,7 @@ def create_permission():
     pass
 
 
-@role_permission_api.route("/update_permission/<int:permission_id>", methods=["PUT"])
+@role_permission_api.route("/permissions/<int:permission_id>", methods=["PUT"])
 @jwt_required()
 def update_permission(permission_id):
     data = request.get_json()
@@ -242,7 +208,7 @@ def update_permission(permission_id):
     return custom_response(500, None, "Failed to update permission")
 
 
-@role_permission_api.route("/delete_permission/<int:permission_id>", methods=["DELETE"])
+@role_permission_api.route("/permissions/<int:permission_id>", methods=["DELETE"])
 @jwt_required()
 def delete_permission(permission_id):
     if permission_id is None:
@@ -268,7 +234,7 @@ def view_permission(permission_id):
     return custom_response(200, permission.to_dict(), None)
 
 
-@role_permission_api.route("/view_all_permissions", methods=["GET"])
+@role_permission_api.route("/permissions", methods=["GET"])
 @jwt_required()
 def view_all_permissions():
     permissions = Permission.get_all_permissions()
@@ -279,7 +245,7 @@ def view_all_permissions():
     )
 
 
-@role_permission_api.route("/view_role_permissions/<int:role_id>", methods=["GET"])
+@role_permission_api.route("/roles/<int:role_id>/permissions", methods=["GET"])
 @jwt_required()
 def view_role_permissions(role_id):
     """
@@ -301,7 +267,7 @@ def view_role_permissions(role_id):
 
 
 @role_permission_api.route(
-    "/view_permission_roles/<int:permission_id>", methods=["GET"]
+    "/permissions/<int:permission_id>/roles", methods=["GET"]
 )
 @jwt_required()
 def view_permission_roles(permission_id):
@@ -321,21 +287,9 @@ def view_permission_roles(permission_id):
     return custom_response(200, roles, None)
 
 
-@role_permission_api.route("/remove_permission_from_role", methods=["POST"])
+@role_permission_api.route("/roles/<int:role_id>/permissions/<int:permission_id>", methods=["DELETE"])
 @jwt_required()
-def remove_permission_from_role():
-    """
-    Function to remove a permission from a role
-    {
-    "role_id": 1,
-    "permission_id": 1
-    }
-    """
-
-    data = request.get_json()
-    role_id = data.get("role_id")
-    permission_id = data.get("permission_id")
-
+def remove_permission_from_role(role_id, permission_id):
     if role_id is None or permission_id is None:
         return custom_response(400, None, "Missing role_id or permission_id")
 
@@ -347,7 +301,7 @@ def remove_permission_from_role():
     return custom_response(500, None, "Failed to delete RolePermission")
 
 
-@role_permission_api.route("/get_permissions_for_user/<int:user_id>", methods=["GET"])
+@role_permission_api.route("/users/<int:user_id>/permissions", methods=["GET"])
 @jwt_required()
 def get_permissions_for_user(user_id):
     """

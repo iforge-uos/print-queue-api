@@ -9,7 +9,7 @@ user_api = Blueprint("users", __name__)
 user_schema = UserSchema()
 
 
-@user_api.route("/update/<int:user_id>", methods=["PUT"])
+@user_api.route("/user/<int:user_id>", methods=["PUT"])
 @jwt_required()
 def update_by_id(user_id):
     """
@@ -22,7 +22,7 @@ def update_by_id(user_id):
     return update_user_details(user, req_data, search_string=user_id)
 
 
-@user_api.route("/update/<string:user_email>", methods=["PUT"])
+@user_api.route("/user/<string:user_email>", methods=["PUT"])
 @jwt_required()
 def update_by_email(user_email):
     """
@@ -35,7 +35,7 @@ def update_by_email(user_email):
     return update_user_details(user, req_data, search_string=user_email)
 
 
-@user_api.route("/view/<int:user_id>", methods=["GET"])
+@user_api.route("/user/<int:user_id>", methods=["GET"])
 @jwt_required()
 def view_by_id(user_id):
     """
@@ -46,7 +46,7 @@ def view_by_id(user_id):
     return get_user_details(User.get_user_by_id(user_id), search_string=user_id)
 
 
-@user_api.route("/view/<string:user_email>", methods=["GET"])
+@user_api.route("/user/<string:user_email>", methods=["GET"])
 @jwt_required()
 def view_by_email(user_email):
     """
@@ -59,7 +59,7 @@ def view_by_email(user_email):
     )
 
 
-@user_api.route("/delete/<int:user_id>", methods=["DELETE"])
+@user_api.route("/user/<int:user_id>", methods=["DELETE"])
 @jwt_required()
 def delete_by_id(user_id):
     """
@@ -81,7 +81,7 @@ def delete_by_email(user_email):
     return delete_user(User.get_user_by_email(user_email), search_string=user_email)
 
 
-@user_api.route("/view/all", methods=["GET"])
+@user_api.route("/user", methods=["GET"])
 @jwt_required()
 def view_all_users():
     """
@@ -91,7 +91,7 @@ def view_all_users():
     return get_multiple_user_details(User.get_all_users())
 
 
-@user_api.route("/add", methods=["POST"])
+@user_api.route("/user", methods=["POST"])
 @jwt_required()
 def create():
     """
@@ -187,8 +187,6 @@ def get_multiple_user_details(users):
     :param users: the query object containing the users
     :return response: error or a list of serialized user data
     """
-    if not users:
-        return custom_response(status_code=404, details="Users not found")
     jason = []
     for user in users:
         user_dict = user.to_dict()

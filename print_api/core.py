@@ -120,7 +120,7 @@ def register_blueprints(app):
         maintenance_route.maintenance_api, url_prefix=f"{api_prefix}/maintenance"
     )
     app.register_blueprint(
-        print_job_route.print_job_api, url_prefix=f"{api_prefix}/jobs"
+        print_job_route.print_job_api, url_prefix=f"{api_prefix}/prints"
     )
     app.register_blueprint(other_routes.other_api, url_prefix=f"{api_prefix}/misc")
     app.register_blueprint(auth_route.auth_api, url_prefix=f"{api_prefix}/auth")

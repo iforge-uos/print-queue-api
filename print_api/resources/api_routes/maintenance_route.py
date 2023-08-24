@@ -11,7 +11,7 @@ maintenance_schema = MaintenanceSchema()
 NOTFOUNDMAINTENANCE = "maintenance log(s) not found"
 
 
-@maintenance_api.route("/update/<int:log_id>", methods=["PUT"])
+@maintenance_api.route("/log/<int:log_id>", methods=["PUT"])
 @jwt_required()
 def update_by_id(log_id):
     """
@@ -24,7 +24,7 @@ def update_by_id(log_id):
     return update_log_details(log, req_data)
 
 
-@maintenance_api.route("/view/single/<int:log_id>", methods=["GET"])
+@maintenance_api.route("/log/single/<int:log_id>", methods=["GET"])
 @jwt_required()
 def view_single_by_id(log_id):
     """
@@ -35,7 +35,7 @@ def view_single_by_id(log_id):
     return get_log_details(MaintenanceLog.get_maintenance_log_by_id(log_id))
 
 
-@maintenance_api.route("/view/all/<string:printer_name>", methods=["GET"])
+@maintenance_api.route("log/printer/name/<string:printer_name>", methods=["GET"])
 @jwt_required()
 def view_all_by_printer_name(printer_name):
     """
@@ -54,7 +54,7 @@ def view_all_by_printer_name(printer_name):
     )
 
 
-@maintenance_api.route("/view/all/<int:printer_id>", methods=["GET"])
+@maintenance_api.route("/log/printer/<int:printer_id>", methods=["GET"])
 @jwt_required()
 def view_all_by_printer_id(printer_id):
     """
@@ -67,7 +67,7 @@ def view_all_by_printer_id(printer_id):
     )
 
 
-@maintenance_api.route("/delete/<int:log_id>", methods=["DELETE"])
+@maintenance_api.route("/log/<int:log_id>", methods=["DELETE"])
 @jwt_required()
 def delete_by_id(log_id):
     """
@@ -78,7 +78,7 @@ def delete_by_id(log_id):
     return delete_log(MaintenanceLog.get_maintenance_log_by_id(log_id))
 
 
-@maintenance_api.route("/add", methods=["POST"])
+@maintenance_api.route("/log", methods=["POST"])
 @jwt_required()
 def create():
     """
@@ -136,10 +136,8 @@ def get_multiple_log_details(logs):
     """
     Function to take a query object and serialize each log inside it.
     :param logs: the query object containing all the logs
-    :return response: error the a list of serialized log objects.
+    :return response: the list of serialized log objects.
     """
-    if not logs:
-        return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
     jason = []
     final_res = {"maintenance_logs": jason}
     for log in logs:

@@ -11,6 +11,7 @@ other_api = Blueprint("misc", __name__)
 
 
 @other_api.route("/toast", methods=["GET"])
+@role_required("root")
 def test():
     """
     Test Endpoint 1
@@ -28,6 +29,7 @@ def test_2():
 
 
 @other_api.route("/test_celery", methods=["GET"])
+@role_required("root")
 def test_celery():
     """
     Test Endpoint 3

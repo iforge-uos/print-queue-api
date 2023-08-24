@@ -11,7 +11,7 @@ printer_schema = PrinterSchema()
 NOTFOUNDPRINTER = "printer(s) not found"
 
 
-@printer_api.route("/update/<int:printer_id>", methods=["PUT"])
+@printer_api.route("/printer/<int:printer_id>", methods=["PUT"])
 @jwt_required()
 def update_by_id(printer_id):
     """
@@ -24,7 +24,7 @@ def update_by_id(printer_id):
     return update_printer_details(printer, req_data)
 
 
-@printer_api.route("/update/<string:printer_name>", methods=["PUT"])
+@printer_api.route("/printer/<string:printer_name>", methods=["PUT"])
 @jwt_required()
 def update_by_name(printer_name):
     """
@@ -37,7 +37,7 @@ def update_by_name(printer_name):
     return update_printer_details(printer, req_data)
 
 
-@printer_api.route("/increment/<int:printer_id>", methods=["PUT"])
+@printer_api.route("/printer/<int:printer_id>/increment", methods=["PUT"])
 @jwt_required()
 def increment_by_id(printer_id):
     """
@@ -52,7 +52,7 @@ def increment_by_id(printer_id):
     return increment_printer_details(printer, req_data)
 
 
-@printer_api.route("/increment/<string:printer_name>", methods=["PUT"])
+@printer_api.route("/printer/<string:printer_name>/increment", methods=["PUT"])
 @jwt_required()
 def increment_by_name(printer_name):
     """
@@ -68,7 +68,7 @@ def increment_by_name(printer_name):
     return custom_response(status_code=200, details=ser_printer)
 
 
-@printer_api.route("/view/all/", methods=["GET"])
+@printer_api.route("/printer", methods=["GET"])
 @jwt_required()
 def view_all_printers():
     """
@@ -78,7 +78,7 @@ def view_all_printers():
     return get_multiple_printer_details(Printer.get_all_printers())
 
 
-@printer_api.route("/view/<int:printer_id>", methods=["GET"])
+@printer_api.route("/printer/<int:printer_id>", methods=["GET"])
 @jwt_required()
 def view_by_id(printer_id):
     """
@@ -89,7 +89,7 @@ def view_by_id(printer_id):
     return get_printer_details(Printer.get_printer_by_id(printer_id))
 
 
-@printer_api.route("/view/<string:printer_name>", methods=["GET"])
+@printer_api.route("/printer/<string:printer_name>", methods=["GET"])
 @jwt_required()
 def view_by_name(printer_name):
     """
@@ -100,7 +100,7 @@ def view_by_name(printer_name):
     return get_printer_details(Printer.get_printer_by_name(printer_name))
 
 
-@printer_api.route("/delete/<int:printer_id>", methods=["DELETE"])
+@printer_api.route("/printer/<int:printer_id>", methods=["DELETE"])
 @jwt_required()
 def delete_by_id(printer_id):
     """
@@ -111,7 +111,7 @@ def delete_by_id(printer_id):
     return delete_printer(Printer.get_printer_by_id(printer_id))
 
 
-@printer_api.route("/delete/<string:printer_name>", methods=["DELETE"])
+@printer_api.route("/printer/<string:printer_name>", methods=["DELETE"])
 @jwt_required()
 def delete_by_name(printer_name):
     """
@@ -122,7 +122,7 @@ def delete_by_name(printer_name):
     return delete_printer(Printer.get_printer_by_name(printer_name))
 
 
-@printer_api.route("/add", methods=["POST"])
+@printer_api.route("/printer", methods=["POST"])
 @jwt_required()
 def create():
     """
@@ -257,8 +257,6 @@ def get_multiple_printer_details(printers):
     :param printers: the query object containing printers
     :return response: error or a list of serialized printers
     """
-    if not printers:
-        return custom_response(status_code=404, details=NOTFOUNDPRINTER)
     jason = []
     for printer in printers:
         jason.append(printer_schema.dump(printer))
