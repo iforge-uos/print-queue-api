@@ -1,19 +1,23 @@
 from marshmallow import fields, Schema
-from print_api.models import db
-from print_api.models.printers import Printer
 from sqlalchemy.sql import func
 
+from print_api.models import db
+from print_api.models.printers import Printer
 
-class MaintenanceLog (db.Model):
+
+class MaintenanceLog(db.Model):
     """
     Maintenance Logs Model
     """
-    __tablename__ = 'maintenance_logs'
+
+    __tablename__ = "maintenance_logs"
     id = db.Column(db.Integer, primary_key=True)
-    printer_id = db.Column(db.Integer, db.ForeignKey(
-        Printer.id, ondelete="cascade"), nullable=False)
-    maintenance_date = db.Column(db.DateTime(
-        timezone=True), server_default=func.now(), onupdate=func.now())
+    printer_id = db.Column(
+        db.Integer, db.ForeignKey(Printer.id, ondelete="cascade"), nullable=False
+    )
+    maintenance_date = db.Column(
+        db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
     maintenance_info = db.Column(db.String, nullable=False)
     done_by = db.Column(db.String, nullable=False)
 
@@ -22,9 +26,21 @@ class MaintenanceLog (db.Model):
         """
         Class constructor
         """
-        self.printer_id = data.get('printer_id')
-        self.maintenance_info = data.get('maintenance_info')
-        self.done_by = data.get('done_by')
+        self.printer_id = data.get("printer_id")
+        self.maintenance_info = data.get("maintenance_info")
+        self.done_by = data.get("done_by")
+
+    def __repr__(self):
+        return "<maintenance ID: %r>" % self.id
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "printer_id": self.printer_id,
+            "maintenance_date": self.maintenance_date,
+            "maintenance_info": self.maintenance_info,
+            "done_by": self.done_by,
+        }
 
     def save(self):
         """
@@ -57,13 +73,13 @@ class MaintenanceLog (db.Model):
         return MaintenanceLog.query.all()
 
     @staticmethod
-    def get_maintenance_log_by_id(id):
+    def get_maintenance_log_by_id(m_id):
         """
         Function to get a single maintenance logs from the database
-        :param int id: the PK of the log
+        :param int m_id: the PK of the log
         :return query_object: a query object containing the maintenance log
         """
-        return MaintenanceLog.query.get(id)
+        return MaintenanceLog.query.get(m_id)
 
     @staticmethod
     def get_maintenance_logs_by_printer_id(value):
@@ -74,14 +90,12 @@ class MaintenanceLog (db.Model):
         """
         return MaintenanceLog.query.filter_by(printer_id=value).all()
 
-    def __repr__(self):
-        return "<maintenance ID: %r>" % self.id
 
-
-class maintenance_schema(Schema):
+class MaintenanceSchema(Schema):
     """
     Maintenance Schema
     """
+
     id = fields.Int(dump_only=True)
     printer_id = fields.Int(required=True)
     maintenance_date = fields.Date()

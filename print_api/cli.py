@@ -1,12 +1,22 @@
-import click
+import os
+import subprocess
 import time
 import urllib.parse
-import subprocess
-import os
 from datetime import datetime, timedelta
+
+import click
 from sqlalchemy import inspect
-from print_api.models import db, Role, Permission, RolePermission, BlacklistedToken, Printer, printer_type, \
-    printer_location
+
+from print_api.models import (
+    db,
+    Role,
+    Permission,
+    RolePermission,
+    BlacklistedToken,
+    Printer,
+    PrinterType,
+    PrinterLocation,
+)
 
 
 def register_commands(app):
@@ -38,10 +48,16 @@ def register_commands(app):
         """Create the database and seed it with default data."""
         click.echo(click.style("Checking if Database Ready", fg="yellow", bold=True))
         if not check_database_connection():
-            click.echo(click.style("ERROR: Database not ready after waiting.", fg="red", bold=True))
+            click.echo(
+                click.style(
+                    "ERROR: Database not ready after waiting.", fg="red", bold=True
+                )
+            )
             return
-    
-        click.echo(click.style("Checking for existing database!", fg="yellow", bold=True))
+
+        click.echo(
+            click.style("Checking for existing database!", fg="yellow", bold=True)
+        )
         engine = db.engine
         inspector = inspect(engine)
         not_all_tables_exist = False
@@ -51,7 +67,13 @@ def register_commands(app):
                 break
         if not_all_tables_exist:
             # TODO eventually find a way to set it so it does not do this in case of production environment
-            click.echo(click.style("Not all tables exist! initialising the Database!", fg="red", bold=True))
+            click.echo(
+                click.style(
+                    "Not all tables exist! initialising the Database!",
+                    fg="red",
+                    bold=True,
+                )
+            )
             init_db()
             seed_all()
         else:
@@ -64,13 +86,15 @@ def register_commands(app):
         """List all routes."""
         output = []
         for rule in app.url_map.iter_rules():
-            methods = ','.join(sorted(rule.methods))
-            line = urllib.parse.unquote("{}\t{}\t{}".format(rule.endpoint, methods, rule))  # replace spaces with tabs
+            methods = ",".join(sorted(rule.methods))
+            line = urllib.parse.unquote(
+                "{}\t{}\t{}".format(rule.endpoint, methods, rule)
+            )  # replace spaces with tabs
             output.append(line)
 
         click.echo(click.style("Routes:", fg="green", bold=True))
         for line in sorted(output):
-            endpoint, methods, rule = line.split('\t')  # split by tabs
+            endpoint, methods, rule = line.split("\t")  # split by tabs
             click.echo(
                 f"{click.style(endpoint, fg='yellow')}\t"
                 f"{click.style(methods, fg='blue')}\t"
@@ -119,77 +143,177 @@ def register_commands(app):
 
         # Registered routes
         click.echo(click.style("\nRegistered routes:", fg="yellow", bold=True))
-        for rule in sorted(app.url_map.iter_rules(), key=lambda rule_end: rule_end.endpoint):
-            methods = ','.join(sorted(rule.methods))
-            click.echo(f"{click.style(rule.endpoint, fg='cyan')}: {methods} {click.style(rule, fg='yellow')}")
+        for rule in sorted(
+            app.url_map.iter_rules(), key=lambda rule_end: rule_end.endpoint
+        ):
+            methods = ",".join(sorted(rule.methods))
+            click.echo(
+                f"{click.style(rule.endpoint, fg='cyan')}: {methods} {click.style(rule, fg='yellow')}"
+            )
 
     @app.cli.command("clear-expired-blacklist")
     def clear_expired_blacklist():
         """Clear blacklisted tokens that have been expired for longer than the refresh token expiry time."""
-        expiry_date = datetime.utcnow() - timedelta(seconds=app.config['JWT_REFRESH_TOKEN_EXPIRES'])
+        expiry_date = datetime.utcnow() - timedelta(
+            seconds=app.config["JWT_REFRESH_TOKEN_EXPIRES"]
+        )
 
-        if click.confirm(click.style('Are you sure you want to clear all blacklisted tokens older than the refresh '
-                                     'token expiry time?', fg="red"), abort=True):
-            num_deleted = db.session.query(BlacklistedToken).filter(
-                BlacklistedToken.blacklisted_at <= expiry_date).delete()
+        if click.confirm(
+            click.style(
+                "Are you sure you want to clear all blacklisted tokens older than the refresh "
+                "token expiry time?",
+                fg="red",
+            ),
+            abort=True,
+        ):
+            num_deleted = (
+                db.session.query(BlacklistedToken)
+                .filter(BlacklistedToken.blacklisted_at <= expiry_date)
+                .delete()
+            )
             db.session.commit()
-            click.echo(click.style(f"Cleared {num_deleted} expired blacklisted tokens.", fg="green"))
+            click.echo(
+                click.style(
+                    f"Cleared {num_deleted} expired blacklisted tokens.", fg="green"
+                )
+            )
 
     @app.cli.command("clear-all-blacklist")
     def clear_all_blacklist():
         """Clear all blacklisted tokens."""
-        if click.confirm(click.style('Are you sure you want to clear all blacklisted tokens?', fg="red"), abort=True):
+        if click.confirm(
+            click.style(
+                "Are you sure you want to clear all blacklisted tokens?", fg="red"
+            ),
+            abort=True,
+        ):
             num_deleted = db.session.query(BlacklistedToken).delete()
             db.session.commit()
-            click.echo(click.style(f"Cleared {num_deleted} blacklisted tokens.", fg="green"))
+            click.echo(
+                click.style(f"Cleared {num_deleted} blacklisted tokens.", fg="green")
+            )
 
 
 def seed_default_printers():
     """Seed the database with default printers."""
     printer_data = [
-        {"printer_name": "Bernoulli", "printer_type": printer_type.prusa, "location": printer_location.diamond,
-         "ip": "",
-         "api_key": "", "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0,
-         "total_filament_used": 0, "days_on_time": 0},
-        {"printer_name": "Brunel", "printer_type": printer_type.prusa, "location": printer_location.diamond,
-         "ip": "",
-         "api_key": "", "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0,
-         "total_filament_used": 0, "days_on_time": 0},
-        {"printer_name": "Curie", "printer_type": printer_type.prusa, "location": printer_location.diamond,
-         "ip": "", "api_key": "",
-         "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0, "total_filament_used": 0,
-         "days_on_time": 0},
-        {"printer_name": "Lamarr", "printer_type": printer_type.prusa, "location": printer_location.diamond,
-         "ip": "",
-         "api_key": "", "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0,
-         "total_filament_used": 0, "days_on_time": 0},
-        {"printer_name": "Lovelace", "printer_type": printer_type.prusa, "location": printer_location.heartspace,
-         "ip": "",
-         "api_key": "", "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0,
-         "total_filament_used": 0, "days_on_time": 0},
-        {"printer_name": "Turing", "printer_type": printer_type.prusa, "location": printer_location.heartspace,
-         "ip": "",
-         "api_key": "", "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0,
-         "total_filament_used": 0, "days_on_time": 0},
-        {"printer_name": "Hawking", "printer_type": printer_type.prusa, "location": printer_location.heartspace,
-         "ip": "",
-         "api_key": "", "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0,
-         "total_filament_used": 0, "days_on_time": 0},
-        {"printer_name": "Tesla", "printer_type": printer_type.prusa, "location": printer_location.heartspace,
-         "ip": "",
-         "api_key": "", "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0,
-         "total_filament_used": 0, "days_on_time": 0},
-        {"printer_name": "Da Vinci", "printer_type": printer_type.prusa, "location": printer_location.heartspace,
-         "ip": "",
-         "api_key": "", "total_time_printed": 0, "completed_prints": 0, "failed_prints": 0,
-         "total_filament_used": 0, "days_on_time": 0},
+        {
+            "printer_name": "Bernoulli",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.diamond,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
+        {
+            "printer_name": "Brunel",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.diamond,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
+        {
+            "printer_name": "Curie",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.diamond,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
+        {
+            "printer_name": "Lamarr",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.diamond,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
+        {
+            "printer_name": "Lovelace",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.heartspace,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
+        {
+            "printer_name": "Turing",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.heartspace,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
+        {
+            "printer_name": "Hawking",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.heartspace,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
+        {
+            "printer_name": "Tesla",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.heartspace,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
+        {
+            "printer_name": "Da Vinci",
+            "printer_type": PrinterType.prusa,
+            "location": PrinterLocation.heartspace,
+            "ip": "",
+            "api_key": "",
+            "total_time_printed": 0,
+            "completed_prints": 0,
+            "failed_prints": 0,
+            "total_filament_used": 0,
+            "days_on_time": 0,
+        },
     ]
 
     if Printer.query.count() > 0:
         return False
 
     for printer in printer_data:
-        click.echo(click.style("Seeding printer: " + printer["printer_name"], italic=True))
+        click.echo(
+            click.style("Seeding printer: " + printer["printer_name"], italic=True)
+        )
         db.session.add(Printer(printer))
     db.session.commit()
 
@@ -224,7 +348,9 @@ def seed_default_auth():
         Permission(name="edit_print_job_any", description="Edit print job data"),
         Permission(name="delete_print_job_any", description="Delete print jobs"),
         Permission(name="view_print_job_self", description="View own print job data"),
-        Permission(name="create_print_job_self", description="Create own new print jobs"),
+        Permission(
+            name="create_print_job_self", description="Create own new print jobs"
+        ),
         Permission(name="edit_print_job_self", description="Edit own print job data"),
         Permission(name="delete_print_job_self", description="Delete own print jobs"),
         Permission(name="start_print_job", description="Start print jobs"),
@@ -235,7 +361,9 @@ def seed_default_auth():
 
     permissions_files = [
         Permission(name="upload_model_file", description="Upload model files stl etc."),
-        Permission(name="upload_print_file", description="Upload print files gcode etc."),
+        Permission(
+            name="upload_print_file", description="Upload print files gcode etc."
+        ),
     ]
 
     permissions_roles_and_auth = [
@@ -249,12 +377,19 @@ def seed_default_auth():
         Permission(name="delete_permission", description="Delete permissions"),
         Permission(name="assign_role", description="Assign roles to users"),
         Permission(name="assign_permission", description="Assign permissions to roles"),
-        Permission(name="remove_permission", description="Remove permissions from roles"),
+        Permission(
+            name="remove_permission", description="Remove permissions from roles"
+        ),
         Permission(name="remove_role", description="Remove roles from users"),
     ]
 
-    permissions = permissions_user + permissions_printer + permissions_print_job + permissions_files \
+    permissions = (
+        permissions_user
+        + permissions_printer
+        + permissions_print_job
+        + permissions_files
         + permissions_roles_and_auth
+    )
 
     # Add the permissions to the session
     db.session.add_all(permissions)
@@ -274,12 +409,16 @@ def seed_default_auth():
     # Assign limited permissions to the default role
     default_role = Role.query.filter_by(name="default").first()
     view_permission = Permission.query.filter_by(name="view_user_self").first()
-    db.session.add(RolePermission(role_id=default_role.id, permission_id=view_permission.id))
+    db.session.add(
+        RolePermission(role_id=default_role.id, permission_id=view_permission.id)
+    )
 
     # Assign all permissions to the root role
     root_role = Role.query.filter_by(name="root").first()
     for permission in permissions:
-        db.session.add(RolePermission(role_id=root_role.id, permission_id=permission.id))
+        db.session.add(
+            RolePermission(role_id=root_role.id, permission_id=permission.id)
+        )
 
     # Commit the session
     db.session.commit()
@@ -300,14 +439,18 @@ def init_db():
 
 
 def seed_all():
-    """Seed the database with default data """
+    """Seed the database with default data"""
     click.echo(click.style("Begin Seeding!", fg="green", bold=True))
 
     for seed_name, seed_func in SEED_FUNCTIONS.items():
         if seed_func():
-            click.echo(click.style(f"Successfully seeded {seed_name}", italic=True, fg="green"))
+            click.echo(
+                click.style(f"Successfully seeded {seed_name}", italic=True, fg="green")
+            )
         else:
-            click.echo(click.style(f"{seed_name} already seeded", fg="yellow", italic=True))
+            click.echo(
+                click.style(f"{seed_name} already seeded", fg="yellow", italic=True)
+            )
 
     click.echo(click.style("Seeding Complete!", fg="green", bold=True))
 
@@ -321,10 +464,10 @@ def backup_db(app):
             [
                 "pg_dump",
                 "-F",
-                'c',
-                '-b',
-                '-f',
-                'backup.dump',
+                "c",
+                "-b",
+                "-f",
+                "backup.dump",
                 app.config["SQLALCHEMY_DATABASE_URI"],
             ],
             check=True,
@@ -367,7 +510,9 @@ def restore_db(app):
         process = subprocess.run(cmd, env=env, capture_output=True, text=True)
 
         if process.returncode != 0:
-            raise subprocess.CalledProcessError(process.returncode, cmd, output=process.stdout, stderr=process.stderr)
+            raise subprocess.CalledProcessError(
+                process.returncode, cmd, output=process.stdout, stderr=process.stderr
+            )
 
         click.echo(click.style(f"Database restored from {backup_file}", fg="green"))
     except subprocess.CalledProcessError as e:
@@ -375,9 +520,10 @@ def restore_db(app):
 
 
 SEED_FUNCTIONS = {
-    'Auth': seed_default_auth,
-    'Printers': seed_default_printers,
+    "Auth": seed_default_auth,
+    "Printers": seed_default_printers,
 }
+
 
 def check_database_connection(max_retries=10, retry_interval=2):
     """Check if the database is ready for connections."""

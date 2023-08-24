@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from print_api.models import db
 
 
@@ -10,6 +11,16 @@ class BlacklistedToken(db.Model):
 
     def __init__(self, jti):
         self.jti = jti
+
+    def __repr__(self):
+        return f"<BlacklistedToken {self.jti}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "jti": self.jti,
+            "blacklisted_at": self.blacklisted_at,
+        }
 
     def add(self):
         db.session.add(self)

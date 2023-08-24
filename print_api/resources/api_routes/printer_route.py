@@ -1,16 +1,17 @@
 from flask import request, Blueprint
 from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
-from print_api.models import Printer, printer_schema
-from print_api.common.routing import custom_response
 
-printer_api = Blueprint('printers', __name__)
-printer_schema = printer_schema()
+from print_api.common.routing import custom_response
+from print_api.models import Printer, PrinterSchema
+
+printer_api = Blueprint("printers", __name__)
+printer_schema = PrinterSchema()
 
 NOTFOUNDPRINTER = "printer(s) not found"
 
 
-@printer_api.route('/update/<int:printer_id>', methods=['PUT'])
+@printer_api.route("/update/<int:printer_id>", methods=["PUT"])
 @jwt_required()
 def update_by_id(printer_id):
     """
@@ -23,7 +24,7 @@ def update_by_id(printer_id):
     return update_printer_details(printer, req_data)
 
 
-@printer_api.route('/update/<string:printer_name>', methods=['PUT'])
+@printer_api.route("/update/<string:printer_name>", methods=["PUT"])
 @jwt_required()
 def update_by_name(printer_name):
     """
@@ -36,7 +37,7 @@ def update_by_name(printer_name):
     return update_printer_details(printer, req_data)
 
 
-@printer_api.route('/increment/<int:printer_id>', methods=['PUT'])
+@printer_api.route("/increment/<int:printer_id>", methods=["PUT"])
 @jwt_required()
 def increment_by_id(printer_id):
     """
@@ -51,7 +52,7 @@ def increment_by_id(printer_id):
     return increment_printer_details(printer, req_data)
 
 
-@printer_api.route('/increment/<string:printer_name>', methods=['PUT'])
+@printer_api.route("/increment/<string:printer_name>", methods=["PUT"])
 @jwt_required()
 def increment_by_name(printer_name):
     """
@@ -67,7 +68,7 @@ def increment_by_name(printer_name):
     return custom_response(status_code=200, details=ser_printer)
 
 
-@printer_api.route('/view/all/', methods=['GET'])
+@printer_api.route("/view/all/", methods=["GET"])
 @jwt_required()
 def view_all_printers():
     """
@@ -77,7 +78,7 @@ def view_all_printers():
     return get_multiple_printer_details(Printer.get_all_printers())
 
 
-@printer_api.route('/view/<int:printer_id>', methods=['GET'])
+@printer_api.route("/view/<int:printer_id>", methods=["GET"])
 @jwt_required()
 def view_by_id(printer_id):
     """
@@ -88,7 +89,7 @@ def view_by_id(printer_id):
     return get_printer_details(Printer.get_printer_by_id(printer_id))
 
 
-@printer_api.route('/view/<string:printer_name>', methods=['GET'])
+@printer_api.route("/view/<string:printer_name>", methods=["GET"])
 @jwt_required()
 def view_by_name(printer_name):
     """
@@ -99,7 +100,7 @@ def view_by_name(printer_name):
     return get_printer_details(Printer.get_printer_by_name(printer_name))
 
 
-@printer_api.route('/delete/<int:printer_id>', methods=['DELETE'])
+@printer_api.route("/delete/<int:printer_id>", methods=["DELETE"])
 @jwt_required()
 def delete_by_id(printer_id):
     """
@@ -110,7 +111,7 @@ def delete_by_id(printer_id):
     return delete_printer(Printer.get_printer_by_id(printer_id))
 
 
-@printer_api.route('/delete/<string:printer_name>', methods=['DELETE'])
+@printer_api.route("/delete/<string:printer_name>", methods=["DELETE"])
 @jwt_required()
 def delete_by_name(printer_name):
     """
@@ -121,7 +122,7 @@ def delete_by_name(printer_name):
     return delete_printer(Printer.get_printer_by_name(printer_name))
 
 
-@printer_api.route('/add', methods=['POST'])
+@printer_api.route("/add", methods=["POST"])
 @jwt_required()
 def create():
     """
@@ -139,15 +140,18 @@ def create():
         return custom_response(status_code=400, details=err.messages)
 
     # check if printer already exists in the db
-    printer_in_db = Printer.get_printer_by_name(data.get('printer_name'))
+    printer_in_db = Printer.get_printer_by_name(data.get("printer_name"))
     if printer_in_db:
         message = {
-            'error': 'Printer already exists, please supply another printer name'}
+            "error": "Printer already exists, please supply another printer name"
+        }
         return custom_response(status_code=400, details=message)
 
     printer = Printer(data)
     printer.save()
-    return custom_response(status_code=200, extra_info="success", details=printer_schema.dump(printer))
+    return custom_response(
+        status_code=200, extra_info="success", details=printer_schema.dump(printer)
+    )
 
 
 def delete_printer(printer):
@@ -203,26 +207,32 @@ def increment_printer_details(printer, req_data):
     :param dict req_data: the dictionary of values used to increment the printer
     :return response: error or serialized updated printer
     """
-    allowed_keys = ("total_time_printed", "completed_prints",
-                    "failed_prints", "total_filament_used", "days_on_time")
+    allowed_keys = (
+        "total_time_printed",
+        "completed_prints",
+        "failed_prints",
+        "total_filament_used",
+        "days_on_time",
+    )
     if not printer:
         return None  # Printer not found
 
     # Calculating what data to fetch from printer model
-    request_dict = {k: req_data[k]
-                    for k in allowed_keys if k in req_data}
+    request_dict = {k: req_data[k] for k in allowed_keys if k in req_data}
 
     # Removing non incrementable values from the printer dict using the keys
     # to be incremented from the request
     printer_data = printer.get_model_dict()
-    printer_values = {k: printer_data[k]
-                      for k in request_dict.keys() if k in printer_data}
+    printer_values = {
+        k: printer_data[k] for k in request_dict.keys() if k in printer_data
+    }
 
     # Iterate over both dictionaries and increment the printer values by the
     # request values
     incremented_items = {}
     for (_, p_value), (i_key, i_value) in zip(
-            printer_values.items(), request_dict.items()):
+        printer_values.items(), request_dict.items()
+    ):
         if p_value is None:
             p_value = i_value
         else:

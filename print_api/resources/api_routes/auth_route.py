@@ -1,15 +1,18 @@
-from datetime import timedelta, datetime
-import os
-
 from flask import Blueprint, request
 from flask_cors import cross_origin
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
-from print_api.common.routing import custom_response
+from flask_jwt_extended import (
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+    get_jwt,
+)
+
 from print_api.common.auth import ldap_authenticate, generate_tokens
-from print_api.models import BlacklistedToken, User, user_schema
+from print_api.common.routing import custom_response
+from print_api.models import BlacklistedToken, User, UserSchema
 
 auth_api = Blueprint("auth", __name__)
-user_schema = user_schema()
+user_schema = UserSchema()
 
 
 @auth_api.route("/login", methods=["POST", "OPTIONS"])
@@ -35,14 +38,21 @@ def login():
 
         # Create tokens
         if user is None:
-            return custom_response(status_code=409, details="User does not exist. Please contact an admin")
+            return custom_response(
+                status_code=409, details="User does not exist. Please contact an admin"
+            )
 
         gen_access_token, gen_refresh_token = generate_tokens(uid)
 
-        return custom_response(status_code=200, details={"access_token": gen_access_token,
-                                                         "refresh_token": gen_refresh_token,
-                                                         "user": user_details},
-                               extra_info="Successfully logged in")
+        return custom_response(
+            status_code=200,
+            details={
+                "access_token": gen_access_token,
+                "refresh_token": gen_refresh_token,
+                "user": user_details,
+            },
+            extra_info="Successfully logged in",
+        )
     else:
         return custom_response(status_code=401, details="Invalid credentials")
 
@@ -53,21 +63,29 @@ def logout():
     """
     API Route to log out a user
     """
-    jti = get_jwt()['jti']
+    jti = get_jwt()["jti"]
     BlacklistedToken(jti).add()
     return custom_response(status_code=200, extra_info="Successfully logged out")
 
 
-@auth_api.route('/refresh', methods=['POST'])
+@auth_api.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh():
     jti = get_jwt()["jti"]
     if BlacklistedToken.is_blacklisted(jti):
-        return custom_response(status_code=401, details="Token has been revoked", extra_info="Reauthentication required")
+        return custom_response(
+            status_code=401,
+            details="Token has been revoked",
+            extra_info="Reauthentication required",
+        )
 
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
-    return custom_response(status_code=200, details={"access_token": access_token}, extra_info="Successfully refreshed")
+    return custom_response(
+        status_code=200,
+        details={"access_token": access_token},
+        extra_info="Successfully refreshed",
+    )
 
 
 def return_or_create_user(uid):
@@ -86,6 +104,8 @@ def get_main_user_details(user):
     ser_user = user_schema.dump(user)
     # Only return name, email, uid and user_level
     user_level = User.calculate_level_from_score(ser_user["user_score"])
-    ser_user = {key: ser_user[key] for key in ser_user.keys() & {"name", "email", "uid", "id"}}
+    ser_user = {
+        key: ser_user[key] for key in ser_user.keys() & {"name", "email", "uid", "id"}
+    }
     ser_user["user_level"] = user_level
     return ser_user

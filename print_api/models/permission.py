@@ -16,6 +16,13 @@ class Permission(db.Model):
     def __repr__(self):
         return f"<Permission {self.name}>"
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+        }
+
     @staticmethod
     def add(name, description) -> bool:
         if Permission.get(name) is not None:

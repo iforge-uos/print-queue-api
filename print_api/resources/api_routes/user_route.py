@@ -1,13 +1,12 @@
-import os
-
-from flask import request, Blueprint, current_app
+from flask import request, Blueprint
 from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
-from print_api.models import User, user_schema
+
 from print_api.common.routing import custom_response
+from print_api.models import User, UserSchema
 
 user_api = Blueprint("users", __name__)
-user_schema = user_schema()
+user_schema = UserSchema()
 
 
 @user_api.route("/update/<int:user_id>", methods=["PUT"])
@@ -55,7 +54,9 @@ def view_by_email(user_email):
     :param str user_email: email of the user record
     :return response: error or serialized user
     """
-    return get_user_details(User.get_user_by_email(user_email), search_string=user_email)
+    return get_user_details(
+        User.get_user_by_email(user_email), search_string=user_email
+    )
 
 
 @user_api.route("/delete/<int:user_id>", methods=["DELETE"])
@@ -115,7 +116,9 @@ def create():
 
     user = User(data)
     user.save()
-    return custom_response(status_code=200, extra_info="success", details=user_schema.dump(user))
+    return custom_response(
+        status_code=200, extra_info="success", details=user_schema.dump(user)
+    )
 
 
 def delete_user(user, search_string):
@@ -125,7 +128,9 @@ def delete_user(user, search_string):
     :return response: error or success message
     """
     if not user:
-        return custom_response(status_code=404, details=f"user '{search_string}' not found")
+        return custom_response(
+            status_code=404, details=f"user '{search_string}' not found"
+        )
     user_name = user.name
     user.delete()
     return custom_response(status_code=200, extra_info=f"deleted user: {user_name}")
@@ -138,9 +143,13 @@ def get_user_details(user, search_string):
     :return response: error or serialized user
     """
     if not user:
-        return custom_response(status_code=404, details=f"user '{search_string}' not found")
+        return custom_response(
+            status_code=404, details=f"user '{search_string}' not found"
+        )
 
-    return custom_response(status_code=200, details={"user":user.to_dict()}, extra_info="success")
+    return custom_response(
+        status_code=200, details={"user": user.to_dict()}, extra_info="success"
+    )
 
 
 def update_user_details(user, req_data, search_string):
@@ -151,7 +160,9 @@ def update_user_details(user, req_data, search_string):
     :return response: error or serialized updated user details
     """
     if not user:
-        return custom_response(status_code=404, details=f"user '{search_string}' not found")
+        return custom_response(
+            status_code=404, details=f"user '{search_string}' not found"
+        )
 
     # Check if user score is being changed and level needs to be updated
     if (req_data.get("user_score") is not None) and not user.score_editable:

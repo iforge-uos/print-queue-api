@@ -50,6 +50,31 @@ class User(db.Model):
         self.slice_failed_count = data.get("slice_failed_count")
         self.slice_rejected_count = data.get("slice_rejected_count")
 
+    def __repr__(self):
+        if self.short_name is None:
+            return "<User: %r>" % self.name
+        else:
+            return "<User: %r>" % self.short_name
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "short_name": self.short_name,
+            "uid": self.uid,
+            "user_score": self.user_score,
+            "is_rep": self.is_rep,
+            "score_editable": self.score_editable,
+            "completed_count": self.completed_count,
+            "failed_count": self.failed_count,
+            "rejected_count": self.rejected_count,
+            "slice_completed_count": self.slice_completed_count,
+            "slice_failed_count": self.slice_failed_count,
+            "slice_rejected_count": self.slice_rejected_count,
+            "user_level": User.calculate_level_from_score(self.user_score),
+        }
+
     @staticmethod
     def create_from_ldap(uid) -> bool:
         ldap = LDAP()
@@ -93,13 +118,6 @@ class User(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def to_dict(self):
-        data = {
-            column.name: getattr(self, column.name) for column in self.__table__.columns
-        }
-        data["user_level"] = User.calculate_level_from_score(data["user_score"])
-        return data
-
     def has_role(self, role_id) -> bool:
         return UserRole.get(self.id, role_id) is not None
 
@@ -118,13 +136,13 @@ class User(db.Model):
         return User.query.all()
 
     @staticmethod
-    def get_user_by_id(id):
+    def get_user_by_id(u_id):
         """
         Function to get a user by their ID
-        :param int id: the PK of the user
+        :param int u_id: the PK of the user
         :return query_object: a query object containing the user
         """
-        return User.query.get(id)
+        return User.query.get(u_id)
 
     @staticmethod
     def get_user_by_email(value):
@@ -169,14 +187,8 @@ class User(db.Model):
                 level = value
         return level
 
-    def __repr__(self):
-        if self.short_name is None:
-            return "<User: %r>" % self.name
-        else:
-            return "<User: %r>" % self.short_name
 
-
-class user_schema(Schema):
+class UserSchema(Schema):
     """
     User Schema
     """

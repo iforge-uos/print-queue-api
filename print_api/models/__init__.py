@@ -4,11 +4,11 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 from .user_role import UserRole
-from .user import User, user_schema
+from .user import User, UserSchema
 from .role_permission import RolePermission
 from .role import Role
 from .permission import Permission
-from .printers import Printer, printer_schema, printer_type, printer_location
-from .maintenance_logs import MaintenanceLog, maintenance_schema
+from .printers import Printer, PrinterSchema, PrinterType, PrinterLocation
+from .maintenance_logs import MaintenanceLog, MaintenanceSchema
 from .blacklisted_tokens import BlacklistedToken
-from .print_jobs import PrintJob, print_job_schema
+from .print_jobs import PrintJob, PrintJobSchema

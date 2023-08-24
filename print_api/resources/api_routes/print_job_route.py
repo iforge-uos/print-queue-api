@@ -7,12 +7,12 @@ from marshmallow.exceptions import ValidationError
 
 from print_api.common.emails import email
 from print_api.common.routing import custom_response
-from print_api.models import PrintJob, print_job_schema, Printer, User
-from print_api.models.print_jobs import job_status
+from print_api.models import PrintJob, PrintJobSchema, Printer, User
+from print_api.models.print_jobs import JobStatus
 from print_api.resources.api_routes.printer_route import increment_printer_details
 
 print_job_api = Blueprint("print jobs", __name__)
-print_job_schema = print_job_schema()
+print_job_schema = PrintJobSchema()
 
 JOB_NOT_FOUND = "job(s) not found"
 USER_ID_ERROR = "user(s) not found"
@@ -65,7 +65,7 @@ def view_jobs_by_status(status):
     :return response: error or list of serialized jobs matching filter
     """
     # Sanity check url
-    if status not in job_status._member_names_:
+    if status not in JobStatus._member_names_:
         return custom_response(status_code=400, details=STATUS_ERROR)
     # Return a list of jason objects that match status query
     return get_multiple_job_details(PrintJob.get_print_jobs_by_status(status))
@@ -80,7 +80,7 @@ def accept_approval_job(job_id):
     if validation_error:
         return validation_error
 
-    validation_error = validate_job_status(job, job_status.approval)
+    validation_error = validate_job_status(job, JobStatus.approval)
     if validation_error:
         return validation_error
 
@@ -96,7 +96,7 @@ def reject_approval_job(job_id):
     if validation_error:
         return validation_error
 
-    validation_error = validate_job_status(job, job_status.approval)
+    validation_error = validate_job_status(job, JobStatus.approval)
     if validation_error:
         return validation_error
 
@@ -119,7 +119,7 @@ def start_queued_job(job_id):
     if validation_error:
         return validation_error
 
-    validation_error = validate_job_status(job, job_status.queued)
+    validation_error = validate_job_status(job, JobStatus.queued)
     if validation_error:
         return validation_error
 
@@ -127,7 +127,7 @@ def start_queued_job(job_id):
     if validation_error:
         return validation_error
 
-    request_dict["status"] = job_status.running.name
+    request_dict["status"] = JobStatus.running.name
     request_dict["date_started"] = datetime.now().isoformat()
     return update_job_details(job, request_dict)
 
@@ -141,7 +141,7 @@ def complete_job(job_id):
     if validation_error:
         return validation_error
 
-    validation_error = validate_job_status(job, job_status.running)
+    validation_error = validate_job_status(job, JobStatus.running)
     if validation_error:
         return validation_error
 
@@ -159,7 +159,7 @@ def complete_job(job_id):
         return validation_error
 
     job_change_values = {
-        "status": job_status.completed.name,
+        "status": JobStatus.completed.name,
         "date_ended": datetime.now().isoformat(),
     }
 
@@ -212,13 +212,13 @@ def reject_job(job_id):
         return custom_response(status_code=404, details=JOB_NOT_FOUND)
 
     # Check the job is queued or under-review
-    if job.status not in [job_status.queued, job_status.under_review]:
+    if job.status not in [JobStatus.queued, JobStatus.under_review]:
         return custom_response(
             status_code=400, details="Job not under-review (or queued)"
         )
 
     job_change_values = {
-        "status": job_status.rejected.name,
+        "status": JobStatus.rejected.name,
         "date_ended": datetime.now().isoformat(),
     }
 
@@ -259,11 +259,11 @@ def queue_job(job_id):
         return custom_response(status_code=404, details=JOB_NOT_FOUND)
 
     # Check the job is queued or under-review
-    if job.status is not job_status.under_review:
+    if job.status is not JobStatus.under_review:
         return custom_response(status_code=400, details="Job not under-review")
 
     job_change_values = {
-        "status": job_status.queued.name,
+        "status": JobStatus.queued.name,
     }
 
     try:
@@ -293,11 +293,11 @@ def review_job(job_id):
         return custom_response(status_code=404, details=JOB_NOT_FOUND)
 
     # Check the job is queued or under-review
-    if job.status is not job_status.queued:
+    if job.status is not JobStatus.queued:
         return custom_response(status_code=400, details="Job not queued")
 
     job_change_values = {
-        "status": job_status.under_review.name,
+        "status": JobStatus.under_review.name,
     }
 
     try:
@@ -552,7 +552,7 @@ def validate_start_queued_input(req_data):
 def validate_printer(printer_id, job):
     if not check_printer_id(printer_id):
         return custom_response(status_code=404, details="Printer Not Found")
-    if Printer.get_printer_by_id(printer_id).printer_type != job.printer_type:
+    if Printer.get_printer_by_id(printer_id).PrinterType != job.PrinterType:
         return custom_response(status_code=400, details="Printer Type mismatch")
     if running_on_printer(printer_id):
         return custom_response(status_code=400, details="Associated Printer is in use")
@@ -590,7 +590,7 @@ def validate_input(requeue, job):
     if not job:
         return custom_response(status_code=404, details=JOB_NOT_FOUND)
 
-    if job.status != job_status.running:
+    if job.status != JobStatus.running:
         return custom_response(status_code=400, details="Job not running")
     return None
 
@@ -616,7 +616,7 @@ def handle_requeue(job):
         requeue_n = int(re.findall(r"\d+", requeue_lines[-1])[0])
         queue_notes.append(f"Requeue #{requeue_n + 1}")
 
-    return {"status": job_status.queued.name, "queue_notes": "\n".join(queue_notes)}
+    return {"status": JobStatus.queued.name, "queue_notes": "\n".join(queue_notes)}
 
 
 def handle_failure(job):
@@ -629,6 +629,6 @@ def handle_failure(job):
         return custom_response(status_code=404, details=STATUS_ERROR)
 
     return {
-        "status": job_status.failed.name,
+        "status": JobStatus.failed.name,
         "date_ended": datetime.now().isoformat(),
     }

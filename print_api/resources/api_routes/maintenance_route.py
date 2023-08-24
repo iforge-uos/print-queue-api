@@ -1,17 +1,17 @@
-from flask_jwt_extended import jwt_required
-
 from flask import request, Blueprint
+from flask_jwt_extended import jwt_required
 from marshmallow.exceptions import ValidationError
-from print_api.models import Printer, MaintenanceLog, maintenance_schema
-from print_api.common.routing import custom_response
 
-maintenance_api = Blueprint('maintenance logs', __name__)
-maintenance_schema = maintenance_schema()
+from print_api.common.routing import custom_response
+from print_api.models import Printer, MaintenanceLog, MaintenanceSchema
+
+maintenance_api = Blueprint("maintenance logs", __name__)
+maintenance_schema = MaintenanceSchema()
 
 NOTFOUNDMAINTENANCE = "maintenance log(s) not found"
 
 
-@maintenance_api.route('/update/<int:log_id>', methods=['PUT'])
+@maintenance_api.route("/update/<int:log_id>", methods=["PUT"])
 @jwt_required()
 def update_by_id(log_id):
     """
@@ -24,7 +24,7 @@ def update_by_id(log_id):
     return update_log_details(log, req_data)
 
 
-@maintenance_api.route('/view/single/<int:log_id>', methods=['GET'])
+@maintenance_api.route("/view/single/<int:log_id>", methods=["GET"])
 @jwt_required()
 def view_single_by_id(log_id):
     """
@@ -35,7 +35,7 @@ def view_single_by_id(log_id):
     return get_log_details(MaintenanceLog.get_maintenance_log_by_id(log_id))
 
 
-@maintenance_api.route('/view/all/<string:printer_name>', methods=['GET'])
+@maintenance_api.route("/view/all/<string:printer_name>", methods=["GET"])
 @jwt_required()
 def view_all_by_printer_name(printer_name):
     """
@@ -50,10 +50,11 @@ def view_all_by_printer_name(printer_name):
 
     # Then return the jason payload of any logs for that printer
     return get_multiple_log_details(
-        MaintenanceLog.get_maintenance_logs_by_printer_id(printer.id))
+        MaintenanceLog.get_maintenance_logs_by_printer_id(printer.id)
+    )
 
 
-@maintenance_api.route('/view/all/<int:printer_id>', methods=['GET'])
+@maintenance_api.route("/view/all/<int:printer_id>", methods=["GET"])
 @jwt_required()
 def view_all_by_printer_id(printer_id):
     """
@@ -62,10 +63,11 @@ def view_all_by_printer_id(printer_id):
     :return response: an error or the serialized printers
     """
     return get_multiple_log_details(
-        MaintenanceLog.get_maintenance_logs_by_printer_id(printer_id))
+        MaintenanceLog.get_maintenance_logs_by_printer_id(printer_id)
+    )
 
 
-@maintenance_api.route('/delete/<int:log_id>', methods=['DELETE'])
+@maintenance_api.route("/delete/<int:log_id>", methods=["DELETE"])
 @jwt_required()
 def delete_by_id(log_id):
     """
@@ -76,7 +78,7 @@ def delete_by_id(log_id):
     return delete_log(MaintenanceLog.get_maintenance_log_by_id(log_id))
 
 
-@maintenance_api.route('/add', methods=['POST'])
+@maintenance_api.route("/add", methods=["POST"])
 @jwt_required()
 def create():
     """
@@ -86,7 +88,7 @@ def create():
     req_data = request.get_json()
 
     # Check if printer_id exists
-    printer_id = req_data['printer_id']
+    printer_id = req_data["printer_id"]
     if Printer.get_printer_by_id(printer_id) is None:
         return custom_response(status_code=404, details="Printer is not found")
 
@@ -101,7 +103,9 @@ def create():
 
     log = MaintenanceLog(data)
     log.save()
-    return custom_response(status_code=200, extra_info="success", details=maintenance_schema.dump(log))
+    return custom_response(
+        status_code=200, extra_info="success", details=maintenance_schema.dump(log)
+    )
 
 
 def delete_log(log):
@@ -113,7 +117,7 @@ def delete_log(log):
     if not log:
         return custom_response(status_code=404, details=NOTFOUNDMAINTENANCE)
     log.delete()
-    return custom_response(status_code=200, extra_info='deleted')
+    return custom_response(status_code=200, extra_info="deleted")
 
 
 def get_log_details(log):
@@ -155,7 +159,9 @@ def update_log_details(log, req_data):
 
     # only allow updating log details
     if not ("maintenance_info" in req_data and len(req_data) == 1):
-        return custom_response(status_code=403, details="You can only update the maintenance_info field")
+        return custom_response(
+            status_code=403, details="You can only update the maintenance_info field"
+        )
     # Try and load log data to the schema
     try:
         data = maintenance_schema.load(req_data, partial=True)

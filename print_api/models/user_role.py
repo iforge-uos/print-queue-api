@@ -16,6 +16,12 @@ class UserRole(db.Model):
     def __repr__(self):
         return f"<UserRole {self.user_id} {self.role_id}>"
 
+    def to_dict(self):
+        return {
+            "user_id": self.user_id,
+            "role_id": self.role_id,
+        }
+
     @staticmethod
     def add(user_id, role_id):
         if UserRole.get(user_id, role_id) is not None:
@@ -27,7 +33,7 @@ class UserRole(db.Model):
 
     @staticmethod
     def get(user_id, role_id):
-        return UserRole.query.get(user_id=user_id, role_id=role_id)
+        return UserRole.query.get((user_id, role_id))
 
     @staticmethod
     def get_all_by_user(user_id):

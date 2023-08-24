@@ -1,16 +1,17 @@
-from importlib.metadata import requires
-from marshmallow import fields, Schema
-from marshmallow_enum import EnumField
-from print_api.models import db
 import enum
 
+from marshmallow import fields, Schema
+from marshmallow_enum import EnumField
 
-class printer_location(enum.Enum):
+from print_api.models import db
+
+
+class PrinterLocation(enum.Enum):
     heartspace = "Heartspace"
     diamond = "Diamond"
 
 
-class printer_type(enum.Enum):
+class PrinterType(enum.Enum):
     ultimaker = "Ultimaker Extended 2+"
     prusa = "Prusa MK3S+"
 
@@ -23,7 +24,7 @@ class Printer(db.Model):
     __tablename__ = "printers"
     id = db.Column(db.Integer, primary_key=True)
     printer_name = db.Column(db.String(50), nullable=False, unique=True)
-    printer_type = db.Column(db.Enum(printer_type), nullable=False)
+    printer_type = db.Column(db.Enum(PrinterType), nullable=False)
     ip = db.Column(db.String(15), nullable=True)
     api_key = db.Column(db.String(50), nullable=True)
     total_time_printed = db.Column(db.Integer(), nullable=True)
@@ -31,7 +32,7 @@ class Printer(db.Model):
     failed_prints = db.Column(db.Integer(), nullable=True)
     total_filament_used = db.Column(db.Integer(), nullable=True)
     days_on_time = db.Column(db.Integer(), nullable=True)
-    location = db.Column(db.Enum(printer_location), nullable=False)
+    location = db.Column(db.Enum(PrinterLocation), nullable=False)
 
     # class constructor
 
@@ -49,6 +50,24 @@ class Printer(db.Model):
         self.total_filament_used = data.get("total_filament_used")
         self.days_on_time = data.get("days_on_time")
         self.location = data.get("location")
+
+    def __repr__(self):
+        return "<Printer: %r>" % self.printer_name
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "printer_name": self.printer_name,
+            "printer_type": self.printer_type,
+            "ip": self.ip,
+            "api_key": self.api_key,
+            "total_time_printed": self.total_time_printed,
+            "completed_prints": self.completed_prints,
+            "failed_prints": self.failed_prints,
+            "total_filament_used": self.total_filament_used,
+            "days_on_time": self.days_on_time,
+            "location": self.location,
+        }
 
     def save(self):
         """
@@ -88,35 +107,32 @@ class Printer(db.Model):
         return Printer.query.all()
 
     @staticmethod
-    def get_printer_by_id(id):
+    def get_printer_by_id(p_id):
         """
         Function to get a single printer from the database by its ID
-        :param int id: the PK of the printer
+        :param int p_id: the PK of the printer
         :return query_object: a query object containing the printer
         """
-        return Printer.query.get(id)
+        return Printer.query.get(p_id)
 
     @staticmethod
     def get_printer_by_name(value):
         """
         Function to get a single printer from the database by its name
-        :param str name: the string name of the printer
+        :param str value: the string name of the printer
         :return query_object: a query object containing the printer
         """
         return Printer.query.filter_by(printer_name=value).first()
 
-    def __repr__(self):
-        return "<Printer: %r>" % self.printer_name
 
-
-class printer_schema(Schema):
+class PrinterSchema(Schema):
     """
     Printer Schema
     """
 
     id = fields.Int(dump_only=True)
     printer_name = fields.String(required=True)
-    printer_type = EnumField(printer_type, required=True)
+    printer_type = EnumField(PrinterType, required=True)
     ip = fields.String(required=False, allow_none=True, missing="")
     api_key = fields.String(required=False, allow_none=True, missing="")
     total_time_printed = fields.Int(required=False)
@@ -124,4 +140,4 @@ class printer_schema(Schema):
     failed_prints = fields.Int(required=False)
     total_filament_used = fields.Int(required=False)
     days_on_time = fields.Int(required=False)
-    location = EnumField(printer_location, required=True)
+    location = EnumField(PrinterLocation, required=True)

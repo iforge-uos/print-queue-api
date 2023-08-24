@@ -11,12 +11,21 @@ class RolePermission(db.Model):
     role = db.relationship("Role", back_populates="permissions")
     permission = db.relationship("Permission", back_populates="roles")
 
+    def __repr__(self):
+        return f"<RolePermission {self.role_id} {self.permission_id}>"
+
+    def to_dict(self):
+        return {
+            "role_id": self.role_id,
+            "permission_id": self.permission_id,
+        }
+
     @staticmethod
     def add(role_id, permission_id) -> bool:
         if RolePermission.get(role_id, permission_id) is not None:
             return False
-        rolePermission = RolePermission(role_id=role_id, permission_id=permission_id)
-        db.session.add(rolePermission)
+        role_permission = RolePermission(role_id=role_id, permission_id=permission_id)
+        db.session.add(role_permission)
         db.session.commit()
         return True
 

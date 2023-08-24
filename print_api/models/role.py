@@ -10,6 +10,15 @@ class Role(db.Model):
         "UserRole", back_populates="role"
     )  # refers to 'role' in 'UserRole'
 
+    def __repr__(self):
+        return f"<Role {self.name}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
+
     @staticmethod
     def add(name) -> bool:
         if Role.get(name) is not None:
@@ -22,6 +31,10 @@ class Role(db.Model):
     @staticmethod
     def get(role_id):
         return Role.query.get(role_id)
+
+    @staticmethod
+    def get_by_name(name):
+        return Role.query.filter_by(name=name).first()
 
     @staticmethod
     def update(role_id, name):
@@ -42,3 +55,7 @@ class Role(db.Model):
 
         db.session.delete(role)
         db.session.commit()
+
+    @staticmethod
+    def get_all():
+        return Role.query.all()
