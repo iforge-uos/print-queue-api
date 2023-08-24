@@ -1,6 +1,9 @@
 from flask import Blueprint
-from print_api.common.routing import custom_response
+
 import print_api.common.tasks as tasks
+from print_api.common.auth import role_required
+from print_api.common.routing import custom_response
+
 other_api = Blueprint("misc", __name__)
 
 
@@ -16,6 +19,7 @@ def test():
 
 
 @other_api.route("/legal", methods=["GET"])
+@role_required("root")
 def test_2():
     """
     Test Endpoint 2

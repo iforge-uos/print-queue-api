@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -30,6 +31,8 @@ class Config:
     DEBUG: bool
     TESTING: bool
     SQLALCHEMY_TRACK_MODIFICATIONS: bool
+    REDIS_URI: str
+    REDIS_EXPIRY: int
     CELERY_BROKER_URL: str
     CELERY_RESULT_BACKEND: str
     RATELIMIT_STORAGE_URI: str
@@ -76,6 +79,8 @@ def load_env_vars(env_file):
         SQLALCHEMY_TRACK_MODIFICATIONS=bool(
             os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", False)
         ),
+        REDIS_URI=os.getenv("REDIS_URI"),
+        REDIS_EXPIRY=int(os.getenv("REDIS_EXPIRY", 3600)),
         CELERY_BROKER_URL=os.getenv("CELERY_BROKER_URL"),
         CELERY_RESULT_BACKEND=os.getenv("CELERY_RESULT_BACKEND"),
         RATELIMIT_STORAGE_URI=os.getenv("RATELIMIT_STORAGE_URI"),
