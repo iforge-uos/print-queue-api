@@ -7,7 +7,7 @@ This is a "simple" application that will provide an endpoint for the print queue
 
 
 ## Requirements
-- Python >= 3.9
+- Python >= 3.11
 - Postgresql Database
 - Redis Database
 - Docker (optional)

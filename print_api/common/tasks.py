@@ -53,7 +53,7 @@ def update_user_roles_in_cache(self, user_id):
        uri=app.config["REDIS_URI"],
        ex=app.config["REDIS_EXPIRY"]
     )
-    store.store_user_roles(user_id, roles)
+    store.store_user_permissions(user_id, roles)
 
 
 @celery.task(bind=True)
@@ -71,4 +71,4 @@ def update_all_user_roles_in_cache(self):
     )
     for user in users:
         roles = UserRole.get_all_by_user(user.id)
-        store.store_user_roles(user.id, roles)
+        store.store_user_permissions(user.id, roles)

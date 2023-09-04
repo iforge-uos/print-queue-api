@@ -31,7 +31,7 @@ class RolePermission(db.Model):
 
     @staticmethod
     def get(role_id, permission_id):
-        return RolePermission.query.get(role_id=role_id, permission_id=permission_id)
+        return RolePermission.query.get((role_id, permission_id))
 
     @staticmethod
     def get_all_by_role(role_id):

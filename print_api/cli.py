@@ -396,7 +396,9 @@ def seed_default_auth():
 
     # Create the roles
     roles = [
-        Role(name="default"),
+        Role(name="user"),
+        Role(name="rep"),
+        Role(name="print_team"),
         Role(name="root"),
     ]
 
@@ -406,19 +408,43 @@ def seed_default_auth():
     # Flush the session to populate ids
     db.session.flush()
 
-    # Assign limited permissions to the default role
-    default_role = Role.query.filter_by(name="default").first()
-    view_permission = Permission.query.filter_by(name="view_user_self").first()
-    db.session.add(
-        RolePermission(role_id=default_role.id, permission_id=view_permission.id)
-    )
+    # Assign permissions to the user role
+    user_role = Role.query.filter_by(name="user").first()
+    user_permissions = [
+        "view_user_self",
+        "view_print_job_self",
+        "create_print_job_self",
+        "edit_print_job_self",
+        "delete_print_job_self",
+        "upload_model_file",
+        "upload_print_file",
+    ]
+    for permission_name in user_permissions:
+        permission = Permission.query.filter_by(name=permission_name).first()
+        RolePermission.add(user_role.id, permission.id)
+
+    # Assign permissions to the rep role (all user permissions + more)
+    rep_role = Role.query.filter_by(name="rep").first()
+    rep_permissions = user_permissions + [
+        "view_user_any",
+        "create_user",
+        "edit_user",
+    ]
+    for permission_name in rep_permissions:
+        permission = Permission.query.filter_by(name=permission_name).first()
+        RolePermission.add(rep_role.id, permission.id)
+
+    # Assign permissions to the print team role (all rep permissions + more)
+    print_team_role = Role.query.filter_by(name="print_team").first()
+    print_team_permissions = rep_permissions  # TODO FIX THIS
+    for permission_name in print_team_permissions:
+        permission = Permission.query.filter_by(name=permission_name).first()
+        RolePermission.add(print_team_role.id, permission.id)
 
     # Assign all permissions to the root role
     root_role = Role.query.filter_by(name="root").first()
     for permission in permissions:
-        db.session.add(
-            RolePermission(role_id=root_role.id, permission_id=permission.id)
-        )
+        RolePermission.add(root_role.id, permission.id)
 
     # Commit the session
     db.session.commit()

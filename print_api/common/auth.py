@@ -61,6 +61,36 @@ def check_user_roles(required_roles):
     return set(required_roles).issubset(set(role_list))
 
 
+def check_user_permissions(required_permissions):
+    """Check the user's permissions against the required permissions."""
+    uid = get_jwt_identity()
+
+    user = User.get_user_by_uid(uid)
+
+    if user is None:
+        return False
+
+    cache = c.RedisCache(
+        uri=current_app.config["REDIS_URI"],
+        ex=current_app.config["REDIS_EXPIRY"]
+
+    )
+
+    if not cache.has_user_permissions(user.id):
+        update_user_roles_in_cache.delay(user.id)  # Trigger Celery task
+        # Fetch roles from the database if not in cache
+        role_mapping = UserRole.get_all_by_user(user.id)  # Assuming UserRole has this method
+
+        permission_list = []
+        for rm in role_mapping:
+            for permission in rm.role.permissions:
+                permission_list.append(permission.name)
+    else:
+        permission_list = cache.get_user_permissions(user.id)
+
+    return set(required_permissions).issubset(set(permission_list))
+
+
 def role_required(*required_roles):
     """Wrapper function to protect an endpoint by required roles."""
 
@@ -69,6 +99,22 @@ def role_required(*required_roles):
         @jwt_required()
         def wrapper(*args, **kwargs):
             if not check_user_roles(required_roles):
+                return custom_response(403, None, "Insufficient permissions")
+            return fn(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def permission_required(*required_permissions):
+    """Wrapper function to protect an endpoint by required permissions."""
+
+    def decorator(fn):
+        @wraps(fn)
+        @jwt_required()
+        def wrapper(*args, **kwargs):
+            if not check_user_permissions(required_permissions):
                 return custom_response(403, None, "Insufficient permissions")
             return fn(*args, **kwargs)
 

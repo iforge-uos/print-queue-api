@@ -73,6 +73,16 @@ def view_jobs_by_status(status):
     return get_multiple_job_details(PrintJob.get_print_jobs_by_status(status))
 
 
+@print_job_api.route("/job", methods=["GET"])
+@jwt_required()
+def view_all_jobs():
+    """
+    Function to return a list of all serialised print jobs
+    :return response: error or list of serialised jobs matching filter
+    """
+    return get_multiple_job_details(PrintJob.get_all_print_jobs())
+
+
 @print_job_api.route("/job/<int:job_id>/<string:action>", methods=["PUT"])
 @jwt_required()
 def action_job(job_id, action):
