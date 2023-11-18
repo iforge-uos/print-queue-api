@@ -74,7 +74,7 @@ def entrypoint(
 def configure_app(app, config_env: str = "development"):
     conf = load_config(config_env)
 
-    print(conf.SENTRY_DSN, conf.SENTRY_SAMPLES_RATE)
+    print(f"Loaded config for {config_env}")
     sentry_sdk.init(
         dsn=conf.SENTRY_DSN,
         traces_sample_rate=conf.SENTRY_SAMPLES_RATE,

@@ -70,7 +70,7 @@ def delete_by_id(user_id):
     return delete_user(User.get_user_by_id(user_id), search_string=user_id)
 
 
-@user_api.route("/delete/<string:user_email>", methods=["DELETE"])
+@user_api.route("/user/<string:user_email>", methods=["DELETE"])
 @jwt_required()
 def delete_by_email(user_email):
     """

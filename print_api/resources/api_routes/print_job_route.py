@@ -142,7 +142,7 @@ def delete_job(job_id):
 
 # Action Callbacks
 def action_accept(job) -> Response:
-    validation_error = validate_job_status(job, JobStatus.approval)
+    validation_error = validate_job_status(job, JobStatus.under_review)
     if validation_error:
         return validation_error
 
@@ -150,7 +150,7 @@ def action_accept(job) -> Response:
 
 
 def action_reject(job):
-    validation_error = validate_job_status(job, JobStatus.approval)
+    validation_error = validate_job_status(job, JobStatus.under_review)
     if validation_error:
         return validation_error
 
@@ -160,7 +160,7 @@ def action_reject(job):
         )
 
     job_change_values = {
-        "status":     JobStatus.rejected.name,
+        "status": JobStatus.rejected.name,
         "date_ended": datetime.now().isoformat(),
     }
 
@@ -203,8 +203,8 @@ def action_complete(job):
     if validation_error:
         return validation_error
     printer_increment_values = {
-        "total_time_printed":  job.print_time,
-        "completed_prints":    1,
+        "total_time_printed": job.print_time,
+        "completed_prints": 1,
         "total_filament_used": job.filament_usage,
     }
     validation_error = update_printer_telemetry(job, printer_increment_values)
@@ -216,7 +216,7 @@ def action_complete(job):
         return validation_error
 
     job_change_values = {
-        "status":     JobStatus.completed.name,
+        "status": JobStatus.completed.name,
         "date_ended": datetime.now().isoformat(),
     }
 

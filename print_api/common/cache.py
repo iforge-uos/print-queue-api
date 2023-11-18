@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urlparse
 
 import redis
 
@@ -14,7 +15,8 @@ class RedisCache(object):
         """
 
         # Parse the connection string for the various components
-        self.r = redis.StrictRedis.from_url(uri)
+        uri = urlparse(uri)
+        self.r = redis.Redis(host=uri.hostname, port=uri.port, password=uri.password)
         self.ex = ex
         self.prefix = "print_api_role_cache:"
 
@@ -30,7 +32,7 @@ class RedisCache(object):
             user_role_names.append(user_role.role.name)
 
         serialized_roles = json.dumps(user_role_names)
-        key = self.prefix+str(user_id)
+        key = self.prefix + str(user_id)
         self.r.set(key, serialized_roles, ex=self.ex)
 
     def store_user_permissions(self, user_id, user_roles):
@@ -46,7 +48,7 @@ class RedisCache(object):
                 user_permission_names.append(permission.name)
 
         serialized_permissions = json.dumps(user_permission_names)
-        key = self.prefix+str(user_id)
+        key = self.prefix + str(user_id)
         self.r.set(key, serialized_permissions, ex=self.ex)
 
     def get_user_roles(self, user_id) -> list[str]:

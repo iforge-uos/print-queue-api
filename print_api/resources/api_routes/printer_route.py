@@ -234,9 +234,9 @@ def increment_printer_details(printer, req_data):
         printer_values.items(), request_dict.items()
     ):
         if p_value is None:
-            p_value = i_value
+            p_value = int(i_value)
         else:
-            p_value += i_value
+            p_value += int(i_value)
         incremented_items[i_key] = p_value
     # Try and load printer data to the schema
     try:

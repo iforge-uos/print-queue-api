@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   server:
+    networks:
+      - print_network
     env_file:
       - .env.docker
     build: .
@@ -11,6 +13,8 @@ services:
       - db
       - cache
   worker:
+    networks:
+      - print_network
     user: iforger-worker
     build: .
     command: celery -A entrypoint_celery worker --loglevel=info
@@ -21,15 +25,32 @@ services:
       - db
       - cache
   db:
+    networks:
+      - print_network
+    ports:
+      - "5432:5432"
     image: postgres:13
     env_file:
       - .env.docker
     volumes:
       - db_data:/var/lib/postgresql/data
   cache:
+    networks:
+      - print_network
+    ports:
+      - "6379:6379"
     image: redis:6.2
     volumes:
       - redis_data:/data
+
 volumes:
   db_data:
   redis_data:
+
+networks:
+  print_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.26.0.0/16
